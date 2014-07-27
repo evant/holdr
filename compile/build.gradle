@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.6
+
+dependencies {
+    compile 'net.sf.kxml:kxml2:2.3.0'
+    compile 'com.sun.codemodel:codemodel:2.6'
+    compile 'commons-io:commons-io:2.4'
+
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+}

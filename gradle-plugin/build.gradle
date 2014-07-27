@@ -1,0 +1,9 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile project(':compile')
+    compile 'com.android.tools.build:gradle:0.11.+'
+}
