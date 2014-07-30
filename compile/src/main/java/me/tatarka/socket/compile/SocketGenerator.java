@@ -29,49 +29,24 @@ public class SocketGenerator {
         JPackage pkg = m._package(packageName + ".sockets");
 
         try {
-            JClass viewHolder = m.ref("me.tatarka.socket.Socket");
-            JClass viewClass = m.ref("android.view.View");
-            JClass viewGroupClass = m.ref("android.view.ViewGroup");
-            JClass layoutInflaterClass = m.ref("android.view.LayoutInflater");
-            JClass androidRClass = m.ref("android.R");
-            JClass rClass = m.ref(packageName + ".R");
-            JClass activityClass = m.ref("android.app.Activity");
-            JClass fragmentClass = m.ref("android.app.Fragment");
+            Refs refs = new Refs(m, packageName);
 
             // public class MyLayoutViewModel {
-            JDefinedClass clazz = pkg._class(PUBLIC, className)._extends(viewHolder);
+            JDefinedClass clazz = pkg._class(PUBLIC, className)._extends(refs.viewHolder);
 
             // public static final int LAYOUT = R.id.my_layout;
-            JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", rClass.staticRef("layout").ref(layoutName));
+            JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", refs.rClass.staticRef("layout").ref(layoutName));
 
-            // public LinearLayout myLinearLayout;
-            // public TextView myTextView;
-            Map<View, JFieldVar> fieldVarMap = new LinkedHashMap<View, JFieldVar>();
-            for (View view : views) {
-                genFields(m, clazz, view, fieldVarMap);
-            }
+            Map<View, JFieldVar> fieldVarMap = genFields(refs, clazz, views);
 
-            // private MyLayoutViewModel(View view) {
-            JMethod constructor = clazz.constructor(PRIVATE);
-            JVar viewVar = constructor.param(viewClass, "view");
-            JBlock body = constructor.body();
+            genConstructor(refs, clazz, views, fieldVarMap);
 
-            // super(view);
-            body.invoke("super").arg(viewVar);
-
-            // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
-            // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
-            for (View view : views) {
-                genInitFields(m, view, viewVar, body, rClass, fieldVarMap);
-            }
-            // }
-
-            genFromView(m, clazz, viewClass);
-            genFromActivity(m, clazz, activityClass, androidRClass);
-            genFromFragment(m, clazz, fragmentClass);
-            genInflate1(m, clazz, layoutInflaterClass, viewGroupClass);
-            genInflate2(m, clazz, layoutInflaterClass, viewGroupClass);
-            getListInflate(m, clazz, layoutInflaterClass, layoutVar, viewClass, viewGroupClass);
+            genFromView(refs, clazz);
+            genFromActivity(refs, clazz);
+            genFromFragment(refs, clazz);
+            genInflate1(refs, clazz);
+            genInflate2(refs, clazz);
+            getListInflate(refs, clazz, layoutVar);
 
             m.build(new WriterCodeWriter(writer));
         } catch (JClassAlreadyExistsException e) {
@@ -79,89 +54,144 @@ public class SocketGenerator {
         }
     }
 
-    private static void genFields(JCodeModel m, JDefinedClass clazz, View view, Map<View, JFieldVar> fieldVarMap) {
-        fieldVarMap.put(view, clazz.field(PUBLIC, m.ref(view.type), view.fieldName));
+    private static Map<View, JFieldVar> genFields(Refs refs, JDefinedClass clazz, List<View> views) {
+        // public LinearLayout myLinearLayout;
+        // public TextView myTextView;
+        Map<View, JFieldVar> fieldVarMap = new LinkedHashMap<View, JFieldVar>();
+        for (View view : views) {
+            genFields(refs, clazz, view, fieldVarMap);
+        }
+        return fieldVarMap;
+    }
+
+    private static void genFields(Refs refs, JDefinedClass clazz, View view, /* OUT */ Map<View, JFieldVar> fieldVarMap) {
+        fieldVarMap.put(view, clazz.field(PUBLIC, refs.ref(view.type), view.fieldName));
         for (View child : view.children) {
-            genFields(m, clazz, child, fieldVarMap);
+            genFields(refs, clazz, child, fieldVarMap);
         }
     }
 
-    private static void genInitFields(JCodeModel m, View view, JVar viewVar, JBlock body, JClass rClass, Map<View, JFieldVar> fieldVarMap) {
-        JClass viewType = m.ref(view.type);
+    private static void genConstructor(Refs refs, JDefinedClass clazz, List<View> views, Map<View, JFieldVar> fieldVarMap) {
+        // private MyLayoutViewModel(View view) {
+        JMethod constructor = clazz.constructor(PRIVATE);
+        JVar viewVar = constructor.param(refs.viewClass, "view");
+        JBlock body = constructor.body();
+
+        // super(view);
+        body.invoke("super").arg(viewVar);
+
+        // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
+        // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
+        for (View view : views) {
+            genInitFields(refs, fieldVarMap, viewVar, view, body);
+        }
+    }
+
+    private static void genInitFields(Refs refs, Map<View, JFieldVar> fieldVarMap, JVar viewVar, View view, JBlock body) {
+        JClass viewType = refs.ref(view.type);
         JFieldVar fieldVar = fieldVarMap.get(view);
-        JFieldRef idVar = rClass.staticRef("id").ref(view.id);
+        JFieldRef idVar = (view.isAndroidId ? refs.androidRClass : refs.rClass).staticRef("id").ref(view.id);
 
         body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
         for (View child : view.children) {
-            genInitFields(m, child, fieldVar, body, rClass, fieldVarMap);
+            genInitFields(refs, fieldVarMap, fieldVar, child, body);
         }
     }
 
-    private static void genFromView(JCodeModel m, JDefinedClass clazz, JClass viewClass) {
+    private static void genFromView(Refs refs, JDefinedClass clazz) {
         // public static MyLayoutViewModel from(View view) {
         JMethod method = clazz.method(PUBLIC | STATIC, clazz, "from");
-        JVar viewVar = method.param(viewClass, "view");
+        JVar viewVar = method.param(refs.viewClass, "view");
         JBlock body = method.body();
         body._return(_new(clazz).arg(viewVar));
     }
 
-    private static void genFromActivity(JCodeModel m, JDefinedClass clazz, JClass activityClass, JClass androidRClass) {
+    private static void genFromActivity(Refs refs, JDefinedClass clazz) {
         // public static MyLayoutViewModel from(Activity activity) {
         JMethod method = clazz.method(PUBLIC | STATIC, clazz, "from");
-        JVar activityVar = method.param(activityClass, "activity");
+        JVar activityVar = method.param(refs.activityClass, "activity");
         JBlock body = method.body();
-        body._return(_new(clazz).arg(activityVar.invoke("findViewById").arg(androidRClass.staticRef("id").ref("content"))));
+        body._return(_new(clazz).arg(activityVar.invoke("findViewById").arg(refs.androidRClass.staticRef("id").ref("content"))));
     }
 
-    private static void genFromFragment(JCodeModel m, JDefinedClass clazz, JClass fragmentClass) {
+    private static void genFromFragment(Refs refs, JDefinedClass clazz) {
         // public static MyLayoutViewModel from(Fragment fragment) {
         JMethod method = clazz.method(PUBLIC | STATIC, clazz, "from");
-        JVar fragmentVar = method.param(fragmentClass, "fragment");
+        JVar fragmentVar = method.param(refs.fragmentClass, "fragment");
         JBlock body = method.body();
         body._return(_new(clazz).arg(fragmentVar.invoke("getView")));
     }
 
-    private static void genInflate1(JCodeModel m, JDefinedClass clazz, JClass layoutInflaterClass, JClass viewGroupClass) {
+    private static void genInflate1(Refs refs, JDefinedClass clazz) {
         // public static MyLayoutViewModel inflate(LayoutInflater layoutInflater, int resource, ViewGroup root, boolean attachToRoot) {
         JMethod method = clazz.method(PUBLIC | STATIC, clazz, "inflate");
-        JVar layoutInflaterVar = method.param(layoutInflaterClass, "layoutInflater");
-        JVar resourceVar = method.param(m.INT, "resource");
-        JVar rootVar = method.param(viewGroupClass, "root");
-        JVar attachToRootVar = method.param(m.BOOLEAN, "attachToRoot");
+        JVar layoutInflaterVar = method.param(refs.layoutInflaterClass, "layoutInflater");
+        JVar resourceVar = method.param(refs.m.INT, "resource");
+        JVar rootVar = method.param(refs.viewGroupClass, "root");
+        JVar attachToRootVar = method.param(refs.m.BOOLEAN, "attachToRoot");
         JBlock body = method.body();
         body._return(_new(clazz).arg(layoutInflaterVar.invoke("inflate")
                 .arg(resourceVar).arg(rootVar).arg(attachToRootVar)));
         // }
     }
 
-    private static void genInflate2(JCodeModel m, JDefinedClass clazz, JClass layoutInflaterClass, JClass viewGroupClass) {
+    private static void genInflate2(Refs refs, JDefinedClass clazz) {
         // public static MyLayoutViewModel inflate(LayoutInflater layoutInflater, int resource, ViewGroup root) {
         JMethod method = clazz.method(PUBLIC | STATIC, clazz, "inflate");
-        JVar layoutInflaterVar = method.param(layoutInflaterClass, "layoutInflater");
-        JVar resourceVar = method.param(m.INT, "resource");
-        JVar rootVar = method.param(viewGroupClass, "root");
+        JVar layoutInflaterVar = method.param(refs.layoutInflaterClass, "layoutInflater");
+        JVar resourceVar = method.param(refs.m.INT, "resource");
+        JVar rootVar = method.param(refs.viewGroupClass, "root");
         JBlock body = method.body();
         body._return(_new(clazz).arg(layoutInflaterVar.invoke("inflate")
                 .arg(resourceVar).arg(rootVar)));
     }
 
-    private static void getListInflate(JCodeModel m, JDefinedClass clazz, JClass layoutInflaterClass, JFieldVar layoutVar, JClass viewClass, JClass viewGroupClass) {
+    private static void getListInflate(Refs refs, JDefinedClass clazz, JFieldVar layoutVar) {
         // public static MyLayoutViewModel listInflate(LayoutInflater layoutInflater, int resource, View convertView, ViewGroup parent) {
         JMethod method = clazz.method(PUBLIC | STATIC, clazz, "listInflate");
-        JVar layoutInflaterVar = method.param(layoutInflaterClass, "layoutInflater");
-        JVar convertViewVar = method.param(viewClass, "convertView");
-        JVar parentVar = method.param(viewGroupClass, "parent");
+        JVar layoutInflaterVar = method.param(refs.layoutInflaterClass, "layoutInflater");
+        JVar convertViewVar = method.param(refs.viewClass, "convertView");
+        JVar parentVar = method.param(refs.viewGroupClass, "parent");
         JBlock body = method.body();
 
         // if (convertView != null) {
         JConditional i = body._if(convertViewVar.eq(_null()));
         JBlock ifTrue = i._then();
-        JVar viewVar = ifTrue.decl(viewClass, "view", layoutInflaterVar.invoke("inflate")
+        JVar viewVar = ifTrue.decl(refs.viewClass, "view", layoutInflaterVar.invoke("inflate")
                 .arg(layoutVar).arg(parentVar).arg(FALSE));
         JVar socketVar = ifTrue.decl(clazz, "socket", _new(clazz).arg(viewVar));
         ifTrue.invoke(viewVar, "setTag").arg(socketVar);
         ifTrue._return(socketVar);
         // else {
         i._else()._return(cast(clazz, convertViewVar.invoke("getTag")));
+    }
+
+    private static class Refs {
+        public final JCodeModel m;
+        public final JClass viewHolder;
+        public final JClass viewClass;
+        public final JClass viewGroupClass;
+        public final JClass layoutInflaterClass;
+        public final JClass androidRClass;
+        public final JClass rClass;
+        public final JClass activityClass;
+        public final JClass fragmentClass;
+
+        private Refs(JCodeModel m, String packageName) {
+            this.m = m;
+
+            viewHolder = m.ref("me.tatarka.socket.Socket");
+            viewClass = m.ref("android.view.View");
+            viewGroupClass = m.ref("android.view.ViewGroup");
+            layoutInflaterClass = m.ref("android.view.LayoutInflater");
+            androidRClass = m.ref("android.R");
+            rClass = m.ref(packageName + ".R");
+            activityClass = m.ref("android.app.Activity");
+            fragmentClass = m.ref("android.app.Fragment");
+        }
+
+        public JClass ref(String className) {
+            return m.ref(className);
+        }
     }
 }

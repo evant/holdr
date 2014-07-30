@@ -94,6 +94,27 @@ $STATIC_METHODS
 """
     }
 
+    def "a view with an android id uses android.R.id instead of R.id"() {
+        expect:
+        code(generator, "test", [View.of("android.widget.TextView", "text1").androidId().build()]) == """
+package me.tatarka.test.sockets;
+$IMPORTS
+public class TestSocket
+    extends Socket
+{
+
+    public final static int LAYOUT = me.tatarka.test.R.layout.test;
+    public android.widget.TextView text1;
+
+    private TestSocket(View view) {
+        super(view);
+        text1 = ((android.widget.TextView) view.findViewById(android.R.id.text1));
+    }
+$STATIC_METHODS
+}
+"""
+    }
+
     private static final String IMPORTS = """
 import android.app.Activity;
 import android.app.Fragment;

@@ -93,4 +93,14 @@ class SocketViewParserSpec extends Specification {
             )
         }) == [View.of('android.widget.TextView', 'my_text_view').fieldName('my_field_name').build()]
     }
+
+    def "a view with and android id parses as an item that knows this"() {
+        expect:
+        parser.parse(xml {
+            it.'TextView'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@android:id/text1',
+            )
+        }) == [View.of('android.widget.TextView', 'text1').androidId().build()]
+    }
 }

@@ -30,12 +30,19 @@ public class SocketViewParser {
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
                 if (tag == XmlPullParser.START_TAG) {
                     String type = parseType(parser.getName());
-                    String id = parseId(parser.getAttributeValue(ANDROID_NS, ID));
+                    String idString = parser.getAttributeValue(ANDROID_NS, ID);
+                    String id = parseId(idString);
+                    boolean isAndroidId = parseIsAndroidId(idString);
                     boolean ignore = parseIgnore(parser.getAttributeValue(APP_NS, IGNORE));
                     String fieldName = parser.getAttributeValue(APP_NS, FIELD_NAME);
 
                     if (id != null && !ignore) {
                         View.Builder view = View.of(type, id);
+
+                        if (isAndroidId) {
+                            view.androidId();
+                        }
+
                         if (fieldName != null) {
                             view.fieldName(fieldName);
                         }
@@ -72,6 +79,10 @@ public class SocketViewParser {
         int sep = id.indexOf('/');
         if (sep == -1) return id;
         return id.substring(sep + 1);
+    }
+
+    private static boolean parseIsAndroidId(String id) {
+        return id != null && id.startsWith("@android");
     }
 
     private static boolean parseIgnore(String ignore) {

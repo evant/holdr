@@ -5,17 +5,20 @@ import java.util.Collections;
 import java.util.List;
 
 import me.tatarka.socket.compile.util.FormatUtils;
+import me.tatarka.socket.compile.util.Objects;
 
 public class View {
     public final String type;
     public final String id;
     public final String fieldName;
+    public final boolean isAndroidId;
     public final List<View> children;
 
-    private View(String type, String id, String fieldName, List<View> children) {
+    private View(String type, String id, String fieldName, boolean isAndroidId, List<View> children) {
         this.type = type;
         this.id = id;
         this.fieldName = fieldName != null ? fieldName : FormatUtils.underscoreToLowerCamel(id);
+        this.isAndroidId = isAndroidId;
         this.children = Collections.unmodifiableList(children);
     }
 
@@ -28,6 +31,7 @@ public class View {
         private String type;
         private String id;
         private String fieldName;
+        private boolean isAndroidId;
         private List<View> children = new ArrayList<View>();
 
         private Builder(String type, String id) {
@@ -40,6 +44,11 @@ public class View {
 
         public Builder fieldName(String fieldName) {
             this.fieldName = fieldName;
+            return this;
+        }
+
+        public Builder androidId() {
+            isAndroidId = true;
             return this;
         }
 
@@ -58,13 +67,13 @@ public class View {
         }
 
         public View build() {
-            return new View(type, id, fieldName, children);
+            return new View(type, id, fieldName, isAndroidId, children);
         }
     }
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(type + "(id: " + id);
+        StringBuilder result = new StringBuilder(type + "(id: " + (isAndroidId ? "android:" : "") + id);
 
         if (!children.isEmpty()) {
             result.append(", children: ");
@@ -84,14 +93,11 @@ public class View {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         View view = (View) o;
-        return children.equals(view.children) && id.equals(view.id) && type.equals(view.type);
+        return children.equals(view.children) && id.equals(view.id) && type.equals(view.type) && isAndroidId == view.isAndroidId;
     }
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + id.hashCode();
-        result = 31 * result + children.hashCode();
-        return result;
+        return Objects.hashCode(type, id, isAndroidId, children);
     }
 }
