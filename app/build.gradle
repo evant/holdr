@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'me.tatarka.socket:gradle-plugin:1.0'
+        classpath 'me.tatarka.socket:gradle-plugin:0.1'
     }
 }
 

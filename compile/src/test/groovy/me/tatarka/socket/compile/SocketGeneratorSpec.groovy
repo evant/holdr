@@ -18,12 +18,12 @@ public class TestSocket
     extends Socket
 {
 
-    public final static int LAYOUT = me.tatarka.test.R.layout.test;
+    public final static int LAYOUT = R.layout.test;
 
-    private TestSocket(View view) {
+    public TestSocket(View view) {
         super(view);
     }
-$STATIC_METHODS
+
 }
 """
     }
@@ -37,14 +37,14 @@ public class TestSocket
     extends Socket
 {
 
-    public final static int LAYOUT = me.tatarka.test.R.layout.test;
+    public final static int LAYOUT = R.layout.test;
     public android.widget.TextView myTextView;
 
-    private TestSocket(View view) {
+    public TestSocket(View view) {
         super(view);
-        myTextView = ((android.widget.TextView) view.findViewById(me.tatarka.test.R.id.my_text_view));
+        myTextView = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
     }
-$STATIC_METHODS
+
 }
 """
     }
@@ -59,16 +59,16 @@ public class TestSocket
     extends Socket
 {
 
-    public final static int LAYOUT = me.tatarka.test.R.layout.test;
+    public final static int LAYOUT = R.layout.test;
     public android.widget.LinearLayout myLinearLayout;
     public android.widget.TextView myTextView;
 
-    private TestSocket(View view) {
+    public TestSocket(View view) {
         super(view);
-        myLinearLayout = ((android.widget.LinearLayout) view.findViewById(me.tatarka.test.R.id.my_linear_layout));
-        myTextView = ((android.widget.TextView) myLinearLayout.findViewById(me.tatarka.test.R.id.my_text_view));
+        myLinearLayout = ((android.widget.LinearLayout) view.findViewById(R.id.my_linear_layout));
+        myTextView = ((android.widget.TextView) myLinearLayout.findViewById(R.id.my_text_view));
     }
-$STATIC_METHODS
+
 }
 """
     }
@@ -82,14 +82,14 @@ public class TestSocket
     extends Socket
 {
 
-    public final static int LAYOUT = me.tatarka.test.R.layout.test;
+    public final static int LAYOUT = R.layout.test;
     public android.widget.TextView myCustomField;
 
-    private TestSocket(View view) {
+    public TestSocket(View view) {
         super(view);
-        myCustomField = ((android.widget.TextView) view.findViewById(me.tatarka.test.R.id.my_text_view));
+        myCustomField = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
     }
-$STATIC_METHODS
+
 }
 """
     }
@@ -98,7 +98,10 @@ $STATIC_METHODS
         expect:
         code(generator, "test", [View.of("android.widget.TextView", "text1").androidId().build()]) == """
 package me.tatarka.test.sockets;
-$IMPORTS
+
+import android.view.View;
+import me.tatarka.socket.Socket;
+
 public class TestSocket
     extends Socket
 {
@@ -106,54 +109,18 @@ public class TestSocket
     public final static int LAYOUT = me.tatarka.test.R.layout.test;
     public android.widget.TextView text1;
 
-    private TestSocket(View view) {
+    public TestSocket(View view) {
         super(view);
         text1 = ((android.widget.TextView) view.findViewById(android.R.id.text1));
     }
-$STATIC_METHODS
+
 }
 """
     }
 
     private static final String IMPORTS = """
-import android.app.Activity;
-import android.app.Fragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import me.tatarka.socket.Socket;
-"""
-
-    private static final String STATIC_METHODS = """
-    public static TestSocket from(View view) {
-        return new TestSocket(view);
-    }
-
-    public static TestSocket from(Activity activity) {
-        return new TestSocket(activity.findViewById(android.R.id.content));
-    }
-
-    public static TestSocket from(Fragment fragment) {
-        return new TestSocket(fragment.getView());
-    }
-
-    public static TestSocket inflate(LayoutInflater layoutInflater, int resource, ViewGroup root, boolean attachToRoot) {
-        return new TestSocket(layoutInflater.inflate(resource, root, attachToRoot));
-    }
-
-    public static TestSocket inflate(LayoutInflater layoutInflater, int resource, ViewGroup root) {
-        return new TestSocket(layoutInflater.inflate(resource, root));
-    }
-
-    public static TestSocket listInflate(LayoutInflater layoutInflater, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            View view = layoutInflater.inflate(LAYOUT, parent, false);
-            TestSocket socket = new TestSocket(view);
-            view.setTag(socket);
-            return socket;
-        } else {
-            return ((TestSocket) convertView.getTag());
-        }
-    }
+import me.tatarka.test.R;
 """
 }

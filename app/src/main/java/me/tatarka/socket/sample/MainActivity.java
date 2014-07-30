@@ -17,7 +17,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        socket = ActivityMainSocket.from(this);
+        socket = new ActivityMainSocket(findViewById(android.R.id.content));
         socket.text.setText("Hello, Socket!");
         socket.list.setAdapter(new MyAdapter());
     }
@@ -40,7 +40,13 @@ public class MainActivity extends Activity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            ListItemSocket socket = ListItemSocket.listInflate(getLayoutInflater(), convertView, parent);
+            ListItemSocket socket;
+            if (convertView == null) {
+                socket = new ListItemSocket(getLayoutInflater().inflate(ListItemSocket.LAYOUT, parent, false));
+                socket.getView().setTag(socket);
+            } else {
+                socket = (ListItemSocket) convertView.getTag();
+            }
             socket.text.setText("Item " + getItem(position));
             return socket.getView();
         }
