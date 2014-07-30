@@ -39,13 +39,13 @@ apply plugin: 'socket'
 ```java
 // MainActivity.java
 public class MainActivity extends Activity {
-    private ActivityMainSocket socket;
+    private SocketActivityMain socket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        socket = ActivityMainSocket.from(this);
+        socket = new SocketActivityMain(findViewById(android.R.id.content));
         socket.text.setText("Hello, Socket!");
     }
 }
