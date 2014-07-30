@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.tatarka.socket.compile.util.FormatUtils;
+
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
@@ -20,7 +22,7 @@ public class SocketGenerator {
         this.packageName = packageName;
     }
 
-    public void generate(String layoutName, String className, List<View> views, Writer writer) throws IOException {
+    public void generate(String layoutName, List<View> views, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(packageName + ".sockets");
 
@@ -28,7 +30,7 @@ public class SocketGenerator {
             Refs refs = new Refs(m, packageName);
 
             // public class MyLayoutViewModel {
-            JDefinedClass clazz = pkg._class(PUBLIC, className)._extends(refs.viewHolder);
+            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layoutName))._extends(refs.viewHolder);
 
             // public static final int LAYOUT = R.id.my_layout;
             JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", refs.rClass.staticRef("layout").ref(layoutName));
@@ -41,6 +43,10 @@ public class SocketGenerator {
         } catch (JClassAlreadyExistsException e) {
             throw new IOException(e);
         }
+    }
+
+    public String getClassName(String layoutName) {
+        return "Socket" + FormatUtils.underscoreToUpperCamel(layoutName);
     }
 
     private static Map<View, JFieldVar> genFields(Refs refs, JDefinedClass clazz, List<View> views) {

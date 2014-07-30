@@ -14,13 +14,13 @@ class SocketGeneratorSpec extends Specification {
         code(generator, "test", []) == """
 package me.tatarka.test.sockets;
 $IMPORTS
-public class TestSocket
+public class SocketTest
     extends Socket
 {
 
     public final static int LAYOUT = R.layout.test;
 
-    public TestSocket(View view) {
+    public SocketTest(View view) {
         super(view);
     }
 
@@ -33,14 +33,14 @@ public class TestSocket
         code(generator, "test", [View.of("android.widget.TextView", "my_text_view").build()]) == """
 package me.tatarka.test.sockets;
 $IMPORTS
-public class TestSocket
+public class SocketTest
     extends Socket
 {
 
     public final static int LAYOUT = R.layout.test;
     public android.widget.TextView myTextView;
 
-    public TestSocket(View view) {
+    public SocketTest(View view) {
         super(view);
         myTextView = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
     }
@@ -55,7 +55,7 @@ public class TestSocket
                                          .child(View.of("android.widget.TextView", "my_text_view")).build()]) == """
 package me.tatarka.test.sockets;
 $IMPORTS
-public class TestSocket
+public class SocketTest
     extends Socket
 {
 
@@ -63,7 +63,7 @@ public class TestSocket
     public android.widget.LinearLayout myLinearLayout;
     public android.widget.TextView myTextView;
 
-    public TestSocket(View view) {
+    public SocketTest(View view) {
         super(view);
         myLinearLayout = ((android.widget.LinearLayout) view.findViewById(R.id.my_linear_layout));
         myTextView = ((android.widget.TextView) myLinearLayout.findViewById(R.id.my_text_view));
@@ -78,14 +78,14 @@ public class TestSocket
         code(generator, "test", [View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField").build()]) == """
 package me.tatarka.test.sockets;
 $IMPORTS
-public class TestSocket
+public class SocketTest
     extends Socket
 {
 
     public final static int LAYOUT = R.layout.test;
     public android.widget.TextView myCustomField;
 
-    public TestSocket(View view) {
+    public SocketTest(View view) {
         super(view);
         myCustomField = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
     }
@@ -102,14 +102,14 @@ package me.tatarka.test.sockets;
 import android.view.View;
 import me.tatarka.socket.Socket;
 
-public class TestSocket
+public class SocketTest
     extends Socket
 {
 
     public final static int LAYOUT = me.tatarka.test.R.layout.test;
     public android.widget.TextView text1;
 
-    public TestSocket(View view) {
+    public SocketTest(View view) {
         super(view);
         text1 = ((android.widget.TextView) view.findViewById(android.R.id.text1));
     }

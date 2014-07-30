@@ -12,9 +12,14 @@ import java.util.List;
 
 public class SocketCompiler {
     private final String packageName;
+    private final SocketViewParser parser;
+    private final SocketGenerator generator;
 
     public SocketCompiler(String packageName) {
         this.packageName = packageName;
+
+        parser = new SocketViewParser();
+        generator = new SocketGenerator(packageName);
     }
 
     public void compile(File inputDir, File outputDir) throws IOException {
@@ -37,6 +42,7 @@ public class SocketCompiler {
         SocketGenerator generator = new SocketGenerator(packageName);
 
         for (File layoutFile : layoutFiles) {
+
             FileReader reader = null;
             FileWriter writer = null;
 
@@ -45,11 +51,13 @@ public class SocketCompiler {
                 List<View> views = parser.parse(reader);
 
                 if (!views.isEmpty()) {
+                    String layoutName = stripExtension(layoutFile.getName());
+
                     File outputFile = inputToOutput(inputDir, outputDir, layoutFile);
                     outputFile.getParentFile().mkdirs();
 
                     writer = new FileWriter(outputFile);
-                    generator.generate(layoutName(layoutFile), socketClassName(layoutFile), views, writer);
+                    generator.generate(layoutName, views, writer);
                     System.out.println("Socket: created " + outputFile);
                 }
             } finally {
@@ -60,16 +68,8 @@ public class SocketCompiler {
     }
 
     public File inputToOutput(File inputDir, File outputDir, File layoutFile) {
-        return FileUtils.inputToOutput(inputDir, packageToFile(outputDir, packageName), FileUtils.changeName(layoutFile, socketClassName(layoutFile) + ".java"));
-    }
-
-    private static String socketClassName(File file) {
-        String fileName = layoutName(file);
-        return FormatUtils.underscoreToUpperCamel(fileName) + "Socket";
-    }
-
-    private static String layoutName(File file) {
-        return stripExtension(file.getName());
+        String className = generator.getClassName(stripExtension(layoutFile.getName()));
+        return FileUtils.inputToOutput(inputDir, packageToFile(outputDir, packageName), FileUtils.changeName(layoutFile, className + ".java"));
     }
 
     private static File packageToFile(File baseDir, String packageName) {
