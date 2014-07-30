@@ -1,7 +1,11 @@
 Socket
 ======
 
-Because typing findViewById() in Android is such a pain.
+## Why use Socket?
+
+- Because you hate typeing findViewById() all the time.
+- Because Butterknife requires non-zero boilerplate.
+- Because ViewHolders are cool, but a pain to write.
 
 ## Usage
 ```groovy
