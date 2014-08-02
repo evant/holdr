@@ -69,15 +69,30 @@ class SocketViewParserSpec extends Specification {
         ]
     }
 
-    def "a view with an id but has a 'socket_ignore' attribute is not included"() {
+    def "a view with an id but has a 'socket_ignore=view' is not included"() {
         expect:
         parser.parse(xml {
             it.'TextView'(
                     'xmlns:android': 'http://schemas.android.com/apk/res/android',
                     'xmlns:app': 'http://schemas.android.com/apk/res-auto',
                     'android:id': '@+id/my_text_view',
-                    'app:socket_ignore': 'true'
+                    'app:socket_ignore': 'view'
             )
+        }) == []
+    }
+
+    def "a view with an id but has a 'socket_ignore=children' does not include itself or it's children"() {
+        expect:
+        parser.parse(xml {
+            it.'LinearLayout'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'xmlns:app': 'http://schemas.android.com/apk/res-auto',
+                    'android:id': '@+id/my_linear_layout',
+                    'app:socket_ignore': 'children'
+            ) {
+                'TextView'('android:id': '@+id/my_text_view')
+                'ImageView'('android:id': '@+id/my_image_view')
+            }
         }) == []
     }
 

@@ -26,6 +26,7 @@ public class SocketViewParser {
             parser.setInput(res);
 
             List<Ref> refs = new ArrayList<Ref>();
+            String ignoreChildrenTag = null;
 
             int tag;
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
@@ -35,11 +36,14 @@ public class SocketViewParser {
                     String idString = parser.getAttributeValue(ANDROID_NS, ID);
                     String id = parseId(idString);
                     boolean isAndroidId = parseIsAndroidId(idString);
-                    boolean ignore = parseIgnore(parser.getAttributeValue(APP_NS, IGNORE));
+                    Ignore ignore = parseIgnore(parser.getAttributeValue(APP_NS, IGNORE));
                     String fieldName = parser.getAttributeValue(APP_NS, FIELD_NAME);
 
-                    if (id != null && !ignore) {
+                    if (ignoreChildrenTag == null && ignore == Ignore.CHILDREN) {
+                        ignoreChildrenTag = tagName;
+                    }
 
+                    if (id != null && ignore == Ignore.NONE && ignoreChildrenTag == null) {
                         Ref.Builder ref;
                         if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
@@ -58,6 +62,10 @@ public class SocketViewParser {
                         }
 
                         refs.add(ref.build());
+                    }
+                } else if (tag == XmlPullParser.END_TAG) {
+                    if (ignoreChildrenTag != null && ignoreChildrenTag.equals(parser.getName())) {
+                        ignoreChildrenTag = null;
                     }
                 }
             }
@@ -84,7 +92,18 @@ public class SocketViewParser {
         return id != null && id.startsWith("@android");
     }
 
-    private static boolean parseIgnore(String ignore) {
-        return "true".equals(ignore);
+    private static Ignore parseIgnore(String ignore) {
+        if (ignore == null) return Ignore.NONE;
+        if (ignore.equals("view")) {
+            return Ignore.VIEW;
+        }
+        if (ignore.equals("children")) {
+            return Ignore.CHILDREN;
+        }
+        return Ignore.NONE;
+    }
+
+    private static enum Ignore {
+        NONE, VIEW, CHILDREN
     }
 }

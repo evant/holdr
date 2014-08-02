@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="Socket">
-        <attr name="socket_ignore" format="boolean"/>
+        <attr name="socket_ignore" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="view" value="1"/>
+            <enum name="children" value="2"/>
+        </attr>
         <attr name="socket_field_name" format="string"/>
     </declare-styleable>
 </resources>
