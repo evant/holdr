@@ -102,4 +102,15 @@ class SocketViewParserSpec extends Specification {
             )
         }) == [View.of('android.widget.TextView', 'text1').androidId().build()]
     }
+
+    def "an include with an id parses as an include item"() {
+        expect:
+        parser.parse(xml {
+            it.'include'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@+id/my_include',
+                    'layout': '@layout/my_layout'
+            )
+        }) == [Include.of('my_layout', 'my_include').build()]
+    }
 }

@@ -1,16 +1,18 @@
 package me.tatarka.socket.compile;
 
-import me.tatarka.socket.compile.util.FileUtils;
-import me.tatarka.socket.compile.util.FormatUtils;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SocketCompiler {
     private final String packageName;
@@ -55,28 +57,42 @@ public class SocketCompiler {
         SocketViewParser parser = new SocketViewParser();
         SocketGenerator generator = new SocketGenerator(packageName);
 
+        Map<String, Layout> layouts = new HashMap<String, Layout>();
+
         for (File layoutFile : layoutFiles) {
-
             FileReader reader = null;
-            FileWriter writer = null;
-
             try {
                 reader = new FileReader(layoutFile);
-                List<View> views = parser.parse(reader);
+                String layoutName = stripExtension(layoutFile.getName());
+                List<Ref> refs = parser.parse(reader);
 
-                if (!views.isEmpty()) {
-                    String layoutName = stripExtension(layoutFile.getName());
-
-                    File outputFile = outputFile(outputDir, layoutFile);
-                    outputFile.getParentFile().mkdirs();
-
-                    writer = new FileWriter(outputFile);
-                    generator.generate(layoutName, views, writer);
-                    System.out.println("Socket: created " + outputFile);
+                Layout layout = layouts.get(layoutName);
+                if (layout == null) {
+                    layouts.put(layoutName, new Layout(layoutFile, new LinkedHashSet<Ref>(refs)));
+                } else {
+                    layout.refs.addAll(refs);
                 }
             } finally {
                 if (reader != null) reader.close();
-                if (writer != null) writer.close();
+            }
+        }
+
+        for (Map.Entry<String, Layout> entry : layouts.entrySet()) {
+            String layoutName = entry.getKey();
+            Layout layout = entry.getValue();
+
+            if (!layout.refs.isEmpty()) {
+                File outputFile = outputFile(outputDir, layout.file);
+                outputFile.getParentFile().mkdirs();
+
+                Writer writer = null;
+                try {
+                    writer = new FileWriter(outputFile);
+                    generator.generate(layoutName, layout.refs, writer);
+                    System.out.println("Socket: created " + outputFile);
+                } finally {
+                    if (writer != null) writer.close();
+                }
             }
         }
     }
@@ -95,5 +111,15 @@ public class SocketCompiler {
         int pos = str.lastIndexOf(".");
         if (pos == -1) return str;
         return str.substring(0, pos);
+    }
+
+    private static class Layout {
+        public final File file;
+        public final Set<Ref> refs;
+
+        private Layout(File layoutFile, Set<Ref> refs) {
+            this.file = layoutFile;
+            this.refs = refs;
+        }
     }
 }

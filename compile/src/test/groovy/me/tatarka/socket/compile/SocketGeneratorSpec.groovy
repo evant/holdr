@@ -11,7 +11,7 @@ class SocketGeneratorSpec extends Specification {
 
     def "an empty list of views generates an empty Socket"() {
         expect:
-        code(generator, "test", []) == """
+        code(generator, "test", [] as Set) == """
 package me.tatarka.test.sockets;
 $IMPORTS
 public class SocketTest
@@ -30,7 +30,7 @@ public class SocketTest
 
     def "a single view generates a Socket that instantiates that view"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").build()]) == """
+        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").build()] as Set) == """
 package me.tatarka.test.sockets;
 $IMPORTS
 public class SocketTest
@@ -51,7 +51,7 @@ public class SocketTest
 
     def "a view with a custom field name uses that name"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField").build()]) == """
+        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField").build()] as Set) == """
 package me.tatarka.test.sockets;
 $IMPORTS
 public class SocketTest
@@ -72,7 +72,7 @@ public class SocketTest
 
     def "a view with an android id uses android.R.id instead of R.id"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "text1").androidId().build()]) == """
+        code(generator, "test", [View.of("android.widget.TextView", "text1").androidId().build()] as Set) == """
 package me.tatarka.test.sockets;
 
 import android.view.View;
@@ -88,6 +88,27 @@ public class SocketTest
     public SocketTest(View view) {
         super(view);
         text1 = ((android.widget.TextView) view.findViewById(android.R.id.text1));
+    }
+
+}
+"""
+    }
+
+    def "an include with an id generates a reference to a socket with it's layout"() {
+        expect:
+        code(generator, "test", [Include.of("my_layout", "my_include").build()] as Set) == """
+package me.tatarka.test.sockets;
+$IMPORTS
+public class SocketTest
+    extends Socket
+{
+
+    public final static int LAYOUT = R.layout.test;
+    public SocketMyLayout myInclude;
+
+    public SocketTest(View view) {
+        super(view);
+        myInclude = new SocketMyLayout(view.findViewById(R.id.my_include));
     }
 
 }

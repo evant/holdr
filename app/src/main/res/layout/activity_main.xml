@@ -14,6 +14,8 @@
         tools:text="Hello, Socket!"
         />
 
+    <include android:id="@+id/include_layout" layout="@layout/include_layout" />
+
     <ListView
         android:id="@+id/list"
         android:layout_width="match_parent"

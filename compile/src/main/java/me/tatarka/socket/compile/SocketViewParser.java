@@ -13,22 +13,25 @@ public class SocketViewParser {
     private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
     private static final String APP_NS = "http://schemas.android.com/apk/res-auto";
     private static final String ID = "id";
+    private static final String LAYOUT = "layout";
+    private static final String INCLUDE = "include";
     private static final String IGNORE = "socket_ignore";
     private static final String FIELD_NAME = "socket_field_name";
 
-    public List<View> parse(Reader res) throws IOException {
+    public List<Ref> parse(Reader res) throws IOException {
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             XmlPullParser parser = factory.newPullParser();
             parser.setInput(res);
 
-            List<View> views = new ArrayList<View>();
+            List<Ref> refs = new ArrayList<Ref>();
 
             int tag;
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
                 if (tag == XmlPullParser.START_TAG) {
-                    String type = parseType(parser.getName());
+                    String tagName = parser.getName();
+
                     String idString = parser.getAttributeValue(ANDROID_NS, ID);
                     String id = parseId(idString);
                     boolean isAndroidId = parseIsAndroidId(idString);
@@ -36,21 +39,29 @@ public class SocketViewParser {
                     String fieldName = parser.getAttributeValue(APP_NS, FIELD_NAME);
 
                     if (id != null && !ignore) {
-                        View.Builder view = View.of(type, id);
+
+                        Ref.Builder ref;
+                        if (tagName.equals(INCLUDE)) {
+                            String layout = parseId(parser.getAttributeValue(null, LAYOUT));
+                            ref = Include.of(layout, id);
+                        } else {
+                            String type = parseType(tagName);
+                            ref = View.of(type, id);
+                        }
 
                         if (isAndroidId) {
-                            view.androidId();
+                            ref.androidId();
                         }
 
                         if (fieldName != null) {
-                            view.fieldName(fieldName);
+                            ref.fieldName(fieldName);
                         }
 
-                        views.add(view.build());
+                        refs.add(ref.build());
                     }
                 }
             }
-            return views;
+            return refs;
         } catch (XmlPullParserException e) {
             throw new IOException(e);
         }

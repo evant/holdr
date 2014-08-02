@@ -21,6 +21,9 @@ public class MainActivity extends Activity {
         if (socket.textLand != null) {
             socket.textLand.setText("Hello, Socket Land!");
         }
+        socket.includeLayout.text1.setText("Hello, Include Text 1");
+        socket.includeLayout.text2.setText("Hello, Include Text 2");
+
         socket.list.setAdapter(new MyAdapter());
     }
 

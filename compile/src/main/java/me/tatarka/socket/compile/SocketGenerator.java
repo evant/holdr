@@ -7,9 +7,11 @@ import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import me.tatarka.socket.compile.util.FormatUtils;
 
+import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JMod.FINAL;
 import static com.sun.codemodel.JMod.PUBLIC;
@@ -22,22 +24,22 @@ public class SocketGenerator {
         this.packageName = packageName;
     }
 
-    public void generate(String layoutName, List<View> views, Writer writer) throws IOException {
+    public void generate(String layoutName, Set<Ref> refs, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(packageName + ".sockets");
 
         try {
-            Refs refs = new Refs(m, packageName);
+            Refs r = new Refs(m, packageName);
 
             // public class MyLayoutViewModel {
-            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layoutName))._extends(refs.viewHolder);
+            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layoutName))._extends(r.viewHolder);
 
             // public static final int LAYOUT = R.id.my_layout;
-            JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", refs.rClass.staticRef("layout").ref(layoutName));
+            JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", r.rClass.staticRef("layout").ref(layoutName));
 
-            Map<View, JFieldVar> fieldVarMap = genFields(refs, clazz, views);
+            Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, refs);
 
-            genConstructor(refs, clazz, views, fieldVarMap);
+            genConstructor(r, clazz, refs, fieldVarMap);
 
             m.build(new WriterCodeWriter(writer));
         } catch (JClassAlreadyExistsException e) {
@@ -49,18 +51,22 @@ public class SocketGenerator {
         return "Socket" + FormatUtils.underscoreToUpperCamel(layoutName);
     }
 
-    private static Map<View, JFieldVar> genFields(Refs refs, JDefinedClass clazz, List<View> views) {
-        Map<View, JFieldVar> fieldVarMap = new LinkedHashMap<View, JFieldVar>();
-        for (View view : views) {
-            fieldVarMap.put(view, clazz.field(PUBLIC, refs.ref(view.type), view.fieldName));
+    private Map<Ref, JFieldVar> genFields(Refs r, JDefinedClass clazz, Set<Ref> refs) {
+        Map<Ref, JFieldVar> fieldVarMap = new LinkedHashMap<Ref, JFieldVar>();
+        for (Ref ref : refs) {
+            if (ref instanceof View) {
+                fieldVarMap.put(ref, clazz.field(PUBLIC, r.ref(((View) ref).type), ref.fieldName));
+            } else if (ref instanceof Include) {
+                fieldVarMap.put(ref, clazz.field(PUBLIC, r.ref(getClassName(((Include) ref).layout)), ref.fieldName));
+            }
         }
         return fieldVarMap;
     }
 
-    private static void genConstructor(Refs refs, JDefinedClass clazz, List<View> views, Map<View, JFieldVar> fieldVarMap) {
+    private void genConstructor(Refs r, JDefinedClass clazz, Set<Ref> refs, Map<Ref, JFieldVar> fieldVarMap) {
         // private MyLayoutViewModel(View view) {
         JMethod constructor = clazz.constructor(PUBLIC);
-        JVar viewVar = constructor.param(refs.viewClass, "view");
+        JVar viewVar = constructor.param(r.viewClass, "view");
         JBlock body = constructor.body();
 
         // super(view);
@@ -68,16 +74,20 @@ public class SocketGenerator {
 
         // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
         // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
-        genInitFields(refs, fieldVarMap, viewVar, views, body);
+        genInitFields(r, fieldVarMap, viewVar, refs, body);
     }
 
-    private static void genInitFields(Refs refs, Map<View, JFieldVar> fieldVarMap, JVar viewVar, List<View> views, JBlock body) {
-        for (View view : views) {
-            JClass viewType = refs.ref(view.type);
-            JFieldVar fieldVar = fieldVarMap.get(view);
-            JFieldRef idVar = (view.isAndroidId ? refs.androidRClass : refs.rClass).staticRef("id").ref(view.id);
-
-            body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
+    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Set<Ref> refs, JBlock body) {
+        for (Ref ref : refs) {
+            JFieldVar fieldVar = fieldVarMap.get(ref);
+            JFieldRef idVar = (ref.isAndroidId ? r.androidRClass : r.rClass).staticRef("id").ref(ref.id);
+            if (ref instanceof View) {
+                JClass viewType = r.ref(((View) ref).type);
+                body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
+            } else if (ref instanceof Include) {
+                JClass includeType = r.ref(getClassName(((Include) ref).layout));
+                body.assign(fieldVar, _new(includeType).arg(viewVar.invoke("findViewById").arg(idVar)));
+            }
         }
     }
 

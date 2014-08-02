@@ -10,9 +10,9 @@ class SpecHelpers {
         new StringReader(writer.toString())
     }
 
-    public static def code(SocketGenerator generator, String layoutName, List<View> views) {
+    public static def code(SocketGenerator generator, String layoutName, Set<Ref> refs) {
         StringWriter writer = new StringWriter()
-        generator.generate(layoutName, views, writer)
+        generator.generate(layoutName, refs, writer)
         writer.toString()
     }
 }
