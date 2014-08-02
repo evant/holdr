@@ -108,7 +108,7 @@ public class SocketTest
 
     public SocketTest(View view) {
         super(view);
-        myInclude = new SocketMyLayout(view.findViewById(R.id.my_include));
+        myInclude = new SocketMyLayout(view);
     }
 
 }
