@@ -52,7 +52,7 @@ class SocketViewParserSpec extends Specification {
         ]
     }
 
-    def "an id view with id children parses as a single item with children"() {
+    def "an id view with id children parses as a list of items"() {
         expect:
         parser.parse(xml {
             it.'LinearLayout'(
@@ -63,10 +63,9 @@ class SocketViewParserSpec extends Specification {
                 'ImageView'('android:id': '@+id/my_image_view')
             }
         }) == [
-                View.of('android.widget.LinearLayout', 'my_linear_layout')
-                        .child(View.of('android.widget.TextView', 'my_text_view'))
-                        .child(View.of('android.widget.ImageView', 'my_image_view'))
-                        .build()
+                View.of('android.widget.LinearLayout', 'my_linear_layout').build(),
+                View.of('android.widget.TextView', 'my_text_view').build(),
+                View.of('android.widget.ImageView', 'my_image_view').build()
         ]
     }
 

@@ -18,6 +18,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         socket = new SocketActivityMain(findViewById(android.R.id.content));
         socket.text.setText("Hello, Socket!");
+        if (socket.textLand != null) {
+            socket.textLand.setText("Hello, Socket Land!");
+        }
         socket.list.setAdapter(new MyAdapter());
     }
 

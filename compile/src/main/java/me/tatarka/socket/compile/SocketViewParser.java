@@ -24,7 +24,6 @@ public class SocketViewParser {
             parser.setInput(res);
 
             List<View> views = new ArrayList<View>();
-            View.Builder currentView = null;
 
             int tag;
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
@@ -47,18 +46,7 @@ public class SocketViewParser {
                             view.fieldName(fieldName);
                         }
 
-                        if (currentView != null) {
-                            currentView.child(view);
-                        }
-                        currentView = view;
-                    }
-                } else if (tag == XmlPullParser.END_TAG) {
-                    if (currentView != null) {
-                        View.Builder parent = currentView.parent();
-                        if (parent == null) {
-                            views.add(currentView.build());
-                        }
-                        currentView = parent;
+                        views.add(view.build());
                     }
                 }
             }

@@ -49,30 +49,6 @@ public class SocketTest
 """
     }
 
-    def "a nested view generates a view holder with children for that view"() {
-        expect:
-        code(generator, "test", [View.of("android.widget.LinearLayout", "my_linear_layout")
-                                         .child(View.of("android.widget.TextView", "my_text_view")).build()]) == """
-package me.tatarka.test.sockets;
-$IMPORTS
-public class SocketTest
-    extends Socket
-{
-
-    public final static int LAYOUT = R.layout.test;
-    public android.widget.LinearLayout myLinearLayout;
-    public android.widget.TextView myTextView;
-
-    public SocketTest(View view) {
-        super(view);
-        myLinearLayout = ((android.widget.LinearLayout) view.findViewById(R.id.my_linear_layout));
-        myTextView = ((android.widget.TextView) myLinearLayout.findViewById(R.id.my_text_view));
-    }
-
-}
-"""
-    }
-
     def "a view with a custom field name uses that name"() {
         expect:
         code(generator, "test", [View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField").build()]) == """

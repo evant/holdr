@@ -26,12 +26,11 @@ public class SocketTask extends DefaultTask {
     void execute(IncrementalTaskInputs inputs) {
         logging.captureStandardOutput(LogLevel.INFO)
 
-        File layoutsDir = new File(resDir, "layout")
         def compiler = new SocketCompiler(packageName)
 
         if (inputs.incremental) {
             inputs.removed { InputFileDetails change ->
-                File outputFile = compiler.inputToOutput(layoutsDir, resDir, change.file)
+                File outputFile = compiler.outputFile(outputDir, change.file);
                 if (outputFile.exists()) outputFile.delete()
             }
 
@@ -40,9 +39,9 @@ public class SocketTask extends DefaultTask {
                 changedFiles += changes.file
             }
 
-            compiler.compile(layoutsDir, outputDir, changedFiles)
+            compiler.compile(resDir, outputDir, changedFiles)
         } else {
-            compiler.compile(layoutsDir, outputDir)
+            compiler.compile(resDir, outputDir)
         }
     }
 }

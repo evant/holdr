@@ -6,7 +6,9 @@ import me.tatarka.socket.compile.util.FormatUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,9 +32,21 @@ public class SocketCompiler {
         System.out.println("Socket: processing layouts in: " + inputDir);
 
         if (layoutFiles == null) {
-            File[] allFiles = inputDir.listFiles();
-            if (allFiles == null) return;
-            layoutFiles = Arrays.asList(allFiles);
+            File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.startsWith("layout");
+                }
+            });
+            if (layoutDirs == null) return;
+
+            layoutFiles = new ArrayList<File>();
+            for (File layoutDir : layoutDirs) {
+                File[] layouts = layoutDir.listFiles();
+                if (layouts != null) {
+                    layoutFiles.addAll(Arrays.asList(layouts));
+                }
+            }
         }
 
         System.out.println("Socket: found " + layoutFiles.size() + " layout files");
@@ -53,7 +67,7 @@ public class SocketCompiler {
                 if (!views.isEmpty()) {
                     String layoutName = stripExtension(layoutFile.getName());
 
-                    File outputFile = inputToOutput(inputDir, outputDir, layoutFile);
+                    File outputFile = outputFile(outputDir, layoutFile);
                     outputFile.getParentFile().mkdirs();
 
                     writer = new FileWriter(outputFile);
@@ -67,9 +81,9 @@ public class SocketCompiler {
         }
     }
 
-    public File inputToOutput(File inputDir, File outputDir, File layoutFile) {
+    public File outputFile(File outputDir, File layoutFile) {
         String className = generator.getClassName(stripExtension(layoutFile.getName()));
-        return FileUtils.inputToOutput(inputDir, packageToFile(outputDir, packageName), FileUtils.changeName(layoutFile, className + ".java"));
+        return new File(packageToFile(outputDir, packageName), className + ".java");
     }
 
     private static File packageToFile(File baseDir, String packageName) {

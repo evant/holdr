@@ -12,7 +12,7 @@ class SocketPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.dependencies {
-            compile project.project(':socket')
+            compile 'me.tatarka.socket:socket:0.1'
         }
 
         project.plugins.withType(AppPlugin) {

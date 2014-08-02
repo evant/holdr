@@ -50,20 +50,11 @@ public class SocketGenerator {
     }
 
     private static Map<View, JFieldVar> genFields(Refs refs, JDefinedClass clazz, List<View> views) {
-        // public LinearLayout myLinearLayout;
-        // public TextView myTextView;
         Map<View, JFieldVar> fieldVarMap = new LinkedHashMap<View, JFieldVar>();
         for (View view : views) {
-            genFields(refs, clazz, view, fieldVarMap);
+            fieldVarMap.put(view, clazz.field(PUBLIC, refs.ref(view.type), view.fieldName));
         }
         return fieldVarMap;
-    }
-
-    private static void genFields(Refs refs, JDefinedClass clazz, View view, /* OUT */ Map<View, JFieldVar> fieldVarMap) {
-        fieldVarMap.put(view, clazz.field(PUBLIC, refs.ref(view.type), view.fieldName));
-        for (View child : view.children) {
-            genFields(refs, clazz, child, fieldVarMap);
-        }
     }
 
     private static void genConstructor(Refs refs, JDefinedClass clazz, List<View> views, Map<View, JFieldVar> fieldVarMap) {
@@ -77,19 +68,16 @@ public class SocketGenerator {
 
         // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
         // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
-        for (View view : views) {
-            genInitFields(refs, fieldVarMap, viewVar, view, body);
-        }
+        genInitFields(refs, fieldVarMap, viewVar, views, body);
     }
 
-    private static void genInitFields(Refs refs, Map<View, JFieldVar> fieldVarMap, JVar viewVar, View view, JBlock body) {
-        JClass viewType = refs.ref(view.type);
-        JFieldVar fieldVar = fieldVarMap.get(view);
-        JFieldRef idVar = (view.isAndroidId ? refs.androidRClass : refs.rClass).staticRef("id").ref(view.id);
+    private static void genInitFields(Refs refs, Map<View, JFieldVar> fieldVarMap, JVar viewVar, List<View> views, JBlock body) {
+        for (View view : views) {
+            JClass viewType = refs.ref(view.type);
+            JFieldVar fieldVar = fieldVarMap.get(view);
+            JFieldRef idVar = (view.isAndroidId ? refs.androidRClass : refs.rClass).staticRef("id").ref(view.id);
 
-        body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
-        for (View child : view.children) {
-            genInitFields(refs, fieldVarMap, fieldVar, child, body);
+            body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
         }
     }
 
