@@ -20,6 +20,12 @@ public class SocketTest
 
     public final static int LAYOUT = R.layout.test;
 
+    /**
+     * Constructs a new {@link me.tatarka.socket.Socket} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the socket's views.
+     */
     public SocketTest(View view) {
         super(view);
     }
@@ -38,8 +44,18 @@ public class SocketTest
 {
 
     public final static int LAYOUT = R.layout.test;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_text_view}.
+     * 
+     */
     public android.widget.TextView myTextView;
 
+    /**
+     * Constructs a new {@link me.tatarka.socket.Socket} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the socket's views.
+     */
     public SocketTest(View view) {
         super(view);
         myTextView = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
@@ -59,8 +75,18 @@ public class SocketTest
 {
 
     public final static int LAYOUT = R.layout.test;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_text_view}.
+     * 
+     */
     public android.widget.TextView myCustomField;
 
+    /**
+     * Constructs a new {@link me.tatarka.socket.Socket} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the socket's views.
+     */
     public SocketTest(View view) {
         super(view);
         myCustomField = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
@@ -83,8 +109,18 @@ public class SocketTest
 {
 
     public final static int LAYOUT = me.tatarka.test.R.layout.test;
+    /**
+     * View for {@link android.R.id#text1}.
+     * 
+     */
     public android.widget.TextView text1;
 
+    /**
+     * Constructs a new {@link me.tatarka.socket.Socket} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the socket's views.
+     */
     public SocketTest(View view) {
         super(view);
         text1 = ((android.widget.TextView) view.findViewById(android.R.id.text1));
@@ -104,8 +140,18 @@ public class SocketTest
 {
 
     public final static int LAYOUT = R.layout.test;
+    /**
+     * Socket for {@link me.tatarka.test.R.layout#my_layout}.
+     * 
+     */
     public SocketMyLayout myInclude;
 
+    /**
+     * Constructs a new {@link me.tatarka.socket.Socket} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the socket's views.
+     */
     public SocketTest(View view) {
         super(view);
         myInclude = new SocketMyLayout(view);

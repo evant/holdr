@@ -29,13 +29,13 @@ public class SocketGenerator {
         JPackage pkg = m._package(packageName + ".sockets");
 
         try {
-            Refs r = new Refs(m, packageName);
+            Refs r = new Refs(m, packageName, layoutName);
 
             // public class MyLayoutViewModel {
             JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layoutName))._extends(r.viewHolder);
 
             // public static final int LAYOUT = R.id.my_layout;
-            JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", r.rClass.staticRef("layout").ref(layoutName));
+            JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", r.layoutRef);
 
             Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, refs);
 
@@ -54,10 +54,15 @@ public class SocketGenerator {
     private Map<Ref, JFieldVar> genFields(Refs r, JDefinedClass clazz, Set<Ref> refs) {
         Map<Ref, JFieldVar> fieldVarMap = new LinkedHashMap<Ref, JFieldVar>();
         for (Ref ref : refs) {
+            String idPackage = (ref.isAndroidId ? "android" : r.packageName) + ".R";
             if (ref instanceof View) {
-                fieldVarMap.put(ref, clazz.field(PUBLIC, r.ref(((View) ref).type), ref.fieldName));
+                JFieldVar var = clazz.field(PUBLIC, r.ref(((View) ref).type), ref.fieldName);
+                var.javadoc().append("View for {@link " + idPackage + ".id#" + ref.id + "}.");
+                fieldVarMap.put(ref, var);
             } else if (ref instanceof Include) {
-                fieldVarMap.put(ref, clazz.field(PUBLIC, r.ref(getClassName(((Include) ref).layout)), ref.fieldName));
+                JFieldVar var = clazz.field(PUBLIC, r.ref(getClassName(((Include) ref).layout)), ref.fieldName);
+                var.javadoc().append("Socket for {@link " + idPackage + ".layout#" + ((Include) ref).layout + "}.");
+                fieldVarMap.put(ref, var);
             }
         }
         return fieldVarMap;
@@ -75,6 +80,10 @@ public class SocketGenerator {
         // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
         // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
         genInitFields(r, fieldVarMap, viewVar, refs, body);
+
+        JDocComment doc = constructor.javadoc();
+        doc.append("Constructs a new {@link me.tatarka.socket.Socket} for {@link " + r.packageName + ".R.layout#" + r.layoutName + "}.");
+        doc.addParam(viewVar).append("The root view to search for the socket's views.");
     }
 
     private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Set<Ref> refs, JBlock body) {
@@ -93,18 +102,24 @@ public class SocketGenerator {
 
     private static class Refs {
         public final JCodeModel m;
+        public final String packageName;
+        public final String layoutName;
         public final JClass viewHolder;
         public final JClass viewClass;
         public final JClass androidRClass;
         public final JClass rClass;
+        public final JFieldRef layoutRef;
 
-        private Refs(JCodeModel m, String packageName) {
+        private Refs(JCodeModel m, String packageName, String layoutName) {
             this.m = m;
+            this.packageName = packageName;
+            this.layoutName = layoutName;
 
             viewHolder = m.ref("me.tatarka.socket.Socket");
             viewClass = m.ref("android.view.View");
             androidRClass = m.ref("android.R");
             rClass = m.ref(packageName + ".R");
+            layoutRef = rClass.staticRef("layout").ref(layoutName);
         }
 
         public JClass ref(String className) {
