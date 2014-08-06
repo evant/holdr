@@ -71,7 +71,7 @@ public class ToolsFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        socket = new SokcetWrench(view);
+        socket = new SocketWrench(view);
         socket.text.setText("Hello, Socket!");
     }
 }
