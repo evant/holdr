@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -33,25 +34,8 @@ public class SocketCompiler {
     public void compile(File inputDir, File outputDir, List<File> layoutFiles) throws IOException {
         System.out.println("Socket: processing layouts in: " + inputDir);
 
-        if (layoutFiles == null) {
-            File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.startsWith("layout");
-                }
-            });
-            if (layoutDirs == null) return;
-
-            layoutFiles = new ArrayList<File>();
-            for (File layoutDir : layoutDirs) {
-                File[] layouts = layoutDir.listFiles();
-                if (layouts != null) {
-                    layoutFiles.addAll(Arrays.asList(layouts));
-                }
-            }
-        }
-
-        System.out.println("Socket: found " + layoutFiles.size() + " layout files");
+        layoutFiles = obtainAllLayoutFiles(inputDir, layoutFiles);
+        System.out.println("Socket: processing " + layoutFiles.size() + " layout files");
         if (layoutFiles.isEmpty()) return;
 
         SocketViewParser parser = new SocketViewParser();
@@ -95,6 +79,51 @@ public class SocketCompiler {
                 }
             }
         }
+    }
+    
+    private static List<File> obtainAllLayoutFiles(File inputDir, List<File> layoutFiles) {
+        if (layoutFiles != null && layoutFiles.isEmpty()) return layoutFiles;
+        
+        File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith("layout");
+            }
+        });
+        
+        if (layoutFiles == null) {
+            // No info passed in, get all of them.
+            if (layoutDirs == null) return Collections.emptyList();
+
+            layoutFiles = new ArrayList<File>();
+            for (File layoutDir : layoutDirs) {
+                File[] layouts = layoutDir.listFiles();
+                if (layouts != null) {
+                    layoutFiles.addAll(Arrays.asList(layouts));
+                }
+            }
+        } else {
+            // Get all layout files related to the passed in ones for all alternative dirs
+            List<File> newLayoutFiles = new ArrayList<File>();
+            for (File file : layoutFiles) {
+                for (File layoutDir : layoutDirs) {
+                    // Skip dir that the file is in.
+                    if (layoutDir.getName().equals(file.getParentFile().getName())) {
+                        continue;
+                    }
+
+                    File otherFile = new File(layoutDir, file.getName());
+                    if (otherFile.exists()) {
+                        newLayoutFiles.add(otherFile);
+                    }
+                }
+                
+            }
+            layoutFiles.addAll(newLayoutFiles);
+        }
+
+        
+        return layoutFiles;
     }
 
     public File outputFile(File outputDir, File layoutFile) {

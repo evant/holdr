@@ -27,17 +27,17 @@ public class SocketTask extends DefaultTask {
         def compiler = new SocketCompiler(packageName)
 
         if (inputs.incremental) {
-            inputs.removed { InputFileDetails change ->
-                File outputFile = compiler.outputFile(outputDir, change.file);
-                if (outputFile.exists()) outputFile.delete()
-            }
-
             List<File> changedFiles = []
             inputs.outOfDate { InputFileDetails changes ->
                 changedFiles += changes.file
             }
 
             compiler.compile(resDir, outputDir, changedFiles)
+            
+            inputs.removed { InputFileDetails change ->
+                File outputFile = compiler.outputFile(outputDir, change.file);
+                if (outputFile.exists()) outputFile.delete()
+            }
         } else {
             compiler.compile(resDir, outputDir)
         }
