@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/display2"
+        android:textColor="@color/text_color"
+        tools:text="Hello, Socket!" />
+
+    <TextView
+        android:id="@+id/sub_header_portrait"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/headline"
+        android:textColor="@color/text_color"
+        tools:text="This is only in portrait" />
+
+    <include android:id="@+id/include_layout" layout="@layout/include_layout"/>
+    
+    <me.tatarka.socket.sample.CustomView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
