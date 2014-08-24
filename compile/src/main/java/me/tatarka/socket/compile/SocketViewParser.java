@@ -15,7 +15,8 @@ public class SocketViewParser {
     private static final String ID = "id";
     private static final String LAYOUT = "layout";
     private static final String INCLUDE = "include";
-    private static final String IGNORE = "socket_ignore";
+    private static final String SOCKET_IGNORE = "socket_ignore";
+    private static final String SOCKET_INCLUDE = "socket_include";
     private static final String FIELD_NAME = "socket_field_name";
 
     public List<Ref> parse(Reader res) throws IOException {
@@ -27,6 +28,7 @@ public class SocketViewParser {
 
             List<Ref> refs = new ArrayList<Ref>();
             String ignoreChildrenTag = null;
+            String includeTagName = null;
 
             int tag;
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
@@ -36,14 +38,20 @@ public class SocketViewParser {
                     String idString = parser.getAttributeValue(ANDROID_NS, ID);
                     String id = parseId(idString);
                     boolean isAndroidId = parseIsAndroidId(idString);
-                    Ignore ignore = parseIgnore(parser.getAttributeValue(APP_NS, IGNORE));
+                    SocketIgnore ignore = parseIgnore(parser.getAttributeValue(APP_NS, SOCKET_IGNORE));
+                    SocketInclude include = parseInclude(parser.getAttributeValue(APP_NS, SOCKET_INCLUDE));
+                    
                     String fieldName = parser.getAttributeValue(APP_NS, FIELD_NAME);
 
-                    if (ignoreChildrenTag == null && ignore == Ignore.CHILDREN) {
+                    if (ignoreChildrenTag == null && ignore == SocketIgnore.CHILDREN) {
                         ignoreChildrenTag = tagName;
                     }
 
-                    if (id != null && ignore == Ignore.NONE && ignoreChildrenTag == null) {
+                    if (includeTagName == null && include == SocketInclude.CHILDREN) {
+                        includeTagName = tagName;
+                    }
+
+                    if (id != null && include(include, includeTagName != null, ignore, ignoreChildrenTag != null)) {
                         Ref.Builder ref;
                         if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
@@ -75,6 +83,10 @@ public class SocketViewParser {
         }
     }
 
+    private boolean include(SocketInclude include, boolean hasIncludeChildrenTag, SocketIgnore ignore, boolean hasIgnoreChildrenTag) {
+        return (include == SocketInclude.VIEW) || hasIncludeChildrenTag || (ignore == SocketIgnore.NONE && !hasIgnoreChildrenTag);
+    }
+    
     private static String parseType(String type) {
         if (type == null) return null;
         if (type.contains(".")) return type;
@@ -93,18 +105,33 @@ public class SocketViewParser {
         return id != null && id.startsWith("@android");
     }
 
-    private static Ignore parseIgnore(String ignore) {
-        if (ignore == null) return Ignore.NONE;
+    private static SocketIgnore parseIgnore(String ignore) {
+        if (ignore == null) return SocketIgnore.NONE;
         if (ignore.equals("view")) {
-            return Ignore.VIEW;
+            return SocketIgnore.VIEW;
         }
         if (ignore.equals("children")) {
-            return Ignore.CHILDREN;
+            return SocketIgnore.CHILDREN;
         }
-        return Ignore.NONE;
+        return SocketIgnore.NONE;
+    }
+    
+    private static SocketInclude parseInclude(String include) {
+        if (include == null) return SocketInclude.NONE;
+        if (include.equals("view")) {
+            return SocketInclude.VIEW;
+        }
+        if (include.equals("children")) {
+            return SocketInclude.CHILDREN;
+        }
+        return SocketInclude.NONE;
     }
 
-    private static enum Ignore {
+    private static enum SocketIgnore {
+        NONE, VIEW, CHILDREN
+    }
+
+    private static enum SocketInclude {
         NONE, VIEW, CHILDREN
     }
 }

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="Socket">
+        <!-- Don't generate any code for a view. -->
         <attr name="socket_ignore" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="view" value="1"/>
+            <enum name="children" value="2"/>
+        </attr>
+        <!-- Generate code for a view, even when it's withing a view with "socket_ignore"="children" -->
+        <attr name="socket_include" format="enum">
             <enum name="none" value="0"/>
             <enum name="view" value="1"/>
             <enum name="children" value="2"/>

@@ -95,6 +95,41 @@ class SocketViewParserSpec extends Specification {
             }
         }) == []
     }
+    
+    def "a view with 'socket_ignore=children' can have a child with 'socket_include=view' which will be included"() {
+        expect:
+        parser.parse(xml {
+            it.'LinearLayout'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'xmlns:app': 'http://schemas.android.com/apk/res-auto',
+                    'android:id': '@+id/my_linear_layout',
+                    'app:socket_ignore': 'children'
+            ) {
+                'TextView'('android:id': '@+id/my_text_view', 'app:socket_include': 'view')
+                'ImageView'('android:id': '@+id/my_image_view')
+            }
+        }) == [View.of('android.widget.TextView', 'my_text_view').build()]
+    }
+    
+    def "a view with 'socket_ignore=children' can have a child with 'socket_include=children' which will include all it's chilren"() {
+        expect:
+        parser.parse(xml {
+            it.'LinearLayout'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'xmlns:app': 'http://schemas.android.com/apk/res-auto',
+                    'android:id': '@+id/my_linear_layout',
+                    'app:socket_ignore': 'children'
+            ) {
+                'ImageView'('android:id': '@+id/my_image_view')
+                'LinearLayout'('android:id': '@+id/my_child_linear_layout', 'app:socket_include': 'children') {
+                    'TextView'('android:id': '@+id/my_text_view')
+                }
+            }
+        }) == [
+                View.of('android.widget.LinearLayout', 'my_child_linear_layout').build(),
+                View.of('android.widget.TextView', 'my_text_view').build(),
+        ]
+    }
 
     def "a view with a 'socket_field_name' attribute has a custom field name"() {
         expect:
