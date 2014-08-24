@@ -104,6 +104,21 @@ public class ToolsAdapter extends BaseAdapter {
 }
 ```
 
+### In a Custom View
+
+```java
+public class MyCustomView extends LinearLayout {
+    Socket_Wrench socket;
+    
+    // other methods
+    
+    private void init() {
+        socket = new Socket_Wrench(inflate(getContext(), R.layout.wrench, this));
+        socket.text.setText("Hello, Socket!");;
+    }
+}
+```
+
 ### Controlling What's Generated
 
 If you don't like the idea of a whole bunch of code being generated for all your layouts (It's really not much, I promise!), you can add `socket.defaultInclude false` to your `build.gradle` and then you can manually opt-in for each of your layouts.
