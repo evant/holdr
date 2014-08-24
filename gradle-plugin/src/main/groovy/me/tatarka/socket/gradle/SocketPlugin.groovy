@@ -17,19 +17,21 @@ class SocketPlugin implements Plugin<Project> {
 
         project.plugins.withType(AppPlugin) {
             AppPlugin androidPlugin = project.plugins.getPlugin(AppPlugin)
-
+            
             project.afterEvaluate {
                 def applicationId = getApplicationId(androidPlugin)
 
                 if (androidPlugin instanceof AppPlugin) {
                     ((AppExtension) androidPlugin.extension).applicationVariants.all { ApplicationVariant variant ->
                         def taskName = "generateSockets${variant.name.capitalize()}"
+                        def out = project.file("$project.buildDir/generated/source/socket/$variant.name")
                         def task = project.task(taskName, dependsOn: [variant.mergeResources], type: SocketTask) {
                             packageName = applicationId
                             resDir = variant.mergeResources.outputDir
-                            outputDir = variant.generateBuildConfig.sourceOutputDir
+                            outputDir = out
                         }
-                        variant.generateBuildConfig.dependsOn(task)
+                        variant.registerJavaGeneratingTask(task, out)
+                        variant.addJavaSourceFoldersToModel(out)
                     }
                 }
             }

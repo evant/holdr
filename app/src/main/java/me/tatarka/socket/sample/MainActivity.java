@@ -18,11 +18,15 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         socket = new SocketActivityMain(findViewById(android.R.id.content));
         socket.text.setText("Hello, Socket!");
+        
         if (socket.textLand != null) {
             socket.textLand.setText("Hello, Socket Land!");
         }
-        socket.includeLayout.text1.setText("Hello, Include Text 1");
-        socket.includeLayout.text2.setText("Hello, Include Text 2");
+        
+        if (socket.includeLayout.text1 != null) {
+            socket.includeLayout.text1.setText("Hello, Include Text 1");
+            socket.includeLayout.text2.setText("Hello, Include Text 2");
+        }
 
         socket.list.setAdapter(new MyAdapter());
     }
