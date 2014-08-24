@@ -126,7 +126,7 @@ public class MyCustomView extends LinearLayout {
 
 If you don't like the idea of a whole bunch of code being generated for all your layouts (It's really not much, I promise!), you can add `socket.defaultInclude false` to your `build.gradle` and then you can manually opt-in for each of your layouts.
 
-The easiest way to opt-in is to add `app:socket_include="children"` to the root view of that layout.
+The easiest way to opt-in is to add `app:socket_include="all"` to the root view of that layout.
 
 By default, every view with an id gets added to the generated class. You can use the attributes `socket_include` and `socket_ignore` to get more granular control. Both take either the value `"view"` to act on just the view it's used on or `"all"` to act on that view and all it's children. For example,
 
