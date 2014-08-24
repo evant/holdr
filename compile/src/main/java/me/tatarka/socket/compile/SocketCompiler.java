@@ -18,10 +18,10 @@ public class SocketCompiler {
     private final SocketViewParser parser;
     private final SocketGenerator generator;
 
-    public SocketCompiler(String packageName) {
+    public SocketCompiler(String packageName, boolean defaultInclude) {
         this.packageName = packageName;
 
-        parser = new SocketViewParser();
+        parser = new SocketViewParser(defaultInclude);
         generator = new SocketGenerator(packageName);
     }
 
@@ -36,9 +36,6 @@ public class SocketCompiler {
     private void compile(File outputDir, List<File> layoutFiles) throws IOException {
         System.out.println("Socket: processing " + layoutFiles.size() + " layout files");
         if (layoutFiles.isEmpty()) return;
-
-        SocketViewParser parser = new SocketViewParser();
-        SocketGenerator generator = new SocketGenerator(packageName);
 
         Layouts layouts = new Layouts();
 

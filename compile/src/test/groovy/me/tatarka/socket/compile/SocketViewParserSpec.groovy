@@ -7,7 +7,7 @@ import static SpecHelpers.xml
 
 class SocketViewParserSpec extends Specification {
     @Shared
-    def parser = new SocketViewParser()
+    def parser = new SocketViewParser(true)
 
     def "a single non-id view parses as an empty list"() {
         expect:

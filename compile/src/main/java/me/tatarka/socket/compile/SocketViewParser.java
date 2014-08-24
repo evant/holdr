@@ -18,6 +18,12 @@ public class SocketViewParser {
     private static final String SOCKET_IGNORE = "socket_ignore";
     private static final String SOCKET_INCLUDE = "socket_include";
     private static final String FIELD_NAME = "socket_field_name";
+    
+    private boolean defaultInclude;
+    
+    public SocketViewParser(boolean defaultInclude) {
+        this.defaultInclude = defaultInclude;
+    }
 
     public List<Ref> parse(Reader res) throws IOException {
         try {
@@ -51,7 +57,7 @@ public class SocketViewParser {
                         includeTagName = tagName;
                     }
 
-                    if (id != null && include(include, includeTagName != null, ignore, ignoreChildrenTag != null)) {
+                    if (include(id != null, include, includeTagName != null, ignore, ignoreChildrenTag != null)) {
                         Ref.Builder ref;
                         if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
@@ -83,8 +89,13 @@ public class SocketViewParser {
         }
     }
 
-    private boolean include(SocketInclude include, boolean hasIncludeChildrenTag, SocketIgnore ignore, boolean hasIgnoreChildrenTag) {
-        return (include == SocketInclude.VIEW) || hasIncludeChildrenTag || (ignore == SocketIgnore.NONE && !hasIgnoreChildrenTag);
+    private boolean include(boolean hasId, SocketInclude include, boolean hasIncludeChildrenTag, SocketIgnore ignore, boolean hasIgnoreChildrenTag) {
+        if (!hasId) return false;
+        if (defaultInclude) {
+            return (include == SocketInclude.VIEW) || hasIncludeChildrenTag || (ignore == SocketIgnore.NONE && !hasIgnoreChildrenTag);
+        } else {
+            return (include != SocketInclude.NONE) || (hasIncludeChildrenTag && !hasIgnoreChildrenTag);
+        }
     }
     
     private static String parseType(String type) {

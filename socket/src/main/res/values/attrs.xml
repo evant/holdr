@@ -7,7 +7,7 @@
             <enum name="view" value="1"/>
             <enum name="children" value="2"/>
         </attr>
-        <!-- Generate code for a view, even when it's withing a view with "socket_ignore"="children" -->
+        <!-- Generate code for a view, even when it's within a view with "socket_ignore"="children" -->
         <attr name="socket_include" format="enum">
             <enum name="none" value="0"/>
             <enum name="view" value="1"/>

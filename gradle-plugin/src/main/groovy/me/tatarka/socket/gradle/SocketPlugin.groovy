@@ -18,18 +18,20 @@ class SocketPlugin implements Plugin<Project> {
             compile 'me.tatarka.socket:socket:0.1'
         }
 
+        def socket = project.extensions.create('socket', SocketExtension)
+
         project.plugins.withType(AppPlugin) {
             AppPlugin androidPlugin = project.plugins.getPlugin(AppPlugin)
-            createSocketTask(project, androidPlugin)
+            createSocketTask(project, androidPlugin, socket)
         }
         
         project.plugins.withType(LibraryPlugin) {
             LibraryPlugin androidPlugin = project.plugins.getPlugin(LibraryPlugin)
-            createSocketTask(project, androidPlugin)
+            createSocketTask(project, androidPlugin, socket)
         }
     }
     
-    private static void createSocketTask(Project project, BasePlugin androidPlugin) {
+    private static void createSocketTask(Project project, BasePlugin androidPlugin, SocketExtension socket) {
         
         def variants = androidPlugin instanceof AppPlugin ?
                 ((AppExtension) androidPlugin.extension).applicationVariants :
@@ -45,6 +47,7 @@ class SocketPlugin implements Plugin<Project> {
                 packageName = applicationId
                 resDirectories = getResDirectories(project, variant)
                 outputDirectory = outputDir
+                defaultInclude = socket.defaultInclude
             }
             variant.registerJavaGeneratingTask(task, outputDir)
             variant.addJavaSourceFoldersToModel(outputDir)

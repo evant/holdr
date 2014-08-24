@@ -15,6 +15,9 @@ public class SocketTask extends DefaultTask {
     @Input
     String packageName
 
+    @Input
+    boolean defaultInclude
+
     @InputFiles
     FileCollection resDirectories
 
@@ -25,7 +28,7 @@ public class SocketTask extends DefaultTask {
     void execute(IncrementalTaskInputs inputs) {
         logging.captureStandardOutput(LogLevel.INFO)
 
-        def compiler = new SocketCompiler(packageName)
+        def compiler = new SocketCompiler(packageName, defaultInclude)
 
         if (inputs.incremental) {
             List<File> changedFiles = []
