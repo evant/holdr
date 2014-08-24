@@ -1,31 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/text"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        tools:text="Hello, Socket!" />
+        android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/different"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="This is a Button" />
-
-    <include
-        android:id="@+id/include_layout"
-        layout="@layout/include_layout" />
-
-    <ListView
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <android.support.v4.view.PagerTitleStrip
+            android:id="@+id/title_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </android.support.v4.view.ViewPager>
 </LinearLayout>

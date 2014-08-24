@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "me.tatarka.socket"
-        minSdkVersion 14
+        minSdkVersion 1
         targetSdkVersion 20
         versionCode 1
         versionName "1.0"

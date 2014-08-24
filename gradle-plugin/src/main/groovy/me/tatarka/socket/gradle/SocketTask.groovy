@@ -35,13 +35,14 @@ public class SocketTask extends DefaultTask {
             inputs.outOfDate { InputFileDetails changes ->
                 changedFiles += changes.file
             }
-
-            compiler.compileIncremental(changedFiles, outputDirectory)
             
             inputs.removed { InputFileDetails change ->
+                changedFiles += change.file
                 File outputFile = compiler.outputFile(outputDirectory, change.file);
                 if (outputFile.exists()) outputFile.delete()
             }
+
+            compiler.compileIncremental(changedFiles, outputDirectory)
         } else {
             compiler.compile(resDirectories.files, outputDirectory)
         }

@@ -89,9 +89,13 @@ public class SocketCompiler {
     }
     
     private static List<File> getChangedLayoutFiles(Collection<File> changedLayoutFiles) {
-        List<File> layoutFiles = new ArrayList<File>(changedLayoutFiles);
+        List<File> layoutFiles = new ArrayList<File>();
 
         for (File file : changedLayoutFiles) {
+            if (file.exists()) {
+                layoutFiles.add(file);
+            }
+            
             File inputDir = file.getParentFile().getParentFile();
 
             File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
