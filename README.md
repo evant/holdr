@@ -15,7 +15,7 @@ Simply apply the gradle plugin and your done!
 buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.2'
-        classpath 'me.tatarka.socket:gradle-plugin:0.1'
+        classpath 'me.tatarka.socket:gradle-plugin:1.0.0'
     }
 }
 
