@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.tatarka.socket.compile.util.FileUtils;
+
 public class SocketCompiler {
     private final String packageName;
     private final SocketViewParser parser;
@@ -41,38 +43,28 @@ public class SocketCompiler {
         SocketViewParser parser = new SocketViewParser();
         SocketGenerator generator = new SocketGenerator(packageName);
 
-        Map<String, Layout> layouts = new HashMap<String, Layout>();
+        Layouts layouts = new Layouts();
 
         for (File layoutFile : layoutFiles) {
             FileReader reader = null;
             try {
                 reader = new FileReader(layoutFile);
-                String layoutName = stripExtension(layoutFile.getName());
                 List<Ref> refs = parser.parse(reader);
-
-                Layout layout = layouts.get(layoutName);
-                if (layout == null) {
-                    layouts.put(layoutName, new Layout(layoutFile, new LinkedHashSet<Ref>(refs)));
-                } else {
-                    layout.refs.addAll(refs);
-                }
+                layouts.add(layoutFile, refs);
             } finally {
                 if (reader != null) reader.close();
             }
         }
 
-        for (Map.Entry<String, Layout> entry : layouts.entrySet()) {
-            String layoutName = entry.getKey();
-            Layout layout = entry.getValue();
-
-            if (!layout.refs.isEmpty()) {
+        for (Layouts.Layout layout : layouts) {
+            if (!layout.isEmpty()) {
                 File outputFile = outputFile(outputDir, layout.file);
                 outputFile.getParentFile().mkdirs();
 
                 Writer writer = null;
                 try {
                     writer = new FileWriter(outputFile);
-                    generator.generate(layoutName, layout.refs, writer);
+                    generator.generate(layout.name, layout.refs, writer);
                     System.out.println("Socket: created " + outputFile);
                 } finally {
                     if (writer != null) writer.close();
@@ -127,28 +119,11 @@ public class SocketCompiler {
     }
 
     public File outputFile(File outputDir, File layoutFile) {
-        String className = generator.getClassName(stripExtension(layoutFile.getName()));
+        String className = generator.getClassName(FileUtils.stripExtension(layoutFile.getName()));
         return new File(packageToFile(outputDir, packageName), className + ".java");
     }
 
     private static File packageToFile(File baseDir, String packageName) {
         return new File(baseDir, (packageName + ".sockets").replaceAll("\\.", File.separator));
-    }
-
-    private static String stripExtension(String str) {
-        if (str == null) return null;
-        int pos = str.lastIndexOf(".");
-        if (pos == -1) return str;
-        return str.substring(0, pos);
-    }
-
-    private static class Layout {
-        public final File file;
-        public final Set<Ref> refs;
-
-        private Layout(File layoutFile, Set<Ref> refs) {
-            this.file = layoutFile;
-            this.refs = refs;
-        }
     }
 }

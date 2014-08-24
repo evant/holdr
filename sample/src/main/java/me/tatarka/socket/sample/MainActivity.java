@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import me.tatarka.socket.sample.sockets.SocketActivityMain;
 import me.tatarka.socket.sample.sockets.SocketListItem;
@@ -26,6 +29,15 @@ public class MainActivity extends Activity {
         if (socket.includeLayout.text1 != null) {
             socket.includeLayout.text1.setText("Hello, Include Text 1");
             socket.includeLayout.text2.setText("Hello, Include Text 2");
+        }
+        
+        if (socket.different instanceof Button) {
+            socket.different.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(MainActivity.this, "Pressed a button!", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         socket.list.setAdapter(new MyAdapter());

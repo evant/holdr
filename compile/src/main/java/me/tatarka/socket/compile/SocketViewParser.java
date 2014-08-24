@@ -78,6 +78,7 @@ public class SocketViewParser {
     private static String parseType(String type) {
         if (type == null) return null;
         if (type.contains(".")) return type;
+        if (type.equals("View")) return "android.view.View";
         return "android.widget." + type;
     }
 

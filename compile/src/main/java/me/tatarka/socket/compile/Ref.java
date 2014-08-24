@@ -16,6 +16,31 @@ public abstract class Ref {
         this.fieldName = fieldName != null ? fieldName : FormatUtils.underscoreToLowerCamel(id);
         this.isAndroidId = isAndroidId;
     }
+    
+    public static Ref merge(String layoutName, Ref first, Ref second) {
+        if (first instanceof View && second instanceof View) {
+            View firstView = (View) first;
+            View secondView = (View) second;
+            
+            if (firstView.type.equals(secondView.type)) {
+                return firstView;
+            } else {
+                return View.of("android.view.View", firstView).build();
+            }
+        }
+        
+        if (first instanceof Include && second instanceof Include) {
+            String firstLayout = ((Include) first).layout;
+            String secondLayout = ((Include) second).layout;
+            if (firstLayout.equals(secondLayout)) {
+                return first;
+            } else {
+                throw new IllegalArgumentException("Cannot merge includes with different layouts ('" + firstLayout + "', vs '" + secondLayout + "' in layout '" + layoutName + "').");
+            }
+        }
+
+        throw new IllegalArgumentException("Cannot merge view with include (id '" + first.id + "' in layout '" + layoutName + "').");
+    }
 
     public static abstract class Builder<R extends Ref, T extends Builder> {
         protected String id;
@@ -25,6 +50,12 @@ public abstract class Ref {
         protected Builder(String id) {
             if (id == null) throw new IllegalStateException("id must not be null");
             this.id = id;
+        }
+        
+        protected Builder(Ref ref) {
+            this(ref.id);
+            fieldName = ref.fieldName;
+            isAndroidId = ref.isAndroidId;
         }
 
         public T fieldName(String fieldName) {

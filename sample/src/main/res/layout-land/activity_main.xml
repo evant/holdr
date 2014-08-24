@@ -13,11 +13,12 @@
         android:padding="16dp"
         tools:text="Hello, Socket!"
         />
-    <Button
+
+    <TextView
         android:id="@+id/different"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="This is a Button" />
+        android:text="This is a TextView" />
     
     <TextView
         android:id="@+id/text_land"

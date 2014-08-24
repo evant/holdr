@@ -4,6 +4,7 @@ import com.sun.codemodel.*;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class SocketGenerator {
         this.packageName = packageName;
     }
 
-    public void generate(String layoutName, Set<Ref> refs, Writer writer) throws IOException {
+    public void generate(String layoutName, Collection<Ref> refs, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(packageName + ".sockets");
 
@@ -51,7 +52,7 @@ public class SocketGenerator {
         return "Socket" + FormatUtils.underscoreToUpperCamel(layoutName);
     }
 
-    private Map<Ref, JFieldVar> genFields(Refs r, JDefinedClass clazz, Set<Ref> refs) {
+    private Map<Ref, JFieldVar> genFields(Refs r, JDefinedClass clazz, Collection<Ref> refs) {
         Map<Ref, JFieldVar> fieldVarMap = new LinkedHashMap<Ref, JFieldVar>();
         for (Ref ref : refs) {
             String idPackage = (ref.isAndroidId ? "android" : r.packageName) + ".R";
@@ -68,7 +69,7 @@ public class SocketGenerator {
         return fieldVarMap;
     }
 
-    private void genConstructor(Refs r, JDefinedClass clazz, Set<Ref> refs, Map<Ref, JFieldVar> fieldVarMap) {
+    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Map<Ref, JFieldVar> fieldVarMap) {
         // private MyLayoutViewModel(View view) {
         JMethod constructor = clazz.constructor(PUBLIC);
         JVar viewVar = constructor.param(r.viewClass, "view");
@@ -86,7 +87,7 @@ public class SocketGenerator {
         doc.addParam(viewVar).append("The root view to search for the socket's views.");
     }
 
-    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Set<Ref> refs, JBlock body) {
+    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Collection<Ref> refs, JBlock body) {
         for (Ref ref : refs) {
             JFieldVar fieldVar = fieldVarMap.get(ref);
             JFieldRef idVar = (ref.isAndroidId ? r.androidRClass : r.rClass).staticRef("id").ref(ref.id);
