@@ -3,9 +3,8 @@ buildscript {
         mavenLocal()
         jcenter()
     }
-
     dependencies {
-        classpath 'me.tatarka.socket:gradle-plugin:1.0.0-SNAPSHOT'
+        classpath 'me.tatarka.socket:gradle-plugin:1.0.0'
     }
 }
 

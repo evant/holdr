@@ -14,24 +14,24 @@ import org.gradle.api.file.FileCollection
 class SocketPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        project.dependencies {
-            compile "me.tatarka.socket:socket:1.0.0-SNAPSHOT"
-        }
 
         def socket = project.extensions.create('socket', SocketExtension)
 
         project.plugins.withType(AppPlugin) {
             AppPlugin androidPlugin = project.plugins.getPlugin(AppPlugin)
-            createSocketTask(project, androidPlugin, socket)
+            createSocketTasks(project, androidPlugin, socket)
         }
         
         project.plugins.withType(LibraryPlugin) {
             LibraryPlugin androidPlugin = project.plugins.getPlugin(LibraryPlugin)
-            createSocketTask(project, androidPlugin, socket)
+            createSocketTasks(project, androidPlugin, socket)
         }
     }
     
-    private static void createSocketTask(Project project, BasePlugin androidPlugin, SocketExtension socket) {
+    private static void createSocketTasks(Project project, BasePlugin androidPlugin, SocketExtension socket) {
+        project.dependencies {
+            compile 'me.tatarka.socket:socket:1.0.0@aar'
+        }
         
         def variants = androidPlugin instanceof AppPlugin ?
                 ((AppExtension) androidPlugin.extension).applicationVariants :
