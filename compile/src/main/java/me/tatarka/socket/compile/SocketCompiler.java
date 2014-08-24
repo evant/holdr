@@ -29,8 +29,8 @@ public class SocketCompiler {
         compile(outputDir, getAllLayoutFiles(resDirs));
     }
     
-    public void compileIncremental(Collection<File> changeFiles, File outputDir) throws IOException {
-        compile(outputDir, getChangedLayoutFiles(changeFiles));
+    public void compileIncremental(Collection<File> changeFiles, Collection<File> removedFiles, File outputDir) throws IOException {
+        compile(outputDir, getChangedLayoutFiles(changeFiles, removedFiles));
     }
 
     private void compile(File outputDir, List<File> layoutFiles) throws IOException {
@@ -88,14 +88,11 @@ public class SocketCompiler {
         return layoutFiles;
     }
     
-    private static List<File> getChangedLayoutFiles(Collection<File> changedLayoutFiles) {
-        List<File> layoutFiles = new ArrayList<File>();
+    private static List<File> getChangedLayoutFiles(Collection<File> changedLayoutFiles, Collection<File> removedFiles) {
+        List<File> layoutFiles = new ArrayList<File>(changedLayoutFiles);
 
+        changedLayoutFiles.addAll(removedFiles);
         for (File file : changedLayoutFiles) {
-            if (file.exists()) {
-                layoutFiles.add(file);
-            }
-            
             File inputDir = file.getParentFile().getParentFile();
 
             File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
@@ -118,7 +115,6 @@ public class SocketCompiler {
                     layoutFiles.add(otherFile);
                 }
             }
-
         }
         
         return layoutFiles;

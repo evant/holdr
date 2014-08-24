@@ -26,24 +26,26 @@ public class SocketTask extends DefaultTask {
 
     @TaskAction
     void execute(IncrementalTaskInputs inputs) {
-        logging.captureStandardOutput(LogLevel.INFO)
+        //logging.captureStandardOutput(LogLevel.INFO)
 
         def compiler = new SocketCompiler(packageName, defaultInclude)
 
         if (inputs.incremental) {
             List<File> changedFiles = []
+            List<File> removedFiles = []
             inputs.outOfDate { InputFileDetails changes ->
                 changedFiles += changes.file
             }
             
             inputs.removed { InputFileDetails change ->
-                changedFiles += change.file
+                removedFiles += change.file
                 File outputFile = compiler.outputFile(outputDirectory, change.file);
                 if (outputFile.exists()) outputFile.delete()
             }
 
-            compiler.compileIncremental(changedFiles, outputDirectory)
+            compiler.compileIncremental(changedFiles, removedFiles, outputDirectory)
         } else {
+            outputDirectory.deleteDir()
             compiler.compile(resDirectories.files, outputDirectory)
         }
     }
