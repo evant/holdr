@@ -13,6 +13,9 @@ Simply apply the gradle plugin and your done!
 
 ```groovy
 buildscript {
+    repositories {
+        mavenCentral()
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.2'
         classpath 'me.tatarka.socket:gradle-plugin:1.0.0'
