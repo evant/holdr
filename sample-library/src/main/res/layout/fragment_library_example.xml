@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    app:socket_include="children">
+    app:socket_include="all">
 
     <TextView
         android:id="@+id/header"

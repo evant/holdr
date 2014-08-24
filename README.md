@@ -125,7 +125,7 @@ If you don't like the idea of a whole bunch of code being generated for all your
 
 The easiest way to opt-in is to add `app:socket_include="children"` to the root view of that layout.
 
-By default, every view with an id gets added to the generated class. You can use the attributes `socket_include` and `socket_ignore` to get more granular control. Both take either the value `"view"` to act on just the view it's used on or `"children"` to act on that view and all it's children. For example,
+By default, every view with an id gets added to the generated class. You can use the attributes `socket_include` and `socket_ignore` to get more granular control. Both take either the value `"view"` to act on just the view it's used on or `"all"` to act on that view and all it's children. For example,
 
 ```xml
 <LinearLayout
@@ -136,7 +136,7 @@ By default, every view with an id gets added to the generated class. You can use
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:socket_ignore="children">
+    app:socket_ignore="all">
 
     <TextView
         android:id="@+id/text1"
