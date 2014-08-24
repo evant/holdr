@@ -8,12 +8,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import me.tatarka.socket.compile.util.FileUtils;
 
@@ -29,14 +25,15 @@ public class SocketCompiler {
         generator = new SocketGenerator(packageName);
     }
 
-    public void compile(File inputDir, File outputDir) throws IOException {
-        compile(inputDir, outputDir, null);
+    public void compile(Collection<File> resDirs, File outputDir) throws IOException {
+        compile(outputDir, getAllLayoutFiles(resDirs));
+    }
+    
+    public void compileIncremental(Collection<File> changeFiles, File outputDir) throws IOException {
+        compile(outputDir, getChangedLayoutFiles(changeFiles));
     }
 
-    public void compile(File inputDir, File outputDir, List<File> layoutFiles) throws IOException {
-        System.out.println("Socket: processing layouts in: " + inputDir);
-
-        layoutFiles = obtainAllLayoutFiles(inputDir, layoutFiles);
+    private void compile(File outputDir, List<File> layoutFiles) throws IOException {
         System.out.println("Socket: processing " + layoutFiles.size() + " layout files");
         if (layoutFiles.isEmpty()) return;
 
@@ -46,6 +43,7 @@ public class SocketCompiler {
         Layouts layouts = new Layouts();
 
         for (File layoutFile : layoutFiles) {
+            System.out.println("Socket: processing " + layoutFile.getPath());
             FileReader reader = null;
             try {
                 reader = new FileReader(layoutFile);
@@ -72,48 +70,55 @@ public class SocketCompiler {
             }
         }
     }
-    
-    private static List<File> obtainAllLayoutFiles(File inputDir, List<File> layoutFiles) {
-        if (layoutFiles != null && layoutFiles.isEmpty()) return layoutFiles;
-        
-        File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.startsWith("layout");
-            }
-        });
-        
-        if (layoutFiles == null) {
-            // No info passed in, get all of them.
-            if (layoutDirs == null) return Collections.emptyList();
 
-            layoutFiles = new ArrayList<File>();
+    private static List<File> getAllLayoutFiles(Collection<File> inputDirs) {
+        List<File> layoutFiles = new ArrayList<File>();
+        for (File inputDir : inputDirs) {
+            File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.startsWith("layout");
+                }
+            });
+            if (layoutDirs == null) continue;
             for (File layoutDir : layoutDirs) {
                 File[] layouts = layoutDir.listFiles();
                 if (layouts != null) {
                     layoutFiles.addAll(Arrays.asList(layouts));
                 }
             }
-        } else {
-            // Get all layout files related to the passed in ones for all alternative dirs
-            List<File> newLayoutFiles = new ArrayList<File>();
-            for (File file : layoutFiles) {
-                for (File layoutDir : layoutDirs) {
-                    // Skip dir that the file is in.
-                    if (layoutDir.getName().equals(file.getParentFile().getName())) {
-                        continue;
-                    }
-
-                    File otherFile = new File(layoutDir, file.getName());
-                    if (otherFile.exists()) {
-                        newLayoutFiles.add(otherFile);
-                    }
-                }
-                
-            }
-            layoutFiles.addAll(newLayoutFiles);
         }
+        return layoutFiles;
+    }
+    
+    private static List<File> getChangedLayoutFiles(Collection<File> changedLayoutFiles) {
+        List<File> layoutFiles = new ArrayList<File>(changedLayoutFiles);
 
+        for (File file : changedLayoutFiles) {
+            File inputDir = file.getParentFile().getParentFile();
+
+            File[] layoutDirs = inputDir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.startsWith("layout");
+                }
+            });
+
+            if (layoutDirs == null) continue;
+
+            for (File layoutDir : layoutDirs) {
+                // Skip dir that the file is in.
+                if (layoutDir.getName().equals(file.getParentFile().getName())) {
+                    continue;
+                }
+
+                File otherFile = new File(layoutDir, file.getName());
+                if (otherFile.exists()) {
+                    layoutFiles.add(otherFile);
+                }
+            }
+
+        }
         
         return layoutFiles;
     }
