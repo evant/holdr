@@ -1,1 +1,1 @@
-include ':app', ':compile', ':socket', ':gradle-plugin'
+include ':sample', ':compile', ':socket', ':gradle-plugin'
