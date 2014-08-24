@@ -4,7 +4,7 @@ Socket
 ## Why use Socket?
 
 - Because you hate typing `findViewById()` all the time.
-- Because Butterknife requires non-zero boilerplate.
+- Because Butterknife requires non-zero boilerplate and doesn't work well in library projects.
 - Because view holders are cool, but a pain to write.
 
 ## Usage
