@@ -18,6 +18,8 @@ public class SocketViewParser {
     private static final String SOCKET_IGNORE = "socket_ignore";
     private static final String SOCKET_INCLUDE = "socket_include";
     private static final String FIELD_NAME = "socket_field_name";
+    private static final String VIEW = "view";
+    private static final String ALL = "all";
     
     private boolean defaultInclude;
     
@@ -33,8 +35,8 @@ public class SocketViewParser {
             parser.setInput(res);
 
             List<Ref> refs = new ArrayList<Ref>();
-            String ignoreChildrenTag = null;
-            String includeTagName = null;
+            String ignoreAllTag = null;
+            String includeAllTag = null;
 
             int tag;
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
@@ -49,15 +51,15 @@ public class SocketViewParser {
                     
                     String fieldName = parser.getAttributeValue(APP_NS, FIELD_NAME);
 
-                    if (ignoreChildrenTag == null && ignore == SocketIgnore.CHILDREN) {
-                        ignoreChildrenTag = tagName;
+                    if (ignoreAllTag == null && ignore == SocketIgnore.ALL) {
+                        ignoreAllTag = tagName;
                     }
 
-                    if (includeTagName == null && include == SocketInclude.CHILDREN) {
-                        includeTagName = tagName;
+                    if (includeAllTag == null && include == SocketInclude.ALL) {
+                        includeAllTag = tagName;
                     }
 
-                    if (include(id != null, include, includeTagName != null, ignore, ignoreChildrenTag != null)) {
+                    if (include(id != null, include, includeAllTag != null, ignore, ignoreAllTag != null)) {
                         Ref.Builder ref;
                         if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
@@ -78,8 +80,8 @@ public class SocketViewParser {
                         refs.add(ref.build());
                     }
                 } else if (tag == XmlPullParser.END_TAG) {
-                    if (ignoreChildrenTag != null && ignoreChildrenTag.equals(parser.getName())) {
-                        ignoreChildrenTag = null;
+                    if (ignoreAllTag != null && ignoreAllTag.equals(parser.getName())) {
+                        ignoreAllTag = null;
                     }
                 }
             }
@@ -89,12 +91,12 @@ public class SocketViewParser {
         }
     }
 
-    private boolean include(boolean hasId, SocketInclude include, boolean hasIncludeChildrenTag, SocketIgnore ignore, boolean hasIgnoreChildrenTag) {
+    private boolean include(boolean hasId, SocketInclude include, boolean hasIncludeAllTag, SocketIgnore ignore, boolean hasIgnoreAllTag) {
         if (!hasId) return false;
         if (defaultInclude) {
-            return (include == SocketInclude.VIEW) || hasIncludeChildrenTag || (ignore == SocketIgnore.NONE && !hasIgnoreChildrenTag);
+            return (include == SocketInclude.VIEW) || hasIncludeAllTag || (ignore == SocketIgnore.NONE && !hasIgnoreAllTag);
         } else {
-            return (include != SocketInclude.NONE) || (hasIncludeChildrenTag && !hasIgnoreChildrenTag);
+            return (include != SocketInclude.NONE) || (hasIncludeAllTag && !hasIgnoreAllTag);
         }
     }
     
@@ -118,31 +120,31 @@ public class SocketViewParser {
 
     private static SocketIgnore parseIgnore(String ignore) {
         if (ignore == null) return SocketIgnore.NONE;
-        if (ignore.equals("view")) {
+        if (ignore.equals(VIEW)) {
             return SocketIgnore.VIEW;
         }
-        if (ignore.equals("children")) {
-            return SocketIgnore.CHILDREN;
+        if (ignore.equals(ALL)) {
+            return SocketIgnore.ALL;
         }
         return SocketIgnore.NONE;
     }
     
     private static SocketInclude parseInclude(String include) {
         if (include == null) return SocketInclude.NONE;
-        if (include.equals("view")) {
+        if (include.equals(VIEW)) {
             return SocketInclude.VIEW;
         }
-        if (include.equals("children")) {
-            return SocketInclude.CHILDREN;
+        if (include.equals(ALL)) {
+            return SocketInclude.ALL;
         }
         return SocketInclude.NONE;
     }
 
     private static enum SocketIgnore {
-        NONE, VIEW, CHILDREN
+        NONE, VIEW, ALL
     }
 
     private static enum SocketInclude {
-        NONE, VIEW, CHILDREN
+        NONE, VIEW, ALL
     }
 }

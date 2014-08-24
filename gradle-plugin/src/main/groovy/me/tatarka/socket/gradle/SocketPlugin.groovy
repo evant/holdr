@@ -15,7 +15,7 @@ class SocketPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.dependencies {
-            compile 'me.tatarka.socket:socket:0.1'
+            compile "me.tatarka.socket:socket:1.0.0-SNAPSHOT"
         }
 
         def socket = project.extensions.create('socket', SocketExtension)
@@ -41,7 +41,7 @@ class SocketPlugin implements Plugin<Project> {
         variants.all { BaseVariant variant ->
             if (applicationId == null) applicationId = getApplicationId(androidPlugin)
             
-            def taskName = "generateSockets${variant.name.capitalize()}"
+            def taskName = "generate${variant.name.capitalize()}Sockets"
             def outputDir = project.file("$project.buildDir/generated/source/socket/$variant.name")
             SocketTask task = project.task(taskName, dependsOn: [variant.mergeResources], type: SocketTask) {
                 packageName = applicationId

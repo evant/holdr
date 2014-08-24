@@ -26,7 +26,7 @@ public class SocketTask extends DefaultTask {
 
     @TaskAction
     void execute(IncrementalTaskInputs inputs) {
-        //logging.captureStandardOutput(LogLevel.INFO)
+        logging.captureStandardOutput(LogLevel.INFO)
 
         def compiler = new SocketCompiler(packageName, defaultInclude)
 

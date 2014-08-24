@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'signing'
 
 sourceCompatibility = 1.6
 
@@ -10,4 +11,75 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
 
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives jar
+    archives javadocJar
+    archives sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.password')) {
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { deployment -> signing.signPom(deployment) }
+
+                def repoUrl
+                if (project.version.endsWith("SNAPSHOT")) {
+                    repoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+                } else {
+                    repoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                }
+
+                repository(url: repoUrl) {
+                    authentication(
+                            userName: project.getProperty('sonatype.username'),
+                            password: project.getProperty('sonatype.password'))
+                }
+
+                pom.project {
+                    name 'Socket (compile)'
+                    packaging 'jar'
+                    description 'Generates view holders from Android layout files'
+                    url 'https://github.com/evant/socket'
+
+                    scm {
+                        url 'git@github.com:evant/socket.git'
+                        connection 'scm:git:git@github.com:evant/socket.git'
+                        developerConnection 'scm:git:git@github.com:evant/socket.git'
+                    }
+
+                    licenses {
+                        license {
+                            name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'evant'
+                            name 'Evan Tatarka'
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

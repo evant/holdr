@@ -15,5 +15,7 @@ allprojects {
     }
 
     group = 'me.tatarka.socket'
-    version = '0.1'
+    version = '1.0.0-SNAPSHOT'
 }
+
+
