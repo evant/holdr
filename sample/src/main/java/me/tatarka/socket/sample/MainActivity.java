@@ -6,20 +6,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import me.tatarka.socket.sample.sockets.SocketActivityMain;
-import me.tatarka.socket.sample.sockets.SocketListItem;
+import me.tatarka.socket.sample.sockets.Socket_ActivityMain;
+import me.tatarka.socket.sample.sockets.Socket_ListItem;
 
 public class MainActivity extends Activity {
-    private SocketActivityMain socket;
+    private Socket_ActivityMain socket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        socket = new SocketActivityMain(findViewById(android.R.id.content));
+        socket = new Socket_ActivityMain(findViewById(android.R.id.content));
         socket.text.setText("Hello, Socket!");
         
         if (socket.textLand != null) {
@@ -61,12 +60,12 @@ public class MainActivity extends Activity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            SocketListItem socket;
+            Socket_ListItem socket;
             if (convertView == null) {
-                socket = new SocketListItem(getLayoutInflater().inflate(SocketListItem.LAYOUT, parent, false));
+                socket = new Socket_ListItem(getLayoutInflater().inflate(Socket_ListItem.LAYOUT, parent, false));
                 socket.getView().setTag(socket);
             } else {
-                socket = (SocketListItem) convertView.getTag();
+                socket = (Socket_ListItem) convertView.getTag();
             }
             socket.text.setText("Item " + getItem(position));
             return socket.getView();

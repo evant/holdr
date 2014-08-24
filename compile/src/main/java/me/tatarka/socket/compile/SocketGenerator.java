@@ -49,7 +49,7 @@ public class SocketGenerator {
     }
 
     public String getClassName(String layoutName) {
-        return "Socket" + FormatUtils.underscoreToUpperCamel(layoutName);
+        return "Socket_" + FormatUtils.underscoreToUpperCamel(layoutName);
     }
 
     private Map<Ref, JFieldVar> genFields(Refs r, JDefinedClass clazz, Collection<Ref> refs) {
