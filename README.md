@@ -1,6 +1,8 @@
 Socket
 ======
 
+**As mentioned by others, socket is a bad name because it implies networking. The name of this project will be changed, be warned!**
+
 ## Why use Socket?
 
 - Because you hate typing `findViewById()` all the time.
