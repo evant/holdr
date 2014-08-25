@@ -5,13 +5,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import me.tatarka.samplelibrary.sockets.Socket_FragmentLibraryExample;
+import me.tatarka.samplelibrary.holdr.Holdr_FragmentLibraryExample;
 
 /**
  * Created by evan on 8/24/14.
  */
 public class LibraryExampleFragment extends TitledFragment {
-    Socket_FragmentLibraryExample socket;
+    Holdr_FragmentLibraryExample holdr;
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -21,10 +21,10 @@ public class LibraryExampleFragment extends TitledFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        socket = new Socket_FragmentLibraryExample(view);
+        holdr = new Holdr_FragmentLibraryExample(view);
         
-        socket.header.setText("Hello, Socket!");
-        socket.subHeader.setText("This is from a library.");
+        holdr.header.setText("Hello, Holdr!");
+        holdr.subHeader.setText("This is from a library.");
     }
 
     @Override

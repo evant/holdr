@@ -49,15 +49,15 @@ if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.pa
                 }
 
                 pom.project {
-                    name 'Socket (gradle-plugin)'
+                    name 'Holdr (gradle-plugin)'
                     packaging 'jar'
                     description 'Generates view holders from Android layout files'
-                    url 'https://github.com/evant/socket'
+                    url 'https://github.com/evant/holdr'
 
                     scm {
-                        url 'git@github.com:evant/socket.git'
-                        connection 'scm:git:git@github.com:evant/socket.git'
-                        developerConnection 'scm:git:git@github.com:evant/socket.git'
+                        url 'git@github.com:evant/holdr.git'
+                        connection 'scm:git:git@github.com:evant/holdr.git'
+                        developerConnection 'scm:git:git@github.com:evant/holdr.git'
                     }
 
                     licenses {

@@ -14,7 +14,7 @@ allprojects {
         jcenter()
     }
 
-    group = 'me.tatarka.socket'
+    group = 'me.tatarka.holdr'
     version = '1.0.0'
 }
 

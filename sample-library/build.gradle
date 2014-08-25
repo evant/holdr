@@ -4,12 +4,12 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'me.tatarka.socket:gradle-plugin:1.0.0'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.0.0'
     }
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'socket'
+apply plugin: 'me.tatarka.holdr'
 
 android {
     compileSdkVersion 20
@@ -30,7 +30,7 @@ android {
     }
 }
 
-socket.defaultInclude false
+holdr.defaultInclude false
 
 dependencies {
     compile 'com.android.support:appcompat-v7:20.0.0'

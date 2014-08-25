@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Holdr">
+        <!-- Don't generate any code for a view. -->
+        <attr name="holdr_ignore" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="view" value="1"/>
+            <enum name="all" value="2"/>
+        </attr>
+        <!-- Generate code for a view, even when it's within a view with "holdr_ignore"="all" -->
+        <attr name="holdr_include" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="view" value="1"/>
+            <enum name="all" value="2"/>
+        </attr>
+        <attr name="holdr_field_name" format="string"/>
+    </declare-styleable>
+</resources>

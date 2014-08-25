@@ -4,19 +4,19 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'me.tatarka.socket:gradle-plugin:1.0.0'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.0.0'
     }
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'socket'
+apply plugin: 'me.tatarka.holdr'
 
 android {
     compileSdkVersion 20
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "me.tatarka.socket.sample"
+        applicationId "me.tatarka.sample"
         minSdkVersion 8
         targetSdkVersion 20
         versionCode 1

@@ -1,36 +1,40 @@
-apply plugin: 'java'
-apply plugin: 'groovy'
-apply plugin: 'maven'
+apply plugin: 'com.android.library'
+apply plugin: 'android-maven'
 apply plugin: 'signing'
 
-sourceCompatibility = 1.6
+android {
+    compileSdkVersion 20
+    buildToolsVersion "20.0.0"
 
-dependencies {
-    compile 'net.sf.kxml:kxml2:2.3.0'
-    compile 'com.sun.codemodel:codemodel:2.6'
-    compile 'commons-io:commons-io:2.4'
-
-    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    defaultConfig {
+        applicationId "me.tatarka.holdr"
+        minSdkVersion 1
+        targetSdkVersion 20
+        versionCode 1
+        versionName "1.0"
+    }
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+}
+
+task androidJavadocsJar(type: Jar) {
     classifier = 'javadoc'
-    from 'build/docs/javadoc'
+    from androidJavadocs.destinationDir
 }
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
+task androidSourcesJar(type: Jar) {
     classifier = 'sources'
-}
-
-artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
+    from android.sourceSets.main.java.srcDirs
 }
 
 signing {
     sign configurations.archives
+}
+
+artifacts {
+    archives androidSourcesJar
+    archives androidJavadocsJar
 }
 
 if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.password')) {
@@ -53,8 +57,8 @@ if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.pa
                 }
 
                 pom.project {
-                    name 'Holdr (compile)'
-                    packaging 'jar'
+                    name 'Holdr'
+                    packaging 'aar'
                     description 'Generates view holders from Android layout files'
                     url 'https://github.com/evant/holdr'
 

@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/display2"
         android:textColor="@color/text_color"
-        tools:text="Hello, Socket!" />
+        tools:text="Hello, Holdr!" />
 
     <TextView
         android:id="@+id/sub_header"
