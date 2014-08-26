@@ -1,12 +1,11 @@
-Socket
+Holdr
 ======
 
-**As mentioned by others, socket is a bad name because it implies networking. The name of this project will be changed, be warned!**
-
-## Why use Socket?
+## Why use Holdr?
 
 - Because you hate typing `findViewById()` all the time.
-- Because Butterknife requires non-zero boilerplate and doesn't work well in library projects.
+- Because Butterknife requires non-zero boilerplate and doesn't work well in
+    library projects.
 - Because view holders are cool, but a pain to write.
 
 ## Usage
@@ -20,18 +19,18 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.2'
-        classpath 'me.tatarka.socket:gradle-plugin:1.0.0'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.0.0'
     }
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'socket'
+apply plugin: 'me.tatarka.holdr'
 ```
 
-Say you have a layout file `wrench.xml`.
+Say you have a layout file `hand.xml`.
 
 ```xml
-<!-- wrench.xml -->
+<!-- hand.xml -->
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout
@@ -45,25 +44,27 @@ Say you have a layout file `wrench.xml`.
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="Hello, Socket!"
+        tools:text="Hello, Holdr!"
         />
 </LinearLayout>
 ```
 
-Socket will create a class for you named `your.application.id.socket.Socket_Wrench`. This class is basically a view holder that you can instantiate anywhere you have a view.
+Holdr will create a class for you named `your.application.id.holdr.Holdr_Hand`.
+This class is basically a view holder that you can instantiate anywhere you have
+a view.
 
 ### In an Activity
 
 ```java
-public class ToolsActivity extends Activity {
-    private Socket_Wrench socket;
+public class MyActivity extends Activity {
+    private Holdr_Hand holdr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        socket = new Socket_Wrench(findViewById(android.R.id.content));
-        socket.text.setText("Hello, Socket!");
+        setContentView(R.layout.hand);
+        holdr = new Holdr_Wrench(findViewById(android.R.id.content));
+        holdr.text.setText("Hello, Holdr!");
     }
 }
 ```
@@ -71,19 +72,19 @@ public class ToolsActivity extends Activity {
 ### In a Fragment
 
 ```java
-public class ToolsFragment extends Fragment {
-    private Socket_Wrench socket;
+public class MyFragment extends Fragment {
+    private Holdr_Hand holdr;
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.wrench, container, false);
+        return inflater.inflate(R.layout.hand, container, false);
     }
     
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        socket = new Socket_Wrench(view);
-        socket.text.setText("Hello, Socket!");
+        holdr = new Holdr_Hand(view);
+        holdr.text.setText("Hello, Holdr!");
     }
 }
 ```
@@ -91,20 +92,20 @@ public class ToolsFragment extends Fragment {
 ### In an Adapter
 
 ```java
-public class ToolsAdapter extends BaseAdapter {
+public class MyAdapter extends BaseAdapter {
     // other methods
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Socket_Wrench socket;
+        Holdr_Hand holdr;
         if (convertView == null) {
-            socket = new Socket_Wrench(inflater.inflate(Socket_Wrench.LAYOUT, parent, false));
-            socket.getView().setTag(socket);
+            holdr = new Holdr_Hand(inflater.inflate(R.layout.hand, parent, false));
+            holdr.getView().setTag(holdr);
         } else {
-            socket = (Socket_Wrench) convertView.getTag();
+            holdr = (Holdr_Hand) convertView.getTag();
         }
-        socket.text.setText(getItem(position));
-        return socket.getView();
+        holdr.text.setText(getItem(position));
+        return holdr.getView();
     }
 }
 ```
@@ -113,24 +114,31 @@ public class ToolsAdapter extends BaseAdapter {
 
 ```java
 public class MyCustomView extends LinearLayout {
-    Socket_Wrench socket;
+    Holdr_Hand holdr;
     
     // other methods
     
     private void init() {
-        socket = new Socket_Wrench(inflate(getContext(), R.layout.wrench, this));
-        socket.text.setText("Hello, Socket!");;
+        holdr = new Holdr_Hand(inflate(getContext(), R.layout.hand, this));
+        holdr.text.setText("Hello, Holdr!");;
     }
 }
 ```
 
 ### Controlling What's Generated
 
-If you don't like the idea of a whole bunch of code being generated for all your layouts (It's really not much, I promise!), you can add `socket.defaultInclude false` to your `build.gradle` and then you can manually opt-in for each of your layouts.
+If you don't like the idea of a whole bunch of code being generated for all your
+layouts (It's really not much, I promise!), you can add `holdr.defaultInclude
+false` to your `build.gradle` and then you can manually opt-in for each of your
+layouts.
 
-The easiest way to opt-in is to add `app:socket_include="all"` to the root view of that layout.
+The easiest way to opt-in is to add `app:holdr_include="all"` to the root
+view of that layout.
 
-By default, every view with an id gets added to the generated class. You can use the attributes `socket_include` and `socket_ignore` to get more granular control. Both take either the value `"view"` to act on just the view it's used on or `"all"` to act on that view and all it's children. For example,
+By default, every view with an id gets added to the generated class. You can use
+the attributes `holdr_include` and `holdr_ignore` to get more granular
+control. Both take either the value `"view"` to act on just the view it's used
+on or `"all"` to act on that view and all it's children. For example,
 
 ```xml
 <LinearLayout
@@ -141,27 +149,31 @@ By default, every view with an id gets added to the generated class. You can use
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:socket_ignore="all">
+    app:holdr_ignore="all">
 
     <TextView
         android:id="@+id/text1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="Hello, Socket!"
-        app:socket_include="view"
+        tools:text="Hello, Holdr!"
+        app:holdr_include="view"
         />
 `   
     <TextView
         android:id="@+id/text2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="Hello, Socket!"
+        tools:text="Hello, Holdr!"
         />
 </LinearLayout>
 ```
 
 would include only `text1` in the generated class.
 
-Note: The current implementation only allows you to nest these attributes 2 levels deep (ignore inside include inside ignore won't work). I don't think there is a use case complex enough to warrant this, but it may be fixed in a later version if there is a need.
+Note: The current implementation only allows you to nest these attributes 2
+levels deep (ignore inside include inside ignore won't work). I don't think
+there is a use case complex enough to warrant this, but it may be fixed in a
+later version if there is a need.
 
-Finally, if you don't like the field name generated for a specific id, you can set it yourself by using `socket_field_name="myBetterFieldName"` on a view.
+Finally, if you don't like the field name generated for a specific id, you can
+set it yourself by using `holdr_field_name="myBetterFieldName"` on a view.
