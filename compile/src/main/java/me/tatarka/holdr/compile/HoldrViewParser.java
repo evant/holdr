@@ -7,7 +7,9 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HoldrViewParser {
     private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
@@ -20,6 +22,24 @@ public class HoldrViewParser {
     private static final String FIELD_NAME = "holdr_field_name";
     private static final String VIEW = "view";
     private static final String ALL = "all";
+
+    private static final String PREFIX_VIEW = "android.view.";
+    private static final String PREFIX_WIDGET = "android.widget.";
+    private static final String PREFIX_WEBKIT = "android.webkit.";
+    
+    private static final Map<String, String> PREFIX_MAP = new HashMap<String, String>() {{
+        put("View", PREFIX_VIEW);
+        put("ViewStub", PREFIX_VIEW);
+        put("SurfaceView", PREFIX_VIEW);
+        put("TextureView", PREFIX_VIEW);
+        put("WebView", PREFIX_WEBKIT);
+    }
+        @Override
+        public String get(Object key) {
+            String result = super.get(key);
+            return result == null ? PREFIX_WIDGET : result;
+        }
+    };
     
     private boolean defaultInclude;
     
@@ -103,8 +123,7 @@ public class HoldrViewParser {
     private static String parseType(String type) {
         if (type == null) return null;
         if (type.contains(".")) return type;
-        if (type.equals("View")) return "android.view.View";
-        return "android.widget." + type;
+        return PREFIX_MAP.get(type) + type;
     }
 
     private static String parseId(String id) {

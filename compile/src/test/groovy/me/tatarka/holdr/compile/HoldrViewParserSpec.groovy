@@ -163,4 +163,43 @@ class HoldrViewParserSpec extends Specification {
             )
         }) == [Include.of('my_layout', 'my_include').build()]
     }
+    
+    def "an unqualified view in the 'view' namespace parses with the correct prefix"() {
+        expect:
+        parser.parse(xml {
+            it."$view"(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@+id/my_id',
+            )
+        }).first().type == "android.view.$view"
+
+        where:
+        view << ['View', 'SurfaceView', 'TextureView', 'ViewStub']
+    }
+    
+    def "an unqualified view in the 'webkit' namespace parses with the correct prefix"() {
+        expect:
+        parser.parse(xml {
+            it."$view"(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@+id/my_id',
+            )
+        }).first().type == "android.webkit.$view"
+        
+        where:
+        view << ['WebView']
+    }
+    
+    def "an unqualified view in the 'widget' namespace parses with the correct prefix"() {
+        expect:
+        parser.parse(xml {
+            it."$view"(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@+id/my_id',
+            )
+        }).first().type == "android.widget.$view"
+
+        where:
+        view << ['TextView', 'Button', 'ImageButton', 'EditText', 'ImageView', 'FrameLayout', 'LinearLayout', 'GridLayout']
+    }
 }

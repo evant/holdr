@@ -15,7 +15,7 @@ allprojects {
     }
 
     group = 'me.tatarka.holdr'
-    version = '1.0.0'
+    version = '1.0.1'
 }
 
 
