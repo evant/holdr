@@ -1,5 +1,7 @@
 package me.tatarka.holdr.compile;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,48 +12,73 @@ public abstract class Ref {
     public final String id;
     public final String fieldName;
     public final boolean isAndroidId;
+    public final boolean isNullable;
 
-    protected Ref(String id, String fieldName, boolean isAndroidId) {
+    protected Ref(String id, String fieldName, boolean isAndroidId, boolean isNullable) {
         this.id = id;
         this.fieldName = fieldName != null ? fieldName : FormatUtils.underscoreToLowerCamel(id);
         this.isAndroidId = isAndroidId;
+        this.isNullable = isNullable;
     }
-    
-    public static Ref merge(String layoutName, Ref first, Ref second) {
-        if (first instanceof View && second instanceof View) {
-            View firstView = (View) first;
-            View secondView = (View) second;
-            
+
+    public String getKey() {
+        return (isAndroidId ? "android:" : "") + id;
+    }
+
+    public static Ref merge(String layoutName, @Nullable Ref oldRef, @Nullable Ref newRef) {
+        if (oldRef == null && newRef == null) {
+            throw new IllegalArgumentException("At least one of the refs to merge must not be null");
+        }
+
+        // One of the ref's doesn't exist, mark as nullable
+        if (oldRef == null || newRef == null) {
+            Ref ref = oldRef != null ? oldRef : newRef;
+            if (ref instanceof View) {
+                View view = (View) ref;
+                return View.of(view.type, view).nullable().build();
+            } else {
+                Include include = (Include) ref;
+                return Include.of(include).nullable().build();
+            }
+        }
+
+        // Views don't need to be the same type, if not, just use android.view.View.
+        if (oldRef instanceof View && newRef instanceof View) {
+            View firstView = (View) oldRef;
+            View secondView = (View) newRef;
+
             if (firstView.type.equals(secondView.type)) {
                 return firstView;
             } else {
                 return View.of("android.view.View", firstView).build();
             }
         }
-        
-        if (first instanceof Include && second instanceof Include) {
-            String firstLayout = ((Include) first).layout;
-            String secondLayout = ((Include) second).layout;
+
+        // Includes must have the same layout.
+        if (oldRef instanceof Include && newRef instanceof Include) {
+            String firstLayout = ((Include) oldRef).layout;
+            String secondLayout = ((Include) newRef).layout;
             if (firstLayout.equals(secondLayout)) {
-                return first;
+                return oldRef;
             } else {
                 throw new IllegalArgumentException("Cannot merge includes with different layouts ('" + firstLayout + "', vs '" + secondLayout + "' in layout '" + layoutName + "').");
             }
         }
 
-        throw new IllegalArgumentException("Cannot merge view with include (id '" + first.id + "' in layout '" + layoutName + "').");
+        throw new IllegalArgumentException("Cannot merge view with include (id '" + oldRef.id + "' in layout '" + layoutName + "').");
     }
 
     public static abstract class Builder<R extends Ref, T extends Builder> {
         protected String id;
         protected String fieldName;
         protected boolean isAndroidId;
+        protected boolean isNullable;
 
         protected Builder(String id) {
             if (id == null) throw new IllegalStateException("id must not be null");
             this.id = id;
         }
-        
+
         protected Builder(Ref ref) {
             this(ref.id);
             fieldName = ref.fieldName;
@@ -68,10 +95,16 @@ public abstract class Ref {
             return (T) this;
         }
 
+        public T nullable() {
+            isNullable = true;
+            return (T) this;
+        }
+
         public abstract R build();
     }
 
     protected abstract String toStringName();
+
     protected Map<String, String> toStringFields() {
         Map<String, String> fields = new HashMap<String, String>();
         fields.put("id", (isAndroidId ? "android:" : "") + id);
@@ -80,7 +113,9 @@ public abstract class Ref {
 
     @Override
     public String toString() {
-        StringBuilder b = new StringBuilder(toStringName()).append("(");
+        StringBuilder b = new StringBuilder(toStringName());
+        if (isNullable) b.append("?");
+        b.append("(");
         boolean isFirst = true;
         for (Map.Entry<String, String> fieldEntry : toStringFields().entrySet()) {
             if (!isFirst) {
@@ -98,11 +133,15 @@ public abstract class Ref {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Ref ref = (Ref) o;
-        return id.equals(ref.id) && isAndroidId == ref.isAndroidId;
+        
+        return id.equals(ref.id)
+                && fieldName.equals(ref.fieldName)
+                && isAndroidId == ref.isAndroidId
+                && isNullable == ref.isNullable;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, isAndroidId);
+        return Objects.hashCode(id, fieldName, isAndroidId, isNullable);
     }
 }

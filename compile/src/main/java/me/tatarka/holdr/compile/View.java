@@ -1,11 +1,13 @@
 package me.tatarka.holdr.compile;
 
 
+import me.tatarka.holdr.compile.util.Objects;
+
 public class View extends Ref {
     public final String type;
 
-    private View(String type, String id, String fieldName, boolean isAndroidId) {
-        super(id, fieldName, isAndroidId);
+    private View(String type, String id, String fieldName, boolean isAndroidId, boolean isNullable) {
+        super(id, fieldName, isAndroidId, isNullable);
         this.type = type;
     }
 
@@ -36,8 +38,43 @@ public class View extends Ref {
 
         @Override
         public View build() {
-            return new View(type, id, fieldName, isAndroidId);
+            return new View(type, id, fieldName, isAndroidId, isNullable);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Builder builder = (Builder) o;
+
+            if (!type.equals(builder.type)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(id, isAndroidId, type);
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        View view = (View) o;
+
+        return id.equals(view.id)
+                && fieldName.equals(view.fieldName)
+                && isAndroidId == view.isAndroidId
+                && isNullable == view.isNullable
+                && type.equals(view.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id, fieldName, isAndroidId, isNullable, type);
     }
 
     @Override

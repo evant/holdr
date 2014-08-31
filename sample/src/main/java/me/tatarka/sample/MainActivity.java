@@ -23,7 +23,7 @@ public class MainActivity extends ActionBarActivity {
     private class MyPagerAdapter extends FragmentPagerAdapter {
         private TitledFragment[] fragments = new TitledFragment[] {
                 new BasicExampleFragment(),
-                new AdvancedExample(),
+                new AdvancedExampleFragment(),
                 new ListExampleFragment(),
                 new LibraryExampleFragment()
         };

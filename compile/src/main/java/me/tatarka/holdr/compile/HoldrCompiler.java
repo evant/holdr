@@ -61,7 +61,7 @@ public class HoldrCompiler {
                 Writer writer = null;
                 try {
                     writer = new FileWriter(outputFile);
-                    generator.generate(layout.name, layout.refs, writer);
+                    generator.generate(layout.name, layout.refs.values(), writer);
                     System.out.println("Holdr: created " + outputFile);
                 } finally {
                     if (writer != null) writer.close();

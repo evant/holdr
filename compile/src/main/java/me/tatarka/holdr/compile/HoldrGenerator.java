@@ -56,15 +56,20 @@ public class HoldrGenerator {
         Map<Ref, JFieldVar> fieldVarMap = new LinkedHashMap<Ref, JFieldVar>();
         for (Ref ref : refs) {
             String idPackage = (ref.isAndroidId ? "android" : r.packageName) + ".R";
+            JFieldVar var;
             if (ref instanceof View) {
-                JFieldVar var = clazz.field(PUBLIC, r.ref(((View) ref).type), ref.fieldName);
+                var = clazz.field(PUBLIC, r.ref(((View) ref).type), ref.fieldName);
                 var.javadoc().append("View for {@link " + idPackage + ".id#" + ref.id + "}.");
-                fieldVarMap.put(ref, var);
+                if (ref.isNullable) {
+                    var.annotate(r.nullableAnnotation);
+                }
             } else if (ref instanceof Include) {
-                JFieldVar var = clazz.field(PUBLIC, r.ref(getClassName(((Include) ref).layout)), ref.fieldName);
+                var = clazz.field(PUBLIC, r.ref(getClassName(((Include) ref).layout)), ref.fieldName);
                 var.javadoc().append("Holdr for {@link " + idPackage + ".layout#" + ((Include) ref).layout + "}.");
-                fieldVarMap.put(ref, var);
+            } else {
+                throw new IllegalArgumentException("Unknown ref: " + ref);
             }
+            fieldVarMap.put(ref, var);
         }
         return fieldVarMap;
     }
@@ -109,6 +114,7 @@ public class HoldrGenerator {
         public final JClass viewClass;
         public final JClass androidRClass;
         public final JClass rClass;
+        public final JClass nullableAnnotation;
         public final JFieldRef layoutRef;
 
         private Refs(JCodeModel m, String packageName, String layoutName) {
@@ -120,6 +126,7 @@ public class HoldrGenerator {
             viewClass = m.ref("android.view.View");
             androidRClass = m.ref("android.R");
             rClass = m.ref(packageName + ".R");
+            nullableAnnotation = m.ref("android.support.annotation.Nullable");
             layoutRef = rClass.staticRef("layout").ref(layoutName);
         }
 

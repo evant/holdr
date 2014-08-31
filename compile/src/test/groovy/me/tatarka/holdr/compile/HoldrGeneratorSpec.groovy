@@ -160,6 +160,43 @@ public class Holdr_Test
 }
 """
     }
+    
+    def "a single nullable view generates a Holdr that instantiates that view with an annotation"() {
+        expect:
+        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").nullable().build()] as Set) == """
+package me.tatarka.test.holdr;
+
+import android.support.annotation.Nullable;
+import android.view.View;
+import me.tatarka.holdr.Holdr;
+import me.tatarka.test.R;
+
+public class Holdr_Test
+    extends Holdr
+{
+
+    public final static int LAYOUT = R.layout.test;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_text_view}.
+     * 
+     */
+    @Nullable
+    public android.widget.TextView myTextView;
+
+    /**
+     * Constructs a new {@link me.tatarka.holdr.Holdr} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the holdr's views.
+     */
+    public Holdr_Test(View view) {
+        super(view);
+        myTextView = ((android.widget.TextView) view.findViewById(R.id.my_text_view));
+    }
+
+}
+"""
+    }
 
     private static final String IMPORTS = """
 import android.view.View;

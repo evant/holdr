@@ -11,7 +11,7 @@ import me.tatarka.samplelibrary.TitledFragment;
 /**
  * Created by evan on 8/24/14.
  */
-public class AdvancedExample extends TitledFragment {
+public class AdvancedExampleFragment extends TitledFragment {
     Holdr_FragmentAdvancedExample holdr;
     
     @Override
@@ -28,7 +28,9 @@ public class AdvancedExample extends TitledFragment {
         
         if (holdr.subHeaderPortrait != null) {
             holdr.subHeaderPortrait.setText("This is only in portrait.");
-        } else {
+        }
+
+        if (holdr.subHeaderLandscape != null) {
             holdr.subHeaderLandscape.setText("This is only in landscape.");
         }
         
