@@ -199,7 +199,8 @@ You can also specify a custom method name by doing
 `app:holdr_onClick="myCustomMethodName"` instead.
 
 ### Custom Superclass
-Want to use a `Holdr` in a place where you need a specic subclass?
+
+Want to use a `Holdr` in a place where you need a specific subclass?
 (`RecyclerView.ViewHolder` for example).  Just use the attribute
 `app:holdr_superclass="com.example.MySuperclass` and it will subclass that
 instead of `Holdr`. The only requirement is that the superclass must contain a
