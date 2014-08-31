@@ -3,4 +3,5 @@
     <string name="click_me">Click me!</string>
     <string name="long_click_me">Long Click Me!</string>
     <string name="touch_me">Touch Me!</string>
+    <string name="check_me">Check Me!</string>
 </resources>

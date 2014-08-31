@@ -151,9 +151,9 @@ public class HoldrGenerator {
                     JMethod method = listenerClass.method(PUBLIC, listenerType.methodReturn, listenerType.methodName);
                     
                     List<JVar> params = new ArrayList<JVar>();
-                    for (Pair<JClass, String> arg : listenerType.methodParams) {
+                    for (Pair<JType, String> arg : listenerType.methodParams) {
                         JVar param = method.param(arg.first, arg.second);
-                        params.add(arg.first == r.viewClass ? fieldVar : param);
+                        params.add(arg.second.equals("view") ? fieldVar : param);
                     }
                     
                     method.annotate(r.overrideAnnotation);
@@ -207,8 +207,8 @@ public class HoldrGenerator {
                         ListenerType listenerType = listenerTypeMap.get(listener.type);
                         
                         JMethod method = listenerInterface.method(PUBLIC, listenerType.methodReturn, listener.name);
-                        for (Pair<JClass, String> param : listenerType.methodParams) {
-                            if (param.first == r.viewClass) {
+                        for (Pair<JType, String> param : listenerType.methodParams) {
+                            if (param.second.equals("view")) {
                                 // Replace view with reference to the field.  
                                 method.param(r.ref(view.type), ref.fieldName);
                             } else {
@@ -265,7 +265,7 @@ public class HoldrGenerator {
         public final String setter;
         public final JClass classType;
         public final String methodName;
-        public final List<Pair<JClass, String>> methodParams;
+        public final List<Pair<JType, String>> methodParams;
         public final JType methodReturn;
         public final JExpression defaultReturn;
 
@@ -275,7 +275,7 @@ public class HoldrGenerator {
                     setter = "setOnClickListener";
                     classType = r.ref("android.view.View.OnClickListener");
                     methodName = "onClick";
-                    methodParams = Arrays.asList(Pair.create(r.viewClass, "view"));
+                    methodParams = Arrays.asList(new Pair<JType, String>(r.viewClass, "view"));
                     methodReturn = r.m.VOID;
                     defaultReturn = null;
                     break;
@@ -283,7 +283,7 @@ public class HoldrGenerator {
                     setter = "setOnLongClickListener";
                     classType = r.ref("android.view.View.OnLongClickListener");
                     methodName = "onLongClick";
-                    methodParams = Arrays.asList(Pair.create(r.viewClass, "view"));
+                    methodParams = Arrays.asList(new Pair<JType, String>(r.viewClass, "view"));
                     methodReturn = r.m.BOOLEAN;
                     defaultReturn = FALSE;
                     break;
@@ -291,9 +291,23 @@ public class HoldrGenerator {
                     setter = "setOnTouchListener";
                     classType = r.ref("android.view.View.OnTouchListener");
                     methodName = "onTouch";
-                    methodParams = Arrays.asList(Pair.create(r.viewClass, "view"), Pair.create(r.ref("android.view.MotionEvent"), "motionEvent"));
+                    methodParams = Arrays.asList(
+                            new Pair<JType, String>(r.viewClass, "view"),
+                            new Pair<JType, String>(r.ref("android.view.MotionEvent"), "motionEvent")
+                    );
                     methodReturn = r.m.BOOLEAN;
                     defaultReturn = FALSE;
+                    break;
+                case ON_CHECKED_CHANGED:
+                    setter = "setOnCheckedChangeListener";
+                    classType = r.ref("android.widget.CompoundButton.OnCheckedChangeListener");
+                    methodName = "onCheckedChanged";
+                    methodParams = Arrays.asList(
+                            new Pair<JType, String>(r.ref("android.widget.CompoundButton"), "view"),
+                            new Pair<JType, String>(r.m.BOOLEAN, "isChecked")
+                    );
+                    methodReturn = r.m.VOID;
+                    defaultReturn = null;
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown listener type: " + type.toString());

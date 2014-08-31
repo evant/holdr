@@ -29,4 +29,13 @@
         android:text="@string/touch_me"
         app:holdr_onTouch="true"
         />
+    
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/check_me"
+        android:padding="8dp"
+        app:holdr_onCheckedChanged="true"
+        />
 </LinearLayout>

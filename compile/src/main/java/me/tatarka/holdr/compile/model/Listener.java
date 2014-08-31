@@ -2,12 +2,8 @@ package me.tatarka.holdr.compile.model;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-
 import me.tatarka.holdr.compile.util.FormatUtils;
 import me.tatarka.holdr.compile.util.Objects;
-import me.tatarka.holdr.compile.util.Pair;
 
 /**
  * Created by evan on 8/31/14.
@@ -62,7 +58,7 @@ public class Listener {
     }
 
     public static enum Type {
-        ON_CLICK, ON_LONG_CLICK, ON_TOUCH;
+        ON_CLICK, ON_LONG_CLICK, ON_TOUCH, ON_CHECKED_CHANGED;
 
         public String nameSuffix() {
             switch (this) {
@@ -72,6 +68,8 @@ public class Listener {
                     return "LongClick";
                 case ON_TOUCH:
                     return "Touch";
+                case ON_CHECKED_CHANGED:
+                    return "CheckedChanged";
             }
             throw new IllegalStateException("Unreachable!");
         }
@@ -84,6 +82,8 @@ public class Listener {
                     return "onLongClick";
                 case ON_TOUCH:
                     return "onTouch";
+                case ON_CHECKED_CHANGED:
+                    return "onCheckedChanged";
             }
             throw new IllegalStateException("Unreachable!");
         }

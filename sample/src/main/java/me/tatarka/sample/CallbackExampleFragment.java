@@ -6,6 +6,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.Toast;
 
 import me.tatarka.sample.holdr.Holdr_FragmentCallbackExample;
@@ -53,5 +54,10 @@ public class CallbackExampleFragment extends TitledFragment implements Holdr_Fra
             Toast.makeText(getActivity(), "You touched me (up)!", Toast.LENGTH_SHORT).show();
         }
         return false;
+    }
+
+    @Override
+    public void onCheckboxCheckedChanged(CheckBox checkbox, boolean isChecked) {
+        Toast.makeText(getActivity(), "You checked me! (" + isChecked + ")", Toast.LENGTH_SHORT).show();
     }
 }
