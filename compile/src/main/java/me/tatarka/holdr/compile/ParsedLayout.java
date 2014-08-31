@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 
 import me.tatarka.holdr.compile.model.Ref;
 import me.tatarka.holdr.compile.util.Objects;
@@ -15,13 +16,13 @@ public class ParsedLayout {
     @Nullable
     public final String superclass;
     @NotNull
-    public final Collection<Ref> refs;
+    public final List<Ref> refs;
 
-    public ParsedLayout(Collection<Ref> refs) {
+    public ParsedLayout(List<Ref> refs) {
         this(null, refs);
     }
 
-    public ParsedLayout(@Nullable String superclass, @NotNull Collection<Ref> refs) {
+    public ParsedLayout(@Nullable String superclass, @NotNull List<Ref> refs) {
         this.superclass = superclass;
         this.refs = refs;
     }

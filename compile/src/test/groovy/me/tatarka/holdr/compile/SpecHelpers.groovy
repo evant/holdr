@@ -30,6 +30,6 @@ class SpecHelpers {
     }
     
     public static List<Ref> layoutRefs(ParsedLayout... parsedLayouts) {
-        layout(parsedLayouts).refs.values().collect()
+        layout(parsedLayouts).refs
     }
 }

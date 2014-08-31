@@ -1,9 +1,12 @@
 package me.tatarka.holdr.compile;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.tatarka.holdr.compile.model.Ref;
@@ -35,7 +38,7 @@ public class Layouts implements Iterable<Layouts.Layout> {
     public static class Layout {
         public final String name;
         public final File file;
-        public final Map<String, Ref> refs;
+        public final List<Ref> refs;
         
         private boolean isFirstLayout = true;
         private String superclass = null;
@@ -43,7 +46,7 @@ public class Layouts implements Iterable<Layouts.Layout> {
         private Layout(String name, File file) {
             this.name = name;
             this.file = file;
-            this.refs = new HashMap<String, Ref>();
+            this.refs = new ArrayList<Ref>();
         }
         
         public String getSuperclass() {
@@ -61,37 +64,40 @@ public class Layouts implements Iterable<Layouts.Layout> {
             addAllRefs(layout.refs); 
         }
 
-        private void addAllRefs(Collection<Ref> refs) {
+        private void addAllRefs(List<Ref> newRefs) {
             // We need to make sure we update every ref currently in the map because if there is not
             // a matching new ref, we still need to mark it as nullable. Similarly, new refs that
             // are not already in the map need to be marked as nullable.
             
-            Map<String, Ref> newRefs = new HashMap<String, Ref>();
-            for (Ref newRef : refs) {
-                newRefs.put(newRef.getKey(), newRef);
-            }
-            
             if (isFirstLayout) {
                 // The first time through, no merging is needed
                 isFirstLayout = false;
-                this.refs.putAll(newRefs);
+                this.refs.addAll(newRefs);
             } else {
                 // Update all current refs, merging in new ones
-                for (Map.Entry<String, Ref> entry : this.refs.entrySet()) {
-                    String key = entry.getKey();
-                    Ref oldRef = entry.getValue();
-                    Ref newRef = newRefs.remove(key);
-                    this.refs.put(key, Ref.merge(name, oldRef, newRef));
+                for (int i = 0; i < this.refs.size(); i++) {
+                    Ref oldRef = this.refs.get(i);
+                    Ref newRef = remove(oldRef.getKey(), newRefs);
+                    this.refs.set(i, Ref.merge(name, oldRef, newRef));
                 }
+                
                 // Merge in the remaining new ones
-                for (Map.Entry<String, Ref> entry : newRefs.entrySet()) {
-                    String key = entry.getKey();
-                    Ref newRef = entry.getValue();
-                    this.refs.put(key, Ref.merge(name, null, newRef));
+                for (Ref newRef : newRefs) {
+                    this.refs.add(Ref.merge(name, null, newRef));
                 }
             }
         }
-
+        
+        private static Ref remove(String key, List<Ref> refs) {
+            for (int i = 0; i < refs.size(); i++) {
+                Ref ref = refs.get(i);
+                if (ref.getKey().equals(key)) {
+                    return refs.remove(i);
+                }
+            }
+            return null;
+        }
+        
         public boolean isEmpty() {
             return refs.isEmpty();
         }
