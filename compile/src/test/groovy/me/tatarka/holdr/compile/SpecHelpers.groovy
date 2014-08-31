@@ -10,17 +10,25 @@ class SpecHelpers {
         new StringReader(writer.toString())
     }
 
-    public static String code(HoldrGenerator generator, String layoutName, Set<Ref> refs) {
+    public static String code(HoldrGenerator generator, String layoutName, String superclass, Set<Ref> refs) {
         StringWriter writer = new StringWriter()
-        generator.generate(layoutName, refs, writer)
+        generator.generate(layoutName, superclass, refs, writer)
         writer.toString()
     }
+
+    public static String code(HoldrGenerator generator, String layoutName, Set<Ref> refs) {
+        code(generator, layoutName, HoldrGenerator.HOLDR_SUPERCLASS, refs)
+    }
     
-    public static List<Ref> layouts(Collection<Ref>... refCollection) {
+    public static Layouts.Layout layout(ParsedLayout... parsedLayouts) {
         Layouts layouts = new Layouts()
-        refCollection.eachWithIndex { refs, i ->
-            layouts.add(new File("layout-$i/my_layout.xml"), refs)
+        parsedLayouts.eachWithIndex { ParsedLayout layout, int i ->
+            layouts.add(new File("layout-$i/my_layout.xml"), layout)
         }
-        layouts.first().refs.values().collect()
+        layouts.first()
+    }
+    
+    public static List<Ref> layoutRefs(ParsedLayout... parsedLayouts) {
+        layout(parsedLayouts).refs.values().collect()
     }
 }

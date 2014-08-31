@@ -113,7 +113,7 @@ public abstract class Ref {
 
     @Override
     public String toString() {
-        StringBuilder b = new StringBuilder(toStringName());
+        StringBuilder b = new StringBuilder(toStringName()).append(":").append(fieldName);
         if (isNullable) b.append("?");
         b.append("(");
         boolean isFirst = true;

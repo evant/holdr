@@ -11,15 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HoldrViewParser {
+public class HoldrLayoutParser {
     private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
     private static final String APP_NS = "http://schemas.android.com/apk/res-auto";
     private static final String ID = "id";
     private static final String LAYOUT = "layout";
     private static final String INCLUDE = "include";
+    
     private static final String HOLDR_IGNORE = "holdr_ignore";
     private static final String HOLDR_INCLUDE = "holdr_include";
-    private static final String FIELD_NAME = "holdr_field_name";
+    private static final String HOLDR_FIELD_NAME = "holdr_field_name";
+    private static final String HOLDR_SUPERCLASS = "holdr_superclass";
+    
     private static final String VIEW = "view";
     private static final String ALL = "all";
 
@@ -43,11 +46,11 @@ public class HoldrViewParser {
     
     private boolean defaultInclude;
     
-    public HoldrViewParser(boolean defaultInclude) {
+    public HoldrLayoutParser(boolean defaultInclude) {
         this.defaultInclude = defaultInclude;
     }
 
-    public List<Ref> parse(Reader res) throws IOException {
+    public ParsedLayout parse(Reader res) throws IOException {
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -57,11 +60,19 @@ public class HoldrViewParser {
             List<Ref> refs = new ArrayList<Ref>();
             String ignoreAllTag = null;
             String includeAllTag = null;
-
+            
             int tag;
+            boolean isRootTag = true;
+            String superclass = null;
+            
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
                 if (tag == XmlPullParser.START_TAG) {
                     String tagName = parser.getName();
+
+                    if (isRootTag) {
+                        superclass = parser.getAttributeValue(APP_NS, HOLDR_SUPERCLASS);
+                        isRootTag = false;
+                    }
 
                     String idString = parser.getAttributeValue(ANDROID_NS, ID);
                     String id = parseId(idString);
@@ -69,7 +80,7 @@ public class HoldrViewParser {
                     HoldrIgnore ignore = parseIgnore(parser.getAttributeValue(APP_NS, HOLDR_IGNORE));
                     HoldrInclude include = parseInclude(parser.getAttributeValue(APP_NS, HOLDR_INCLUDE));
                     
-                    String fieldName = parser.getAttributeValue(APP_NS, FIELD_NAME);
+                    String fieldName = parser.getAttributeValue(APP_NS, HOLDR_FIELD_NAME);
 
                     if (ignoreAllTag == null && ignore == HoldrIgnore.ALL) {
                         ignoreAllTag = tagName;
@@ -105,7 +116,8 @@ public class HoldrViewParser {
                     }
                 }
             }
-            return refs;
+            
+            return new ParsedLayout(superclass, refs);
         } catch (XmlPullParserException e) {
             throw new IOException(e);
         }

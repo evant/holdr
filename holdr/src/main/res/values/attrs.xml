@@ -14,5 +14,6 @@
             <enum name="all" value="2"/>
         </attr>
         <attr name="holdr_field_name" format="string"/>
+        <attr name="holdr_superclass" format="string"/>
     </declare-styleable>
 </resources>

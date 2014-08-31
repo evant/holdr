@@ -18,6 +18,7 @@ import static com.sun.codemodel.JMod.STATIC;
 
 public class HoldrGenerator {
     public static final String CLASS_PREFIX = "Holdr_";
+    public static final String HOLDR_SUPERCLASS = "me.tatarka.holdr.Holdr";
     
     private final String packageName;
 
@@ -25,12 +26,12 @@ public class HoldrGenerator {
         this.packageName = packageName;
     }
 
-    public void generate(String layoutName, Collection<Ref> refs, Writer writer) throws IOException {
+    public void generate(String layoutName, String superclass, Collection<Ref> refs, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(packageName + "." + HoldrCompiler.PACKAGE);
 
         try {
-            Refs r = new Refs(m, packageName, layoutName);
+            Refs r = new Refs(m, packageName, layoutName, superclass);
 
             // public class MyLayoutViewModel {
             JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layoutName))._extends(r.viewHolder);
@@ -117,12 +118,12 @@ public class HoldrGenerator {
         public final JClass nullableAnnotation;
         public final JFieldRef layoutRef;
 
-        private Refs(JCodeModel m, String packageName, String layoutName) {
+        private Refs(JCodeModel m, String packageName, String layoutName, String superclass) {
             this.m = m;
             this.packageName = packageName;
             this.layoutName = layoutName;
 
-            viewHolder = m.ref("me.tatarka.holdr.Holdr");
+            viewHolder = m.ref(superclass);
             viewClass = m.ref("android.view.View");
             androidRClass = m.ref("android.R");
             rClass = m.ref(packageName + ".R");

@@ -14,7 +14,7 @@ import me.tatarka.holdr.compile.util.FileUtils;
 public class Layouts implements Iterable<Layouts.Layout> {
     private Map<String, Layout> layouts = new HashMap<String, Layout>();
 
-    public void add(File layoutFile, Collection<Ref> refs) {
+    public void add(File layoutFile, ParsedLayout parsedLayout) {
         String layoutName = FileUtils.stripExtension(layoutFile.getName());
         Layout layout = layouts.get(layoutName);
 
@@ -23,7 +23,7 @@ public class Layouts implements Iterable<Layouts.Layout> {
             layouts.put(layoutName, layout);
         }
 
-        layout.addAll(refs);
+        layout.add(parsedLayout);
     }
 
     @Override
@@ -35,15 +35,32 @@ public class Layouts implements Iterable<Layouts.Layout> {
         public final String name;
         public final File file;
         public final Map<String, Ref> refs;
+        
         private boolean isFirstLayout = true;
+        private String superclass = null;
 
         private Layout(String name, File file) {
             this.name = name;
             this.file = file;
             this.refs = new HashMap<String, Ref>();
         }
+        
+        public String getSuperclass() {
+            return superclass != null ? superclass : HoldrGenerator.HOLDR_SUPERCLASS;
+        }
+        
+        public void add(ParsedLayout layout) {
+            if (layout.superclass != null) {
+                if (superclass == null) {
+                    superclass = layout.superclass;
+                } else if (!superclass.equals(layout.superclass)) {
+                    throw new IllegalArgumentException("layout '" + name + "' has conflicting superclasses ('" + superclass + "' vs '" + layout.superclass + "'.");
+                }
+            }
+            addAllRefs(layout.refs); 
+        }
 
-        public void addAll(Collection<Ref> refs) {
+        private void addAllRefs(Collection<Ref> refs) {
             // We need to make sure we update every ref currently in the map because if there is not
             // a matching new ref, we still need to mark it as nullable. Similarly, new refs that
             // are not already in the map need to be marked as nullable.

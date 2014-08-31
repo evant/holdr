@@ -17,13 +17,13 @@ public class HoldrCompiler {
     public static final String PACKAGE = "holdr";
     
     private final String packageName;
-    private final HoldrViewParser parser;
+    private final HoldrLayoutParser parser;
     private final HoldrGenerator generator;
 
     public HoldrCompiler(String packageName, boolean defaultInclude) {
         this.packageName = packageName;
 
-        parser = new HoldrViewParser(defaultInclude);
+        parser = new HoldrLayoutParser(defaultInclude);
         generator = new HoldrGenerator(packageName);
     }
 
@@ -46,8 +46,8 @@ public class HoldrCompiler {
             FileReader reader = null;
             try {
                 reader = new FileReader(layoutFile);
-                List<Ref> refs = parser.parse(reader);
-                layouts.add(layoutFile, refs);
+                ParsedLayout layout = parser.parse(reader);
+                layouts.add(layoutFile, layout);
             } finally {
                 if (reader != null) reader.close();
             }
@@ -61,7 +61,7 @@ public class HoldrCompiler {
                 Writer writer = null;
                 try {
                     writer = new FileWriter(outputFile);
-                    generator.generate(layout.name, layout.refs.values(), writer);
+                    generator.generate(layout.name, layout.getSuperclass(), layout.refs.values(), writer);
                     System.out.println("Holdr: created " + outputFile);
                 } finally {
                     if (writer != null) writer.close();

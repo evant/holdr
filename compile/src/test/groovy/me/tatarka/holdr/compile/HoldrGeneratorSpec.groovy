@@ -198,6 +198,35 @@ public class Holdr_Test
 """
     }
 
+    def "a custom superclass generates a Holdr that subclasses that superclass"() {
+        expect:
+        code(generator, "test", "test.TestHoldr", [] as Set) == """
+package me.tatarka.test.holdr;
+
+import android.view.View;
+import me.tatarka.test.R;
+import test.TestHoldr;
+
+public class Holdr_Test
+    extends TestHoldr
+{
+
+    public final static int LAYOUT = R.layout.test;
+
+    /**
+     * Constructs a new {@link me.tatarka.holdr.Holdr} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the holdr's views.
+     */
+    public Holdr_Test(View view) {
+        super(view);
+    }
+
+}
+"""
+    }
+
     private static final String IMPORTS = """
 import android.view.View;
 import me.tatarka.holdr.Holdr;
