@@ -45,8 +45,11 @@ public class View extends Ref {
         private Builder(String type, View view) {
             super(view);
             if (type == null) throw new IllegalStateException("type must not be null");
-            
+
             this.type = type;
+            for (Listener listener : view.listeners) {
+                listenerBuilders.add(Listener.of(listener));
+            }
         }
 
         public Builder listener(Listener.Builder listener) {

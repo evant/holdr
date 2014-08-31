@@ -21,6 +21,11 @@ public class Listener {
         return new Builder(type);
     }
 
+    public static Builder of(Listener listener) {
+        return new Builder(listener);
+    }
+
+
     private static String nameFromView(Type type, View view) {
         return "on" + FormatUtils.capiatalize(view.fieldName) + type.nameSuffix();
     }
@@ -45,6 +50,11 @@ public class Listener {
 
         private Builder(@NotNull Type type) {
             this.type = type;
+        }
+        
+        private Builder(Listener listener) {
+            this.type = listener.type;
+            this.name = listener.name;
         }
 
         public Builder name(String name) {

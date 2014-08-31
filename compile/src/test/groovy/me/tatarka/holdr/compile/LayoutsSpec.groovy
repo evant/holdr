@@ -91,4 +91,20 @@ public class LayoutsSpec extends Specification {
                 new ParsedLayout([]), new ParsedLayout("test.TestHoldr", [])
         ).superclass == "test.TestHoldr"
     }
+    
+    def "a layout with a custom field name merges with a another layout be keeping that field name"() {
+        expect:
+        layoutRefs(
+                new ParsedLayout([View.of("test", "id").fieldName("my_test").build()]),
+                new ParsedLayout([View.of("test", "id").build()])
+        ) == [View.of("test", "id").fieldName("my_test").build()]
+    }
+
+    def "(reversed) a layout with a custom field name merges with a another layout be keeping that field name"() {
+        expect:
+        layoutRefs(
+                new ParsedLayout([View.of("test", "id").build()]),
+                new ParsedLayout([View.of("test", "id").fieldName("my_test").build()])
+        ) == [View.of("test", "id").fieldName("my_test").build()]
+    }
 }

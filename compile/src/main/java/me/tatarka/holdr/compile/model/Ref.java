@@ -1,5 +1,6 @@
 package me.tatarka.holdr.compile.model;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -13,10 +14,17 @@ public abstract class Ref {
     public final String fieldName;
     public final boolean isAndroidId;
     public final boolean isNullable;
+    public final boolean isFieldNameCustom;
 
     protected Ref(String id, boolean isAndroidId, String fieldName, boolean isNullable) {
         this.id = id;
-        this.fieldName = fieldName != null ? fieldName : FormatUtils.underscoreToLowerCamel(id);
+        if (fieldName == null) {
+            this.fieldName = FormatUtils.underscoreToLowerCamel(id);
+            this.isFieldNameCustom = false;
+        } else {
+            this.fieldName = fieldName;
+            this.isFieldNameCustom = true;
+        }
         this.isAndroidId = isAndroidId;
         this.isNullable = isNullable;
     }
@@ -44,14 +52,9 @@ public abstract class Ref {
 
         // Views don't need to be the same type, if not, just use android.view.View.
         if (oldRef instanceof View && newRef instanceof View) {
-            View firstView = (View) oldRef;
-            View secondView = (View) newRef;
-
-            if (firstView.type.equals(secondView.type)) {
-                return firstView;
-            } else {
-                return View.of("android.view.View", firstView).build();
-            }
+            View oldView = (View) oldRef;
+            View newView = (View) newRef;
+            return mergeViews(layoutName, oldView, newView);
         }
 
         // Includes must have the same layout.
@@ -61,11 +64,32 @@ public abstract class Ref {
             if (firstLayout.equals(secondLayout)) {
                 return oldRef;
             } else {
-                throw new IllegalArgumentException("Cannot merge includes with different layouts ('" + firstLayout + "', vs '" + secondLayout + "' in layout '" + layoutName + "').");
+                throw new IllegalArgumentException("Cannot merge includes with different layouts ('" + firstLayout + "' vs '" + secondLayout + "' in layout '" + layoutName + "').");
             }
         }
 
         throw new IllegalArgumentException("Cannot merge view with include (id '" + oldRef.id + "' in layout '" + layoutName + "').");
+    }
+    
+    private static View mergeViews(String layoutName, @NotNull View oldView, @NotNull View newView) {
+        String type = oldView.type.equals(newView.type) ? oldView.type : "android.view.View";
+        View.Builder view =  View.of(type, oldView);
+        view.fieldName(mergeFieldNames(layoutName, oldView, newView));
+        return view.build();
+    }
+    
+    private static String mergeFieldNames(String layoutName, @NotNull Ref oldRef, @NotNull Ref newRef) {
+        if (oldRef.isFieldNameCustom || newRef.isFieldNameCustom) {
+            if (oldRef.isFieldNameCustom && newRef.isFieldNameCustom) {
+                if (oldRef.fieldName.equals(newRef.fieldName)) {
+                    return oldRef.fieldName;
+                } else {
+                    throw new IllegalArgumentException("Cannot merge views with different view names ('" + oldRef.fieldName + "' vs '" + newRef.fieldName + "' in layout '" + layoutName + "').");
+                }
+            }
+            return oldRef.isFieldNameCustom ? oldRef.fieldName : newRef.fieldName;
+        }
+        return oldRef.fieldName;
     }
 
     public static abstract class Builder<R extends Ref, T extends Builder> {
