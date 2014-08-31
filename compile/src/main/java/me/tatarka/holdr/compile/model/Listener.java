@@ -62,7 +62,7 @@ public class Listener {
     }
 
     public static enum Type {
-        ON_CLICK, ON_LONG_CLICK;
+        ON_CLICK, ON_LONG_CLICK, ON_TOUCH;
 
         public String nameSuffix() {
             switch (this) {
@@ -70,6 +70,8 @@ public class Listener {
                     return "Click";
                 case ON_LONG_CLICK:
                     return "LongClick";
+                case ON_TOUCH:
+                    return "Touch";
             }
             throw new IllegalStateException("Unreachable!");
         }
@@ -80,6 +82,8 @@ public class Listener {
                     return "onClick";
                 case ON_LONG_CLICK:
                     return "onLongClick";
+                case ON_TOUCH:
+                    return "onTouch";
             }
             throw new IllegalStateException("Unreachable!");
         }

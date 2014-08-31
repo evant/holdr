@@ -13,7 +13,7 @@ import me.tatarka.samplelibrary.TitledFragment;
 /**
  * Created by evan on 8/24/14.
  */
-public class BasicExampleFragment extends TitledFragment implements Holdr_FragmentBasicExample.Listener {
+public class BasicExampleFragment extends TitledFragment {
     Holdr_FragmentBasicExample holdr;
 
     @Override
@@ -25,7 +25,6 @@ public class BasicExampleFragment extends TitledFragment implements Holdr_Fragme
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         holdr = new Holdr_FragmentBasicExample(view);
-        holdr.setListener(this);
         
         holdr.header.setText("Hello, Holdr!");
         holdr.subHeader.setText("This is so easy!");
@@ -34,16 +33,5 @@ public class BasicExampleFragment extends TitledFragment implements Holdr_Fragme
     @Override
     public String getTitle() {
         return "Basic Example";
-    }
-
-    @Override
-    public void onButtonClick(Button button) {
-        Toast.makeText(getActivity(), "You Clicked Me!", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public boolean onButtonLongClick(Button button) {
-        Toast.makeText(getActivity(), "You Long Clicked Me!", Toast.LENGTH_SHORT).show();
-        return false;
     }
 }

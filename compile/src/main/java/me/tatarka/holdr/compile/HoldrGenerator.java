@@ -4,6 +4,7 @@ import com.sun.codemodel.*;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import me.tatarka.holdr.compile.model.View;
 import me.tatarka.holdr.compile.util.FormatUtils;
 import me.tatarka.holdr.compile.util.Pair;
 
+import static com.sun.codemodel.JExpr.FALSE;
 import static com.sun.codemodel.JExpr._new;
 import static com.sun.codemodel.JExpr._null;
 import static com.sun.codemodel.JExpr.cast;
@@ -77,7 +79,7 @@ public class HoldrGenerator {
     private Map<Listener.Type,ListenerType> createListenerTypeMap(Refs r) {
         Map<Listener.Type, ListenerType> map = new HashMap<Listener.Type, ListenerType>();
         for (Listener.Type type : Listener.Type.values()) {
-            map.put(type, new ListenerType(r.m, type));
+            map.put(type, new ListenerType(r, type));
         }
         return map;
     }
@@ -129,8 +131,8 @@ public class HoldrGenerator {
         doc.addParam(viewVar).append("The root view to search for the holdr's views.");
     }
 
-    private void genListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Collection<Ref> refs, JBlock body, Map<Listener.Type, ListenerType> listenerTypeMap) {
-        if (holderListener == null) return;
+    private void genListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holdrListener, Collection<Ref> refs, JBlock body, Map<Listener.Type, ListenerType> listenerTypeMap) {
+        if (holdrListener == null) return;
         
         for (Ref ref : refs) {
             if (ref instanceof View) {
@@ -147,19 +149,28 @@ public class HoldrGenerator {
                     JDefinedClass listenerClass = r.m.anonymousClass(listenerType.classType);
                     
                     JMethod method = listenerClass.method(PUBLIC, listenerType.methodReturn, listenerType.methodName);
+                    
+                    List<JVar> params = new ArrayList<JVar>();
                     for (Pair<JClass, String> arg : listenerType.methodParams) {
-                        method.param(arg.first, arg.second);
+                        JVar param = method.param(arg.first, arg.second);
+                        params.add(arg.first == r.viewClass ? fieldVar : param);
                     }
                     
                     method.annotate(r.overrideAnnotation);
                     JBlock innerBody = method.body();
-                    JBlock innerIf = innerBody._if(holderListener.ne(_null()))._then();
+                    JBlock innerIf = innerBody._if(holdrListener.ne(_null()))._then();
                     
+                    JInvocation invokeHoldrListener;
                     if (listenerType.defaultReturn == null) {
-                        innerIf.invoke(holderListener, listener.name).arg(fieldVar);
+                        invokeHoldrListener = innerIf.invoke(holdrListener, listener.name);
                     } else {
-                        innerIf._return(holderListener.invoke(listener.name).arg(fieldVar));
+                        invokeHoldrListener = holdrListener.invoke(listener.name);
+                        innerIf._return(invokeHoldrListener);
                         innerBody._return(listenerType.defaultReturn);
+                    }
+
+                    for (JVar param : params) {
+                        invokeHoldrListener.arg(param);
                     }
                     
                     body.invoke(fieldVar, listenerType.setter).arg(_new(listenerClass));
@@ -195,8 +206,15 @@ public class HoldrGenerator {
                     for (Listener listener : view.listeners) {
                         ListenerType listenerType = listenerTypeMap.get(listener.type);
                         
-                        listenerInterface.method(PUBLIC, listenerType.methodReturn, listener.name)
-                                .param(r.ref(view.type), ref.fieldName);
+                        JMethod method = listenerInterface.method(PUBLIC, listenerType.methodReturn, listener.name);
+                        for (Pair<JClass, String> param : listenerType.methodParams) {
+                            if (param.first == r.viewClass) {
+                                // Replace view with reference to the field.  
+                                method.param(r.ref(view.type), ref.fieldName);
+                            } else {
+                                method.param(param.first, param.second);
+                            }
+                        }
                     }
                 }
             }
@@ -251,23 +269,31 @@ public class HoldrGenerator {
         public final JType methodReturn;
         public final JExpression defaultReturn;
 
-        public ListenerType(JCodeModel m, Listener.Type type) {
+        public ListenerType(Refs r, Listener.Type type) {
             switch (type) {
                 case ON_CLICK:
                     setter = "setOnClickListener";
-                    classType = m.ref("android.view.View.OnClickListener");
+                    classType = r.ref("android.view.View.OnClickListener");
                     methodName = "onClick";
-                    methodParams = Arrays.asList(Pair.create(m.ref("android.view.View"), "view"));
-                    methodReturn = m.VOID;
+                    methodParams = Arrays.asList(Pair.create(r.viewClass, "view"));
+                    methodReturn = r.m.VOID;
                     defaultReturn = null;
                     break;
                 case ON_LONG_CLICK:
                     setter = "setOnLongClickListener";
-                    classType = m.ref("android.view.View.OnLongClickListener");
+                    classType = r.ref("android.view.View.OnLongClickListener");
                     methodName = "onLongClick";
-                    methodParams = Arrays.asList(Pair.create(m.ref("android.view.View"), "view"));
-                    methodReturn = m.BOOLEAN;
-                    defaultReturn = JExpr.FALSE;
+                    methodParams = Arrays.asList(Pair.create(r.viewClass, "view"));
+                    methodReturn = r.m.BOOLEAN;
+                    defaultReturn = FALSE;
+                    break;
+                case ON_TOUCH:
+                    setter = "setOnTouchListener";
+                    classType = r.ref("android.view.View.OnTouchListener");
+                    methodName = "onTouch";
+                    methodParams = Arrays.asList(Pair.create(r.viewClass, "view"), Pair.create(r.ref("android.view.MotionEvent"), "motionEvent"));
+                    methodReturn = r.m.BOOLEAN;
+                    defaultReturn = FALSE;
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown listener type: " + type.toString());

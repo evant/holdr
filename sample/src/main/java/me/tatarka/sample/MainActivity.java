@@ -25,6 +25,7 @@ public class MainActivity extends ActionBarActivity {
                 new BasicExampleFragment(),
                 new AdvancedExampleFragment(),
                 new ListExampleFragment(),
+                new CallbackExampleFragment(),
                 new LibraryExampleFragment()
         };
         

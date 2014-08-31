@@ -235,11 +235,15 @@ public class Holdr_Test
         code(generator, "test", [View.of("android.widget.Button", "my_button")
                                          .listener(Listener.Type.ON_CLICK)
                                          .listener(Listener.Type.ON_LONG_CLICK)
+                                         .listener(Listener.Type.ON_TOUCH)
                                          .build()] as Set) == """
 package me.tatarka.test.holdr;
 
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import me.tatarka.holdr.Holdr;
 import me.tatarka.test.R;
 
@@ -261,14 +265,14 @@ public class Holdr_Test
      * @param view
      *     The root view to search for the holdr's views.
      */
-    public Holdr_Test(android.view.View view) {
+    public Holdr_Test(View view) {
         super(view);
         myButton = ((android.widget.Button) view.findViewById(R.id.my_button));
         myButton.setOnClickListener(new OnClickListener() {
 
 
             @Override
-            public void onClick(android.view.View view) {
+            public void onClick(View view) {
                 if (_holdrListener!= null) {
                     _holdrListener.onMyButtonClick(myButton);
                 }
@@ -280,9 +284,22 @@ public class Holdr_Test
 
 
             @Override
-            public boolean onLongClick(android.view.View view) {
+            public boolean onLongClick(View view) {
                 if (_holdrListener!= null) {
                     return _holdrListener.onMyButtonLongClick(myButton);
+                }
+                return false;
+            }
+
+        }
+        );
+        myButton.setOnTouchListener(new OnTouchListener() {
+
+
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (_holdrListener!= null) {
+                    return _holdrListener.onMyButtonTouch(myButton, motionEvent);
                 }
                 return false;
             }
@@ -302,6 +319,8 @@ public class Holdr_Test
 
         public boolean onMyButtonLongClick(android.widget.Button myButton);
 
+        public boolean onMyButtonTouch(android.widget.Button myButton, MotionEvent motionEvent);
+
     }
 
 }
@@ -314,6 +333,7 @@ public class Holdr_Test
 package me.tatarka.test.holdr;
 
 import android.support.annotation.Nullable;
+import android.view.View;
 import android.view.View.OnClickListener;
 import me.tatarka.holdr.Holdr;
 import me.tatarka.test.R;
@@ -337,7 +357,7 @@ public class Holdr_Test
      * @param view
      *     The root view to search for the holdr's views.
      */
-    public Holdr_Test(android.view.View view) {
+    public Holdr_Test(View view) {
         super(view);
         myButton = ((android.widget.Button) view.findViewById(R.id.my_button));
         if (myButton!= null) {
@@ -345,7 +365,7 @@ public class Holdr_Test
 
 
                 @Override
-                public void onClick(android.view.View view) {
+                public void onClick(View view) {
                     if (_holdrListener!= null) {
                         _holdrListener.onMyButtonClick(myButton);
                     }

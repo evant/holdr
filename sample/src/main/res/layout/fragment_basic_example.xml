@@ -23,18 +23,4 @@
         android:textColor="@color/text_color"
         android:textSize="@dimen/headline"
         tools:text="This is so easy!" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:text="@string/click_me"
-            app:holdr_onClick="true"
-            app:holdr_onLongClick="true"/>
-    </FrameLayout>
 </LinearLayout>
