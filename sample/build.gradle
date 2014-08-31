@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'me.tatarka.holdr:gradle-plugin:1.1.0-SNAPSHOT'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.1.0'
     }
 }
 
