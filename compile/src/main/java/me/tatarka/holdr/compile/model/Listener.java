@@ -16,15 +16,15 @@ public class Listener {
         this.type = type;
         this.name = name != null ? name : nameFromView(type, view);
     }
-    
+
     public static Builder of(Type type) {
         return new Builder(type);
     }
-    
+
     private static String nameFromView(Type type, View view) {
         return "on" + FormatUtils.capiatalize(view.fieldName) + type.nameSuffix();
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -38,54 +38,43 @@ public class Listener {
     public int hashCode() {
         return Objects.hashCode(type, name);
     }
-    
+
     public static class Builder {
         private Type type;
         private String name;
-        
+
         private Builder(@NotNull Type type) {
             this.type = type;
         }
-        
+
         public Builder name(String name) {
             this.name = name;
             return this;
         }
-        
+
         public Listener build(View view) {
             return new Listener(type, name, view);
         }
     }
 
     public static enum Type {
-        ON_CLICK, ON_LONG_CLICK, ON_TOUCH, ON_CHECKED_CHANGED;
+        ON_TOUCH("Touch"),
+        ON_CLICK("Click"), ON_LONG_CLICK("LongClick"),
+        ON_FOCUS_CHANGE("FocusChange"), ON_CHECKED_CHANGE("CheckedChanged"), ON_EDITOR_ACTION("EditorAction"),
+        ON_ITEM_CLICK("ItemClick"), ON_ITEM_LONG_CLICK("ItemLongClick");
+        
+        public final String name;
+        
+        Type(String name) {
+            this.name = name;
+        }
 
         public String nameSuffix() {
-            switch (this) {
-                case ON_CLICK:
-                    return "Click";
-                case ON_LONG_CLICK:
-                    return "LongClick";
-                case ON_TOUCH:
-                    return "Touch";
-                case ON_CHECKED_CHANGED:
-                    return "CheckedChanged";
-            }
-            throw new IllegalStateException("Unreachable!");
+            return name;
         }
-        
+
         public String layoutName() {
-            switch (this) {
-                case ON_CLICK:
-                    return "onClick";
-                case ON_LONG_CLICK:
-                    return "onLongClick";
-                case ON_TOUCH:
-                    return "onTouch";
-                case ON_CHECKED_CHANGED:
-                    return "onCheckedChanged";
-            }
-            throw new IllegalStateException("Unreachable!");
+            return "on" + name;
         }
     }
 }

@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import me.tatarka.sample.holdr.Holdr_FragmentCallbackExample;
@@ -28,6 +30,7 @@ public class CallbackExampleFragment extends TitledFragment implements Holdr_Fra
         super.onViewCreated(view, savedInstanceState);
         holdr = new Holdr_FragmentCallbackExample(view);
         holdr.setListener(this);
+        holdr.list.setAdapter(new MyListAdapter(getActivity()));
     }
 
     @Override
@@ -47,10 +50,10 @@ public class CallbackExampleFragment extends TitledFragment implements Holdr_Fra
     }
 
     @Override
-    public boolean onTouchButtonTouch(Button touchButton, MotionEvent motionEvent) {
-        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+    public boolean onTouchButtonTouch(Button touchButton, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
             Toast.makeText(getActivity(), "You touched me (down)!", Toast.LENGTH_SHORT).show();
-        } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
             Toast.makeText(getActivity(), "You touched me (up)!", Toast.LENGTH_SHORT).show();
         }
         return false;
@@ -59,5 +62,21 @@ public class CallbackExampleFragment extends TitledFragment implements Holdr_Fra
     @Override
     public void onCheckboxCheckedChanged(CheckBox checkbox, boolean isChecked) {
         Toast.makeText(getActivity(), "You checked me! (" + isChecked + ")", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onFocusTextFocusChange(TextView focusText, boolean hasFocus) {
+        Toast.makeText(getActivity(), "You focused me! (" + hasFocus + ")", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onListItemClick(ListView list, View item, int position, long id) {
+        Toast.makeText(getActivity(), "You item clicked me! (" + position + ")", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onListItemLongClick(ListView list, View item, int position, long id) {
+        Toast.makeText(getActivity(), "You item long clicked me! (" + position + ")", Toast.LENGTH_SHORT).show();
+        return false;
     }
 }

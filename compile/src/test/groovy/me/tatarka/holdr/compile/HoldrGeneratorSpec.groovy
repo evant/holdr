@@ -297,9 +297,9 @@ public class Holdr_Test
 
 
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(View view, MotionEvent event) {
                 if (_holdrListener!= null) {
-                    return _holdrListener.onMyButtonTouch(myButton, motionEvent);
+                    return _holdrListener.onMyButtonTouch(myButton, event);
                 }
                 return false;
             }
@@ -319,7 +319,7 @@ public class Holdr_Test
 
         public boolean onMyButtonLongClick(android.widget.Button myButton);
 
-        public boolean onMyButtonTouch(android.widget.Button myButton, MotionEvent motionEvent);
+        public boolean onMyButtonTouch(android.widget.Button myButton, MotionEvent event);
 
     }
 

@@ -271,6 +271,17 @@ public class HoldrGenerator {
 
         public ListenerType(Refs r, Listener.Type type) {
             switch (type) {
+                case ON_TOUCH:
+                    setter = "setOnTouchListener";
+                    classType = r.ref("android.view.View.OnTouchListener");
+                    methodName = "onTouch";
+                    methodParams = Arrays.asList(
+                            new Pair<JType, String>(r.viewClass, "view"),
+                            new Pair<JType, String>(r.ref("android.view.MotionEvent"), "event")
+                    );
+                    methodReturn = r.m.BOOLEAN;
+                    defaultReturn = FALSE;
+                    break;
                 case ON_CLICK:
                     setter = "setOnClickListener";
                     classType = r.ref("android.view.View.OnClickListener");
@@ -287,18 +298,18 @@ public class HoldrGenerator {
                     methodReturn = r.m.BOOLEAN;
                     defaultReturn = FALSE;
                     break;
-                case ON_TOUCH:
-                    setter = "setOnTouchListener";
-                    classType = r.ref("android.view.View.OnTouchListener");
-                    methodName = "onTouch";
+                case ON_FOCUS_CHANGE:
+                    setter = "setOnFocusChangeListener";
+                    classType = r.ref("android.view.View.OnFocusChangeListener");
+                    methodName = "onFocusChange";
                     methodParams = Arrays.asList(
                             new Pair<JType, String>(r.viewClass, "view"),
-                            new Pair<JType, String>(r.ref("android.view.MotionEvent"), "motionEvent")
+                            new Pair<JType, String>(r.m.BOOLEAN, "hasFocus")
                     );
-                    methodReturn = r.m.BOOLEAN;
-                    defaultReturn = FALSE;
+                    methodReturn = r.m.VOID;
+                    defaultReturn = null;
                     break;
-                case ON_CHECKED_CHANGED:
+                case ON_CHECKED_CHANGE:
                     setter = "setOnCheckedChangeListener";
                     classType = r.ref("android.widget.CompoundButton.OnCheckedChangeListener");
                     methodName = "onCheckedChanged";
@@ -308,6 +319,44 @@ public class HoldrGenerator {
                     );
                     methodReturn = r.m.VOID;
                     defaultReturn = null;
+                    break;
+                case ON_EDITOR_ACTION:
+                    setter = "setOnEditorActionListener";
+                    classType = r.ref("android.widget.TextView.OnEditorActionListener");
+                    methodName = "onEditorAction";
+                    methodParams = Arrays.asList(
+                            new Pair<JType, String>(r.ref("android.widget.TextView"), "view"),
+                            new Pair<JType, String>(r.m.INT, "actionId"),
+                            new Pair<JType, String>(r.ref("android.view.KeyEvent"), "event")
+                    );
+                    methodReturn = r.m.BOOLEAN;
+                    defaultReturn = FALSE;
+                    break;
+                case ON_ITEM_CLICK:
+                    setter = "setOnItemClickListener";
+                    classType = r.ref("android.widget.AdapterView.OnItemClickListener");
+                    methodName = "onItemClick";
+                    methodParams = Arrays.asList(
+                            new Pair<JType, String>(r.ref("android.widget.AdapterView<?>"), "view"),
+                            new Pair<JType, String>(r.viewClass, "item"),
+                            new Pair<JType, String>(r.m.INT, "position"),
+                            new Pair<JType, String>(r.m.LONG, "id")
+                    );
+                    methodReturn = r.m.VOID;
+                    defaultReturn = null;
+                    break;
+                case ON_ITEM_LONG_CLICK:
+                    setter = "setOnItemLongClickListener";
+                    classType = r.ref("android.widget.AdapterView.OnItemLongClickListener");
+                    methodName = "onItemLongClick";
+                    methodParams = Arrays.asList(
+                            new Pair<JType, String>(r.ref("android.widget.AdapterView<?>"), "view"),
+                            new Pair<JType, String>(r.viewClass, "item"),
+                            new Pair<JType, String>(r.m.INT, "position"),
+                            new Pair<JType, String>(r.m.LONG, "id")
+                    );
+                    methodReturn = r.m.BOOLEAN;
+                    defaultReturn = FALSE;
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown listener type: " + type.toString());
