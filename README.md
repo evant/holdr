@@ -1,12 +1,21 @@
 Holdr
 ======
 
-## Why use Holdr?
+## What is Holdr?
 
-- Because you hate typing `findViewById()` all the time.
-- Because Butterknife requires non-zero boilerplate and doesn't work well in
-    library projects.
-- Because view holders are cool, but a pain to write.
+Holdr generates classes based on your layouts to help you interact with them in
+a type-safe way. It removes the boilerplate of doing 
+`TextView myTextView = findViewById(R.id.my_text_view)` all the time.
+
+## Doesn't [Butter Knife](http://jakewharton.github.io/butterknife/)/[AndroidAnnotaions](http://androidannotations.org/)/[RoboGuice](https://github.com/roboguice/roboguice) already do that?
+
+This is a different approach to solving the same problem, the important
+difference is your layout dictates what is generated instead of annotations on
+your classes. This means that it's much less likely for your code and layouts to
+get out of sync.
+
+This approach also means zero reflection (and no proguard issues) and works 
+equally as well in library projects.
 
 ## Usage
 
@@ -19,8 +28,12 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.2'
-        classpath 'me.tatarka.holdr:gradle-plugin:1.0.1'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.1.0'
     }
+}
+
+repositories {
+    mavenCentral()
 }
 
 apply plugin: 'com.android.application'
@@ -44,8 +57,7 @@ Say you have a layout file `hand.xml`.
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="Hello, Holdr!"
-        />
+        tools:text="Hello, Holdr!"/>
 </LinearLayout>
 ```
 
@@ -63,7 +75,7 @@ public class MyActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.hand);
-        holdr = new Holdr_Wrench(findViewById(android.R.id.content));
+        holdr = new Holdr_Hand(findViewById(android.R.id.content));
         holdr.text.setText("Hello, Holdr!");
     }
 }
@@ -94,7 +106,7 @@ public class MyFragment extends Fragment {
 ```java
 public class MyAdapter extends BaseAdapter {
     // other methods
-
+    
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Holdr_Hand holdr;
@@ -120,10 +132,78 @@ public class MyCustomView extends LinearLayout {
     
     private void init() {
         holdr = new Holdr_Hand(inflate(getContext(), R.layout.hand, this));
-        holdr.text.setText("Hello, Holdr!");;
+        holdr.text.setText("Hello, Holdr!");
     }
 }
 ```
+
+### Callback Listeners
+
+You can also specify listeners for your Activity/Fragment/Whatever to handle
+to make working with callbacks a bit nicer. For example, if you had the layout
+file `hand.xml`,
+
+  ```xml
+<!-- hand.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/my_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello, Holdr!"
+        app:holdr_onClick="true"/>
+</LinearLayout>
+  ```
+
+The generated `Holdr_Hand` class will also have a listener interface for you to
+implement.
+
+  ```java
+public class MyActivity extends Activity implements Holdr_Hand.Listener {
+    private Holdr_Hand holdr;
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.hand);
+        holdr = new Holdr_Hand(findViewById(android.R.id.content));
+        holdr.setListener(this);
+    }
+    
+    @Override
+    public void onMyButtonClick(Button myButton) {
+        // Handle button click.
+    }
+}
+```
+
+Here is a list of all the listeners you can handle:
+- `holdr_onTouch`
+- `holdr_onClick`
+- `holdr_onLongClick`
+- `holdr_onFocusChange`
+- `holdr_onCheckedChanged`
+- `holdr_onEditorAction`
+- `holdr_onItemClick`
+- `holdr_onItemLongClick`
+
+You can also specify a custom method name by doing
+`app:holdr_onClick="myCustomMethodName"` instead.
+
+### Custom Superclass
+Want to use a `Holdr` in a place where you need a specic subclass?
+(`RecyclerView.ViewHolder` for example).  Just use the attribute
+`app:holdr_superclass="com.example.MySuperclass` and it will subclass that
+instead of `Holdr`. The only requirement is that the superclass must contain a
+constructor that takes a `View`.
 
 ### Controlling What's Generated
 
@@ -140,7 +220,7 @@ the attributes `holdr_include` and `holdr_ignore` to get more granular
 control. Both take either the value `"view"` to act on just the view it's used
 on or `"all"` to act on that view and all it's children. For example,
 
-```xml
+   ```xml
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -156,17 +236,15 @@ on or `"all"` to act on that view and all it's children. For example,
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:text="Hello, Holdr!"
-        app:holdr_include="view"
-        />
-`   
+        app:holdr_include="view"/>
+    `   
     <TextView
         android:id="@+id/text2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text="Hello, Holdr!"
-        />
+        tools:text="Hello, Holdr!"/>
 </LinearLayout>
-```
+   ```
 
 would include only `text1` in the generated class.
 
@@ -176,4 +254,4 @@ there is a use case complex enough to warrant this, but it may be fixed in a
 later version if there is a need.
 
 Finally, if you don't like the field name generated for a specific id, you can
-set it yourself by using `holdr_field_name="myBetterFieldName"` on a view.
+set it yourself by using `app:holdr_field_name="myBetterFieldName"` on a view.
