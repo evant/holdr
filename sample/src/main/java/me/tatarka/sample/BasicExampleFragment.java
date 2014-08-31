@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import me.tatarka.sample.holdr.Holdr_FragmentBasicExample;
@@ -12,7 +13,7 @@ import me.tatarka.samplelibrary.TitledFragment;
 /**
  * Created by evan on 8/24/14.
  */
-public class BasicExampleFragment extends TitledFragment {
+public class BasicExampleFragment extends TitledFragment implements Holdr_FragmentBasicExample.Listener {
     Holdr_FragmentBasicExample holdr;
 
     @Override
@@ -24,20 +25,19 @@ public class BasicExampleFragment extends TitledFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         holdr = new Holdr_FragmentBasicExample(view);
+        holdr.setListener(this);
         
         holdr.header.setText("Hello, Holdr!");
         holdr.subHeader.setText("This is so easy!");
-        
-        holdr.button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getActivity(), "You Clicked Me!", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override
     public String getTitle() {
         return "Basic Example";
+    }
+
+    @Override
+    public void onButtonClick(Button button) {
+        Toast.makeText(getActivity(), "You Clicked Me!", Toast.LENGTH_SHORT).show();
     }
 }

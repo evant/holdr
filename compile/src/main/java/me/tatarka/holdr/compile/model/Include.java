@@ -1,4 +1,4 @@
-package me.tatarka.holdr.compile;
+package me.tatarka.holdr.compile.model;
 
 import java.util.Map;
 
@@ -7,8 +7,8 @@ import me.tatarka.holdr.compile.util.Objects;
 public class Include extends Ref {
     public final String layout;
 
-    private Include(String layout, String id, String fieldName, boolean isAndroidId, boolean isNullable) {
-        super(id, fieldName, isAndroidId, isNullable);
+    private Include(String id, boolean isAndroidId, String fieldName, boolean isNullable, String layout) {
+        super(id, isAndroidId, fieldName, isNullable);
         this.layout = layout;
     }
 
@@ -35,7 +35,7 @@ public class Include extends Ref {
 
         @Override
         public Include build() {
-            return new Include(layout, id, fieldName, isAndroidId, isNullable);
+            return new Include(id, isAndroidId, fieldName, isNullable, layout);
         }
     }
 
@@ -51,15 +51,15 @@ public class Include extends Ref {
         Include include = (Include) o;
 
         return id.equals(include.id)
-                && fieldName.equals(include.fieldName)
                 && isAndroidId == include.isAndroidId
+                && fieldName.equals(include.fieldName)
                 && isNullable == include.isNullable
                 && layout.equals(include.layout);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, fieldName, isAndroidId, isNullable, layout);
+        return Objects.hashCode(id, isAndroidId, fieldName, isNullable, layout);
     }
 
     @Override

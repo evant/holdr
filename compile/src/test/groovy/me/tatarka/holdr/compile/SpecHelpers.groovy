@@ -1,6 +1,7 @@
 package me.tatarka.holdr.compile
 
 import groovy.xml.MarkupBuilder
+import me.tatarka.holdr.compile.model.Ref
 
 class SpecHelpers {
     public static StringReader xml(Closure<MarkupBuilder> f) {

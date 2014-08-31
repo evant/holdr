@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import me.tatarka.holdr.compile.model.Ref;
 import me.tatarka.holdr.compile.util.FileUtils;
 
 /**

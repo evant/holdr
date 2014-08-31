@@ -1,5 +1,8 @@
 package me.tatarka.holdr.compile
 
+import me.tatarka.holdr.compile.model.Include
+import me.tatarka.holdr.compile.model.Listener
+import me.tatarka.holdr.compile.model.View
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -221,6 +224,65 @@ public class Holdr_Test
      */
     public Holdr_Test(View view) {
         super(view);
+    }
+
+}
+"""
+    }
+
+    def "a view with a listener generates a Holdr that can accept that listener"() {
+        expect:
+        code(generator, "test", [View.of("android.widget.Button", "my_button").listener(Listener.Type.ON_CLICK).build()] as Set) == """
+package me.tatarka.test.holdr;
+
+import android.view.View.OnClickListener;
+import me.tatarka.holdr.Holdr;
+import me.tatarka.test.R;
+
+public class Holdr_Test
+    extends Holdr
+{
+
+    public final static int LAYOUT = R.layout.test;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_button}.
+     * 
+     */
+    public android.widget.Button myButton;
+    private Holdr_Test.Listener _holdrListener;
+
+    /**
+     * Constructs a new {@link me.tatarka.holdr.Holdr} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the holdr's views.
+     */
+    public Holdr_Test(android.view.View view) {
+        super(view);
+        myButton = ((android.widget.Button) view.findViewById(R.id.my_button));
+        myButton.setOnClickListener(new OnClickListener() {
+
+
+            @Override
+            public void onClick(android.view.View view) {
+                if (_holdrListener!= null) {
+                    _holdrListener.onMyButtonClick(myButton);
+                }
+            }
+
+        }
+        );
+    }
+
+    public void setListener(Holdr_Test.Listener listener) {
+        _holdrListener = listener;
+    }
+
+    public interface Listener {
+
+
+        public void onMyButtonClick(android.widget.Button myButton);
+
     }
 
 }

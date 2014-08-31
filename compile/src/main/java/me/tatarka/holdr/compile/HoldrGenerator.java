@@ -8,11 +8,18 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import me.tatarka.holdr.compile.model.Include;
+import me.tatarka.holdr.compile.model.Listener;
+import me.tatarka.holdr.compile.model.Ref;
+import me.tatarka.holdr.compile.model.View;
 import me.tatarka.holdr.compile.util.FormatUtils;
+import me.tatarka.holdr.compile.util.Pair;
 
 import static com.sun.codemodel.JExpr._new;
+import static com.sun.codemodel.JExpr._null;
 import static com.sun.codemodel.JExpr.cast;
 import static com.sun.codemodel.JMod.FINAL;
+import static com.sun.codemodel.JMod.PRIVATE;
 import static com.sun.codemodel.JMod.PUBLIC;
 import static com.sun.codemodel.JMod.STATIC;
 
@@ -40,8 +47,20 @@ public class HoldrGenerator {
             JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", r.layoutRef);
 
             Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, refs);
+            
+            // public interface Listener {
+            JClass listenerInterface = genListenerInterface(r, clazz, refs);
+            // }
+            JFieldVar holdrListener = null;
+            if (listenerInterface != null) {
+                // private Listener _holdrListener; 
+                holdrListener = clazz.field(PRIVATE, listenerInterface, "_holdrListener");
+            }
 
-            genConstructor(r, clazz, refs, fieldVarMap);
+            genConstructor(r, clazz, refs, fieldVarMap, holdrListener);
+            
+            // public void setListener(Listener listener) {
+            genSetListener(r, clazz, listenerInterface, holdrListener);
 
             m.build(new WriterCodeWriter(writer));
         } catch (JClassAlreadyExistsException e) {
@@ -75,7 +94,7 @@ public class HoldrGenerator {
         return fieldVarMap;
     }
 
-    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Map<Ref, JFieldVar> fieldVarMap) {
+    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener) {
         // private MyLayoutViewModel(View view) {
         JMethod constructor = clazz.constructor(PUBLIC);
         JVar viewVar = constructor.param(r.viewClass, "view");
@@ -87,10 +106,39 @@ public class HoldrGenerator {
         // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
         // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
         genInitFields(r, fieldVarMap, viewVar, refs, body);
+        
+        // myButton.setOnClickListener((view) -> { if (_holderListener != null) _holderListener.onMyButtonClick(myButton); });
+        getListeners(r, fieldVarMap, holderListener, refs, body);
 
         JDocComment doc = constructor.javadoc();
         doc.append("Constructs a new {@link me.tatarka.holdr.Holdr} for {@link " + r.packageName + ".R.layout#" + r.layoutName + "}.");
         doc.addParam(viewVar).append("The root view to search for the holdr's views.");
+    }
+
+    private void getListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Collection<Ref> refs, JBlock body) {
+        if (holderListener == null) return;
+        
+        for (Ref ref : refs) {
+            if (ref instanceof View) {
+                JFieldVar fieldVar = fieldVarMap.get(ref);
+                View view = (View) ref;
+
+                for (Listener listener : view.listeners) {
+                    JDefinedClass listenerClass = r.m.anonymousClass(r.ref(listener.type.listenerName()));
+                    
+                    JMethod method = listenerClass.method(PUBLIC, r.m.VOID, listener.type.overrideMethodName());
+                    for (Pair<String, String> arg : listener.type.overrideMethodArgs()) {
+                        method.param(r.ref(arg.first), arg.second);
+                    }
+                    
+                    method.annotate(r.overrideAnnotation);
+                    JBlock innerBody = method.body();
+                    innerBody._if(holderListener.ne(_null()))._then().invoke(holderListener, listener.name)
+                            .arg(fieldVar);
+                    body.invoke(fieldVar, listener.type.methodName()).arg(_new(listenerClass));
+                }
+            }
+        }
     }
 
     private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Collection<Ref> refs, JBlock body) {
@@ -106,6 +154,34 @@ public class HoldrGenerator {
             }
         }
     }
+    private JClass genListenerInterface(Refs r, JDefinedClass clazz, Collection<Ref> refs) throws JClassAlreadyExistsException {
+        JDefinedClass listenerInterface = null;
+        
+        for (Ref ref : refs) {
+            if (ref instanceof View) {
+                View view = (View) ref;
+                if (!view.listeners.isEmpty()) {
+                    if (listenerInterface == null) {
+                        listenerInterface = clazz._interface(PUBLIC, "Listener");
+                    }
+
+                    for (Listener listener : view.listeners) {
+                        listenerInterface.method(PUBLIC, r.m.VOID, listener.name)
+                                .param(r.ref(view.type), ref.fieldName);
+                    }
+                }
+            }
+        }
+        
+        return listenerInterface;
+    }
+
+    private void genSetListener(Refs r, JDefinedClass clazz, JClass listenerInterface, JFieldVar holdrListener) {
+        if (listenerInterface == null) return;
+        JMethod method = clazz.method(PUBLIC, r.m.VOID, "setListener");
+        JVar listener = method.param(listenerInterface, "listener");
+        method.body().assign(holdrListener, listener);
+    }
 
     private static class Refs {
         public final JCodeModel m;
@@ -116,6 +192,7 @@ public class HoldrGenerator {
         public final JClass androidRClass;
         public final JClass rClass;
         public final JClass nullableAnnotation;
+        public final JClass overrideAnnotation;
         public final JFieldRef layoutRef;
 
         private Refs(JCodeModel m, String packageName, String layoutName, String superclass) {
@@ -128,6 +205,7 @@ public class HoldrGenerator {
             androidRClass = m.ref("android.R");
             rClass = m.ref(packageName + ".R");
             nullableAnnotation = m.ref("android.support.annotation.Nullable");
+            overrideAnnotation = m.ref("java.lang.Override");
             layoutRef = rClass.staticRef("layout").ref(layoutName);
         }
 

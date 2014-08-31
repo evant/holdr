@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
+import me.tatarka.holdr.compile.model.Ref;
 import me.tatarka.holdr.compile.util.Objects;
 
 /**

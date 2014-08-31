@@ -1,5 +1,7 @@
 package me.tatarka.holdr.compile
 
+import me.tatarka.holdr.compile.model.Include
+import me.tatarka.holdr.compile.model.View
 import spock.lang.Specification
 
 import static me.tatarka.holdr.compile.SpecHelpers.layout

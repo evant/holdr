@@ -15,5 +15,8 @@
         </attr>
         <attr name="holdr_field_name" format="string"/>
         <attr name="holdr_superclass" format="string"/>
+        
+        <!-- listener attributes -->
+        <attr name="holdr_onClick" format="boolean|string"/>
     </declare-styleable>
 </resources>

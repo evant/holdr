@@ -11,17 +11,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.tatarka.holdr.compile.model.Include;
+import me.tatarka.holdr.compile.model.Listener;
+import me.tatarka.holdr.compile.model.Ref;
+import me.tatarka.holdr.compile.model.View;
+
 public class HoldrLayoutParser {
     private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
     private static final String APP_NS = "http://schemas.android.com/apk/res-auto";
     private static final String ID = "id";
     private static final String LAYOUT = "layout";
     private static final String INCLUDE = "include";
-    
-    private static final String HOLDR_IGNORE = "holdr_ignore";
-    private static final String HOLDR_INCLUDE = "holdr_include";
-    private static final String HOLDR_FIELD_NAME = "holdr_field_name";
-    private static final String HOLDR_SUPERCLASS = "holdr_superclass";
+
+    private static final String HOLDR_PREFIX = "holdr_";
+    private static final String HOLDR_IGNORE = HOLDR_PREFIX + "ignore";
+    private static final String HOLDR_INCLUDE = HOLDR_PREFIX + "include";
+    private static final String HOLDR_FIELD_NAME = HOLDR_PREFIX + "field_name";
+    private static final String HOLDR_SUPERCLASS = HOLDR_PREFIX + "superclass";
     
     private static final String VIEW = "view";
     private static final String ALL = "all";
@@ -74,13 +80,8 @@ public class HoldrLayoutParser {
                         isRootTag = false;
                     }
 
-                    String idString = parser.getAttributeValue(ANDROID_NS, ID);
-                    String id = parseId(idString);
-                    boolean isAndroidId = parseIsAndroidId(idString);
                     HoldrIgnore ignore = parseIgnore(parser.getAttributeValue(APP_NS, HOLDR_IGNORE));
                     HoldrInclude include = parseInclude(parser.getAttributeValue(APP_NS, HOLDR_INCLUDE));
-                    
-                    String fieldName = parser.getAttributeValue(APP_NS, HOLDR_FIELD_NAME);
 
                     if (ignoreAllTag == null && ignore == HoldrIgnore.ALL) {
                         ignoreAllTag = tagName;
@@ -90,14 +91,33 @@ public class HoldrLayoutParser {
                         includeAllTag = tagName;
                     }
 
+                    String idString = parser.getAttributeValue(ANDROID_NS, ID);
+                    String id = parseId(idString);
+
                     if (include(id != null, include, includeAllTag != null, ignore, ignoreAllTag != null)) {
+                        boolean isAndroidId = parseIsAndroidId(idString);
+                        String fieldName = parser.getAttributeValue(APP_NS, HOLDR_FIELD_NAME);
+                        
                         Ref.Builder ref;
                         if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
                             ref = Include.of(layout, id);
                         } else {
                             String type = parseType(tagName);
-                            ref = View.of(type, id);
+                            View.Builder view = View.of(type, id);
+
+                            for (Listener.Type listenerType : Listener.Type.values()) {
+                                String listenerName = parser.getAttributeValue(APP_NS, HOLDR_PREFIX + listenerType.layoutName());
+                                if (listenerName != null) {
+                                    Listener.Builder listener = Listener.of(listenerType);
+                                    if (!listenerName.equals("true")) {
+                                        listener.name(listenerName);
+                                    }
+                                    view.listener(listener);
+                                }
+                            }
+                            
+                            ref = view;
                         }
 
                         if (isAndroidId) {

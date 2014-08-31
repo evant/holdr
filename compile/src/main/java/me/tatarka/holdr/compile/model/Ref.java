@@ -1,4 +1,4 @@
-package me.tatarka.holdr.compile;
+package me.tatarka.holdr.compile.model;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +14,7 @@ public abstract class Ref {
     public final boolean isAndroidId;
     public final boolean isNullable;
 
-    protected Ref(String id, String fieldName, boolean isAndroidId, boolean isNullable) {
+    protected Ref(String id, boolean isAndroidId, String fieldName, boolean isNullable) {
         this.id = id;
         this.fieldName = fieldName != null ? fieldName : FormatUtils.underscoreToLowerCamel(id);
         this.isAndroidId = isAndroidId;
