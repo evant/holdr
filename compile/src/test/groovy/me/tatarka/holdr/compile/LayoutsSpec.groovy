@@ -1,6 +1,7 @@
 package me.tatarka.holdr.compile
 
 import me.tatarka.holdr.compile.model.Include
+import me.tatarka.holdr.compile.model.Listener
 import me.tatarka.holdr.compile.model.View
 import spock.lang.Specification
 
@@ -92,7 +93,7 @@ public class LayoutsSpec extends Specification {
         ).superclass == "test.TestHoldr"
     }
     
-    def "a layout with a custom field name merges with a another layout be keeping that field name"() {
+    def "a layout with a custom field name keeps it when merging with one without"() {
         expect:
         layoutRefs(
                 new ParsedLayout([View.of("test", "id").fieldName("my_test").build()]),
@@ -100,11 +101,27 @@ public class LayoutsSpec extends Specification {
         ) == [View.of("test", "id").fieldName("my_test").build()]
     }
 
-    def "(reversed) a layout with a custom field name merges with a another layout be keeping that field name"() {
+    def "(reversed) a layout with a custom field name keeps it when merging with one without"() {
         expect:
         layoutRefs(
                 new ParsedLayout([View.of("test", "id").build()]),
                 new ParsedLayout([View.of("test", "id").fieldName("my_test").build()])
         ) == [View.of("test", "id").fieldName("my_test").build()]
+    }
+    
+    def "a layout with listeners keeps them when merging with one without"() {
+        expect:
+        layoutRefs(
+                new ParsedLayout([View.of("test", "id").listener(Listener.Type.ON_CLICK).build()]),
+                new ParsedLayout([View.of("test", "id").build()])
+        ) == [View.of("test", "id").listener(Listener.Type.ON_CLICK).build()]
+    }
+
+    def "(reversed) a layout with listeners keeps them when merging with one without"() {
+        expect:
+        layoutRefs(
+                new ParsedLayout([View.of("test", "id").build()]),
+                new ParsedLayout([View.of("test", "id").listener(Listener.Type.ON_CLICK).build()])
+        ) == [View.of("test", "id").listener(Listener.Type.ON_CLICK).build()]
     }
 }
