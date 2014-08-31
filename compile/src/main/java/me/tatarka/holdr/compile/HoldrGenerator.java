@@ -108,20 +108,24 @@ public class HoldrGenerator {
         genInitFields(r, fieldVarMap, viewVar, refs, body);
         
         // myButton.setOnClickListener((view) -> { if (_holderListener != null) _holderListener.onMyButtonClick(myButton); });
-        getListeners(r, fieldVarMap, holderListener, refs, body);
+        genListeners(r, fieldVarMap, holderListener, refs, body);
 
         JDocComment doc = constructor.javadoc();
         doc.append("Constructs a new {@link me.tatarka.holdr.Holdr} for {@link " + r.packageName + ".R.layout#" + r.layoutName + "}.");
         doc.addParam(viewVar).append("The root view to search for the holdr's views.");
     }
 
-    private void getListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Collection<Ref> refs, JBlock body) {
+    private void genListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Collection<Ref> refs, JBlock body) {
         if (holderListener == null) return;
         
         for (Ref ref : refs) {
             if (ref instanceof View) {
                 JFieldVar fieldVar = fieldVarMap.get(ref);
                 View view = (View) ref;
+                
+                if (view.isNullable) {
+                    body = body._if(fieldVar.ne(_null()))._then();
+                }
 
                 for (Listener listener : view.listeners) {
                     JDefinedClass listenerClass = r.m.anonymousClass(r.ref(listener.type.listenerName()));

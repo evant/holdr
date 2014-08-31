@@ -289,6 +289,69 @@ public class Holdr_Test
 """
     }
 
+    def "a nullable view with a listener generates a Holdr that can accept that listener but guards against null"() {
+        expect:
+        code(generator, "test", [View.of("android.widget.Button", "my_button").listener(Listener.Type.ON_CLICK).nullable().build()] as Set) == """
+package me.tatarka.test.holdr;
+
+import android.support.annotation.Nullable;
+import android.view.View.OnClickListener;
+import me.tatarka.holdr.Holdr;
+import me.tatarka.test.R;
+
+public class Holdr_Test
+    extends Holdr
+{
+
+    public final static int LAYOUT = R.layout.test;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_button}.
+     * 
+     */
+    @Nullable
+    public android.widget.Button myButton;
+    private Holdr_Test.Listener _holdrListener;
+
+    /**
+     * Constructs a new {@link me.tatarka.holdr.Holdr} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the holdr's views.
+     */
+    public Holdr_Test(android.view.View view) {
+        super(view);
+        myButton = ((android.widget.Button) view.findViewById(R.id.my_button));
+        if (myButton!= null) {
+            myButton.setOnClickListener(new OnClickListener() {
+
+
+                @Override
+                public void onClick(android.view.View view) {
+                    if (_holdrListener!= null) {
+                        _holdrListener.onMyButtonClick(myButton);
+                    }
+                }
+
+            }
+            );
+        }
+    }
+
+    public void setListener(Holdr_Test.Listener listener) {
+        _holdrListener = listener;
+    }
+
+    public interface Listener {
+
+
+        public void onMyButtonClick(android.widget.Button myButton);
+
+    }
+
+}
+"""
+    }
+
     private static final String IMPORTS = """
 import android.view.View;
 import me.tatarka.holdr.Holdr;
