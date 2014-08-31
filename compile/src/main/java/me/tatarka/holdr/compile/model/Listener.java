@@ -62,12 +62,14 @@ public class Listener {
     }
 
     public static enum Type {
-        ON_CLICK;
+        ON_CLICK, ON_LONG_CLICK;
 
         public String nameSuffix() {
             switch (this) {
                 case ON_CLICK:
                     return "Click";
+                case ON_LONG_CLICK:
+                    return "LongClick";
             }
             throw new IllegalStateException("Unreachable!");
         }
@@ -76,38 +78,8 @@ public class Listener {
             switch (this) {
                 case ON_CLICK:
                     return "onClick";
-            }
-            throw new IllegalStateException("Unreachable!");
-        }
-        
-        public String methodName() {
-            switch (this) {
-                case ON_CLICK:
-                    return "setOnClickListener";
-            }
-            throw new IllegalStateException("Unreachable!");
-        }
-        
-        public String listenerName() {
-            switch (this) {
-                case ON_CLICK:
-                    return "android.view.View.OnClickListener";
-            }
-            throw new IllegalStateException("Unreachable!");
-        }
-        
-        public String overrideMethodName() {
-            switch (this) {
-                case ON_CLICK:
-                    return "onClick";
-            }
-            throw new IllegalStateException("Unreachable!");
-        }
-
-        public List<Pair<String, String>> overrideMethodArgs() {
-            switch (this) {
-                case ON_CLICK:
-                    return Arrays.asList(Pair.create("android.view.View", "view"));
+                case ON_LONG_CLICK:
+                    return "onLongClick";
             }
             throw new IllegalStateException("Unreachable!");
         }

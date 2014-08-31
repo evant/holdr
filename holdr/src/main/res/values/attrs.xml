@@ -18,5 +18,6 @@
         
         <!-- listener attributes -->
         <attr name="holdr_onClick" format="boolean|string"/>
+        <attr name="holdr_onLongClick" format="boolean|string"/>
     </declare-styleable>
 </resources>

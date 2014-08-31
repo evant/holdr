@@ -232,10 +232,14 @@ public class Holdr_Test
 
     def "a view with a listener generates a Holdr that can accept that listener"() {
         expect:
-        code(generator, "test", [View.of("android.widget.Button", "my_button").listener(Listener.Type.ON_CLICK).build()] as Set) == """
+        code(generator, "test", [View.of("android.widget.Button", "my_button")
+                                         .listener(Listener.Type.ON_CLICK)
+                                         .listener(Listener.Type.ON_LONG_CLICK)
+                                         .build()] as Set) == """
 package me.tatarka.test.holdr;
 
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import me.tatarka.holdr.Holdr;
 import me.tatarka.test.R;
 
@@ -272,6 +276,19 @@ public class Holdr_Test
 
         }
         );
+        myButton.setOnLongClickListener(new OnLongClickListener() {
+
+
+            @Override
+            public boolean onLongClick(android.view.View view) {
+                if (_holdrListener!= null) {
+                    return _holdrListener.onMyButtonLongClick(myButton);
+                }
+                return false;
+            }
+
+        }
+        );
     }
 
     public void setListener(Holdr_Test.Listener listener) {
@@ -282,6 +299,8 @@ public class Holdr_Test
 
 
         public void onMyButtonClick(android.widget.Button myButton);
+
+        public boolean onMyButtonLongClick(android.widget.Button myButton);
 
     }
 

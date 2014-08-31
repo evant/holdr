@@ -40,4 +40,10 @@ public class BasicExampleFragment extends TitledFragment implements Holdr_Fragme
     public void onButtonClick(Button button) {
         Toast.makeText(getActivity(), "You Clicked Me!", Toast.LENGTH_SHORT).show();
     }
+
+    @Override
+    public boolean onButtonLongClick(Button button) {
+        Toast.makeText(getActivity(), "You Long Clicked Me!", Toast.LENGTH_SHORT).show();
+        return false;
+    }
 }
