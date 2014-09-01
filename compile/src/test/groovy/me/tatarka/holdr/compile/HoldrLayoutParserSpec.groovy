@@ -245,5 +245,37 @@ class HoldrLayoutParserSpec extends Specification {
                                         .listener(Listener.of(Listener.Type.ON_CLICK).name("onTestButtonClick"))
                                         .build()])
     }
+    
+    def "a custom view defined as the tag parses as that view"() {
+        expect:
+        parser.parse(xml {
+            it.'test.Test'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@+id/my_test_view'
+            )
+        }) == new ParsedLayout([View.of('test.Test', 'my_test_view').build()])
+    }
+    
+    def "a custom view defined as a class on a <view/> tag parses as that view"() {
+        expect:
+        parser.parse(xml {
+            it.'view'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'class': 'test.Test',
+                    'android:id': '@+id/my_test_view'
+            )
+        }) == new ParsedLayout([View.of('test.Test', 'my_test_view').build()])
+    }
+
+    def "an inner-class custom view defined as a class on a <view/> tag parses as that view"() {
+        expect:
+        parser.parse(xml {
+            it.'view'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'class': 'test.Test$Inner',
+                    'android:id': '@+id/my_test_view'
+            )
+        }) == new ParsedLayout([View.of('test.Test.Inner', 'my_test_view').build()])
+    }
 }
 

@@ -22,6 +22,7 @@ public class HoldrLayoutParser {
     private static final String ID = "id";
     private static final String LAYOUT = "layout";
     private static final String INCLUDE = "include";
+    private static final String CLASS = "class";
 
     private static final String HOLDR_PREFIX = "holdr_";
     private static final String HOLDR_IGNORE = HOLDR_PREFIX + "ignore";
@@ -103,7 +104,10 @@ public class HoldrLayoutParser {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
                             ref = Include.of(layout, id);
                         } else {
-                            String type = parseType(tagName);
+                            String type = tagName.equals(VIEW)
+                                    ? parseClassType(parser.getAttributeValue(null, CLASS))
+                                    : parseType(tagName);
+                            
                             View.Builder view = View.of(type, id);
 
                             for (Listener.Type listenerType : Listener.Type.values()) {
@@ -156,6 +160,11 @@ public class HoldrLayoutParser {
         if (type == null) return null;
         if (type.contains(".")) return type;
         return PREFIX_MAP.get(type) + type;
+    }
+    
+    private static String parseClassType(String type) {
+        if (type == null) return null;
+        return type.replace('$', '.');
     }
 
     private static String parseId(String id) {
