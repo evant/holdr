@@ -337,7 +337,7 @@ public class HoldrGenerator {
                     classType = r.ref("android.widget.AdapterView.OnItemClickListener");
                     methodName = "onItemClick";
                     methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.ref("android.widget.AdapterView<?>"), "view"),
+                            new Pair<JType, String>(r.ref("android.widget.AdapterView"), "view"),
                             new Pair<JType, String>(r.viewClass, "item"),
                             new Pair<JType, String>(r.m.INT, "position"),
                             new Pair<JType, String>(r.m.LONG, "id")
@@ -350,7 +350,7 @@ public class HoldrGenerator {
                     classType = r.ref("android.widget.AdapterView.OnItemLongClickListener");
                     methodName = "onItemLongClick";
                     methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.ref("android.widget.AdapterView<?>"), "view"),
+                            new Pair<JType, String>(r.ref("android.widget.AdapterView"), "view"),
                             new Pair<JType, String>(r.viewClass, "item"),
                             new Pair<JType, String>(r.m.INT, "position"),
                             new Pair<JType, String>(r.m.LONG, "id")
