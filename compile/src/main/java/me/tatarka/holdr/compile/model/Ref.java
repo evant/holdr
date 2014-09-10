@@ -75,9 +75,6 @@ public abstract class Ref {
         String type = oldView.type.equals(newView.type) ? oldView.type : "android.view.View";
         View.Builder view =  View.of(type, oldView);
         view.fieldName(mergeFieldNames(layoutName, oldView, newView));
-        for (Listener listener : newView.listeners) {
-            view.listener(Listener.of(listener));
-        }
         return view.build();
     }
     

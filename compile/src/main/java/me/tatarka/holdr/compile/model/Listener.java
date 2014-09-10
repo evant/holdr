@@ -1,6 +1,7 @@
 package me.tatarka.holdr.compile.model;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import me.tatarka.holdr.compile.util.FormatUtils;
 import me.tatarka.holdr.compile.util.Objects;
@@ -9,12 +10,20 @@ import me.tatarka.holdr.compile.util.Objects;
  * Created by evan on 8/31/14.
  */
 public class Listener {
+    @NotNull
     public final Type type;
+    @NotNull
     public final String name;
+    @NotNull
+    public final String viewType;
+    @NotNull
+    public final String viewName;
 
-    private Listener(Type type, String name, View view) {
+    private Listener(@NotNull Type type, @NotNull String name, @NotNull String viewType, @NotNull String viewName) {
         this.type = type;
-        this.name = name != null ? name : nameFromView(type, view);
+        this.name = name;
+        this.viewType = viewType;
+        this.viewName = viewName;
     }
 
     public static Builder of(Type type) {
@@ -25,10 +34,6 @@ public class Listener {
         return new Builder(listener);
     }
 
-
-    private static String nameFromView(Type type, View view) {
-        return "on" + FormatUtils.capiatalize(view.fieldName) + type.nameSuffix();
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -45,7 +50,9 @@ public class Listener {
     }
 
     public static class Builder {
+        @NotNull
         private Type type;
+        @Nullable
         private String name;
 
         private Builder(@NotNull Type type) {
@@ -62,8 +69,13 @@ public class Listener {
             return this;
         }
 
-        public Listener build(View view) {
-            return new Listener(type, name, view);
+        public Listener build(@NotNull String fieldName, @NotNull String viewType, @NotNull String viewName) {
+            if (name == null) name = nameFromView(type, fieldName);
+            return new Listener(type, name, viewType, viewName);
+        }
+
+        private static String nameFromView(Listener.Type type, String fieldName) {
+            return "on" + FormatUtils.capiatalize(fieldName) + type.nameSuffix();
         }
     }
 

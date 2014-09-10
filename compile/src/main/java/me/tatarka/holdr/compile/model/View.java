@@ -2,25 +2,16 @@ package me.tatarka.holdr.compile.model;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import me.tatarka.holdr.compile.util.Objects;
 
 public class View extends Ref {
     public final String type;
-    public final List<Listener> listeners;
 
-    private View(String id, boolean isAndroidId, String fieldName, boolean isNullable, String type, List<Listener.Builder> listenerBuilders) {
+    private View(String id, boolean isAndroidId, String fieldName, boolean isNullable, String type) {
         super(id, isAndroidId, fieldName, isNullable);
         this.type = type;
-        
-        List<Listener> listeners = new ArrayList<Listener>(listenerBuilders.size());
-        for (Listener.Builder listenerBuilder : listenerBuilders) {
-            listeners.add(listenerBuilder.build(this));
-        }
-        this.listeners = Collections.unmodifiableList(listeners);
     }
 
     public static Builder of(String type, String id) {
@@ -47,25 +38,26 @@ public class View extends Ref {
             if (type == null) throw new IllegalStateException("type must not be null");
 
             this.type = type;
-            for (Listener listener : view.listeners) {
-                listenerBuilders.add(Listener.of(listener));
-            }
         }
-
-        public Builder listener(Listener.Builder listener) {
-            this.listenerBuilders.add(listener);
+        
+        public Builder listener(Listener.Builder listenerBuilder) {
+            listenerBuilders.add(listenerBuilder);
             return this;
         }
 
-        public Builder listener(Listener.Type type) {
-            return listener(Listener.of(type));
-        }
-        
-        @Override
-        public View build() {
-            return new View(id, isAndroidId, fieldName, isNullable, type, listenerBuilders);
+        public Builder listener(Listener.Type listenerType) {
+            return listener(Listener.of(listenerType));
         }
 
+        @Override
+        public View build() {
+            return new View(id, isAndroidId, fieldName, isNullable, type);
+        }
+        
+        public List<Listener.Builder> getListenerBuilders() {
+            return listenerBuilders;
+        }
+        
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -95,26 +87,16 @@ public class View extends Ref {
                 && isAndroidId == view.isAndroidId
                 && fieldName.equals(view.fieldName)
                 && isNullable == view.isNullable
-                && type.equals(view.type)
-                && listeners.equals(view.listeners);
+                && type.equals(view.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, isAndroidId, fieldName, isNullable, type, listeners);
+        return Objects.hashCode(id, isAndroidId, fieldName, isNullable, type);
     }
 
     @Override
     protected String toStringName() {
         return type;
-    }
-
-    @Override
-    protected Map<String, String> toStringFields() {
-        Map<String, String> fields = super.toStringFields();
-        for (Listener listener : listeners) {
-            fields.put(listener.type.toString(), listener.name);
-        }
-        return fields;
     }
 }

@@ -3,6 +3,7 @@ package me.tatarka.holdr.compile;
 import com.sun.codemodel.*;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import me.tatarka.holdr.compile.model.Include;
 import me.tatarka.holdr.compile.model.Listener;
+import me.tatarka.holdr.compile.model.Listeners;
 import me.tatarka.holdr.compile.model.Ref;
 import me.tatarka.holdr.compile.model.View;
 import me.tatarka.holdr.compile.util.FormatUtils;
@@ -38,26 +40,32 @@ public class HoldrGenerator {
     public HoldrGenerator(String packageName) {
         this.packageName = packageName;
     }
+    
+    public String generate(Layout layout) throws IOException {
+        StringWriter writer = new StringWriter();
+        generate(layout, writer);
+        return writer.toString();
+    }
 
-    public void generate(String layoutName, String superclass, Collection<Ref> refs, Writer writer) throws IOException {
+    public void generate(Layout layout, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(packageName + "." + HoldrCompiler.PACKAGE);
 
         try {
-            Refs r = new Refs(m, packageName, layoutName, superclass);
+            Refs r = new Refs(m, packageName, layout.name, layout.superclass);
 
             // public class MyLayoutViewModel {
-            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layoutName))._extends(r.viewHolder);
+            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layout.name))._extends(r.viewHolder);
 
             // public static final int LAYOUT = R.id.my_layout;
             JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", r.layoutRef);
 
-            Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, refs);
+            Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, layout.refs);
             
             Map<Listener.Type, ListenerType> listenerTypeMap = createListenerTypeMap(r);
             
             // public interface Listener {
-            JClass listenerInterface = genListenerInterface(r, clazz, refs, listenerTypeMap);
+            JClass listenerInterface = genListenerInterface(r, clazz, layout.listeners, listenerTypeMap);
             // }
             JFieldVar holdrListener = null;
             if (listenerInterface != null) {
@@ -65,7 +73,7 @@ public class HoldrGenerator {
                 holdrListener = clazz.field(PRIVATE, listenerInterface, "_holdrListener");
             }
 
-            genConstructor(r, clazz, refs, fieldVarMap, holdrListener, listenerTypeMap);
+            genConstructor(r, clazz, layout.refs, layout.listeners, fieldVarMap, holdrListener, listenerTypeMap);
             
             // public void setListener(Listener listener) {
             genSetListener(r, clazz, listenerInterface, holdrListener);
@@ -110,7 +118,7 @@ public class HoldrGenerator {
         return fieldVarMap;
     }
 
-    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Map<Listener.Type, ListenerType> listenerTypeMap) {
+    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Listeners listeners, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Map<Listener.Type, ListenerType> listenerTypeMap) {
         // private MyLayoutViewModel(View view) {
         JMethod constructor = clazz.constructor(PUBLIC);
         JVar viewVar = constructor.param(r.viewClass, "view");
@@ -124,14 +132,14 @@ public class HoldrGenerator {
         genInitFields(r, fieldVarMap, viewVar, refs, body);
         
         // myButton.setOnClickListener((view) -> { if (_holderListener != null) _holderListener.onMyButtonClick(myButton); });
-        genListeners(r, fieldVarMap, holderListener, refs, body, listenerTypeMap);
+        genListeners(r, fieldVarMap, holderListener, refs, listeners, body, listenerTypeMap);
 
         JDocComment doc = constructor.javadoc();
         doc.append("Constructs a new {@link me.tatarka.holdr.Holdr} for {@link " + r.packageName + ".R.layout#" + r.layoutName + "}.");
         doc.addParam(viewVar).append("The root view to search for the holdr's views.");
     }
 
-    private void genListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holdrListener, Collection<Ref> refs, JBlock body, Map<Listener.Type, ListenerType> listenerTypeMap) {
+    private void genListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holdrListener, Collection<Ref> refs, Listeners listeners, JBlock body, Map<Listener.Type, ListenerType> listenerTypeMap) {
         if (holdrListener == null) return;
         
         for (Ref ref : refs) {
@@ -143,7 +151,7 @@ public class HoldrGenerator {
                     body = body._if(fieldVar.ne(_null()))._then();
                 }
 
-                for (Listener listener : view.listeners) {
+                for (Listener listener : listeners.forView(view)) {
                     ListenerType listenerType = listenerTypeMap.get(listener.type);
                     
                     JDefinedClass listenerClass = r.m.anonymousClass(listenerType.classType);
@@ -192,30 +200,23 @@ public class HoldrGenerator {
             }
         }
     }
-    private JClass genListenerInterface(Refs r, JDefinedClass clazz, Collection<Ref> refs, Map<Listener.Type, ListenerType> listenerTypeMap) throws JClassAlreadyExistsException {
+    private JClass genListenerInterface(Refs r, JDefinedClass clazz, Listeners listeners, Map<Listener.Type, ListenerType> listenerTypeMap) throws JClassAlreadyExistsException {
         JDefinedClass listenerInterface = null;
         
-        for (Ref ref : refs) {
-            if (ref instanceof View) {
-                View view = (View) ref;
-                if (!view.listeners.isEmpty()) {
-                    if (listenerInterface == null) {
-                        listenerInterface = clazz._interface(PUBLIC, "Listener");
-                    }
+        for (Listener listener : listeners) {
+            if (listenerInterface == null) {
+                listenerInterface = clazz._interface(PUBLIC, "Listener");
+            }
 
-                    for (Listener listener : view.listeners) {
-                        ListenerType listenerType = listenerTypeMap.get(listener.type);
-                        
-                        JMethod method = listenerInterface.method(PUBLIC, listenerType.methodReturn, listener.name);
-                        for (Pair<JType, String> param : listenerType.methodParams) {
-                            if (param.second.equals("view")) {
-                                // Replace view with reference to the field.  
-                                method.param(r.ref(view.type), ref.fieldName);
-                            } else {
-                                method.param(param.first, param.second);
-                            }
-                        }
-                    }
+            ListenerType listenerType = listenerTypeMap.get(listener.type);
+
+            JMethod method = listenerInterface.method(PUBLIC, listenerType.methodReturn, listener.name);
+            for (Pair<JType, String> param : listenerType.methodParams) {
+                if (param.second.equals("view")) {
+                    // Replace view with reference to the field.  
+                    method.param(r.ref(listener.viewType), listener.viewName);
+                } else {
+                    method.param(param.first, param.second);
                 }
             }
         }

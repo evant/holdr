@@ -14,7 +14,7 @@ class HoldrGeneratorSpec extends Specification {
 
     def "an empty list of views generates an empty Holdr"() {
         expect:
-        code(generator, "test", [] as Set) == """
+        generator.generate(Layout.of("test").build()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -39,7 +39,9 @@ public class Holdr_Test
 
     def "a single view generates a Holdr that instantiates that view"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .view(View.of("android.widget.TextView", "my_text_view"))
+                .build()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -70,7 +72,9 @@ public class Holdr_Test
 
     def "a view with a custom field name uses that name"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField").build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .view(View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField"))
+                .build()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -101,7 +105,9 @@ public class Holdr_Test
 
     def "a view with an android id uses android.R.id instead of R.id"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "text1").androidId().build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .view(View.of("android.widget.TextView", "text1").androidId())
+                .build()) == """
 package me.tatarka.test.holdr;
 
 import android.view.View;
@@ -135,7 +141,9 @@ public class Holdr_Test
 
     def "an include with an id generates a reference to a holdr with it's layout"() {
         expect:
-        code(generator, "test", [Include.of("my_layout", "my_include").build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .include(Include.of("my_layout", "my_include"))
+                .build()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -166,7 +174,9 @@ public class Holdr_Test
     
     def "a single nullable view generates a Holdr that instantiates that view with an annotation"() {
         expect:
-        code(generator, "test", [View.of("android.widget.TextView", "my_text_view").nullable().build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .view(View.of("android.widget.TextView", "my_text_view").nullable())
+                .build()) == """
 package me.tatarka.test.holdr;
 
 import android.support.annotation.Nullable;
@@ -203,7 +213,7 @@ public class Holdr_Test
 
     def "a custom superclass generates a Holdr that subclasses that superclass"() {
         expect:
-        code(generator, "test", "test.TestHoldr", [] as Set) == """
+        generator.generate(Layout.of("test").superclass("test.TestHoldr").build()) == """
 package me.tatarka.test.holdr;
 
 import android.view.View;
@@ -232,11 +242,12 @@ public class Holdr_Test
 
     def "a view with a listener generates a Holdr that can accept that listener"() {
         expect:
-        code(generator, "test", [View.of("android.widget.Button", "my_button")
-                                         .listener(Listener.Type.ON_CLICK)
-                                         .listener(Listener.Type.ON_LONG_CLICK)
-                                         .listener(Listener.Type.ON_TOUCH)
-                                         .build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .view(View.of("android.widget.Button", "my_button")
+                .listener(Listener.Type.ON_CLICK)
+                .listener(Listener.Type.ON_LONG_CLICK)
+                .listener(Listener.Type.ON_TOUCH))
+                .build()) == """
 package me.tatarka.test.holdr;
 
 import android.view.MotionEvent;
@@ -329,7 +340,10 @@ public class Holdr_Test
 
     def "a nullable view with a listener generates a Holdr that can accept that listener but guards against null"() {
         expect:
-        code(generator, "test", [View.of("android.widget.Button", "my_button").listener(Listener.Type.ON_CLICK).nullable().build()] as Set) == """
+        generator.generate(Layout.of("test")
+                .view(View.of("android.widget.Button", "my_button")
+                .listener(Listener.Type.ON_CLICK).nullable())
+                .build()) == """
 package me.tatarka.test.holdr;
 
 import android.support.annotation.Nullable;

@@ -9,7 +9,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.tatarka.holdr.compile.util.FileUtils;
 
@@ -44,24 +46,26 @@ public class HoldrCompiler {
         for (File layoutFile : layoutFiles) {
             System.out.println("Holdr: processing " + layoutFile.getPath());
             FileReader reader = null;
+
+            String layoutName = FileUtils.stripExtension(layoutFile.getName());
+
             try {
                 reader = new FileReader(layoutFile);
-                ParsedLayout layout = parser.parse(reader);
-                layouts.add(layoutFile, layout);
+                layouts.add(parser.parse(layoutName, reader));
             } finally {
                 if (reader != null) reader.close();
             }
         }
 
-        for (Layouts.Layout layout : layouts) {
+        for (Layout layout : layouts) {
             if (!layout.isEmpty()) {
-                File outputFile = outputFile(outputDir, layout.file);
+                File outputFile = outputFile(outputDir, layout.name);
                 outputFile.getParentFile().mkdirs();
 
                 Writer writer = null;
                 try {
                     writer = new FileWriter(outputFile);
-                    generator.generate(layout.name, layout.getSuperclass(), layout.refs, writer);
+                    generator.generate(layout, writer);
                     System.out.println("Holdr: created " + outputFile);
                 } finally {
                     if (writer != null) writer.close();
@@ -122,8 +126,8 @@ public class HoldrCompiler {
         return layoutFiles;
     }
 
-    public File outputFile(File outputDir, File layoutFile) {
-        String className = generator.getClassName(FileUtils.stripExtension(layoutFile.getName()));
+    public File outputFile(File outputDir, String layoutName) {
+        String className = generator.getClassName(layoutName);
         return new File(packageToFile(outputDir, packageName), className + ".java");
     }
 

@@ -6,14 +6,12 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
+import java.io.StringReader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import me.tatarka.holdr.compile.model.Include;
 import me.tatarka.holdr.compile.model.Listener;
-import me.tatarka.holdr.compile.model.Ref;
 import me.tatarka.holdr.compile.model.View;
 
 public class HoldrLayoutParser {
@@ -57,27 +55,34 @@ public class HoldrLayoutParser {
         this.defaultInclude = defaultInclude;
     }
 
-    public ParsedLayout parse(Reader res) throws IOException {
+    public Layout.Builder parse(String layoutName, String res) throws IOException {
+        return parse(layoutName, new StringReader(res));
+    }
+    
+    public Layout.Builder parse(String layoutName, Reader res) throws IOException {
+        Layout.Builder parsedLayoutBuilder = Layout.of(layoutName);
+        
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             XmlPullParser parser = factory.newPullParser();
             parser.setInput(res);
 
-            List<Ref> refs = new ArrayList<Ref>();
             String ignoreAllTag = null;
             String includeAllTag = null;
             
             int tag;
             boolean isRootTag = true;
-            String superclass = null;
             
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
                 if (tag == XmlPullParser.START_TAG) {
                     String tagName = parser.getName();
 
                     if (isRootTag) {
-                        superclass = parser.getAttributeValue(APP_NS, HOLDR_SUPERCLASS);
+                        String superclass = parser.getAttributeValue(APP_NS, HOLDR_SUPERCLASS);
+                        if (superclass != null) {
+                            parsedLayoutBuilder.superclass(superclass);
+                        }
                         isRootTag = false;
                     }
 
@@ -99,16 +104,19 @@ public class HoldrLayoutParser {
                         boolean isAndroidId = parseIsAndroidId(idString);
                         String fieldName = parser.getAttributeValue(APP_NS, HOLDR_FIELD_NAME);
                         
-                        Ref.Builder ref;
                         if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
-                            ref = Include.of(layout, id);
+                            Include.Builder includeBuilder = Include.of(layout, id);
+                            
+                            if (isAndroidId) includeBuilder.androidId();
+                            if (fieldName != null) includeBuilder.fieldName(fieldName);
+                            parsedLayoutBuilder.include(includeBuilder);
                         } else {
                             String type = tagName.equals(VIEW)
                                     ? parseClassType(parser.getAttributeValue(null, CLASS))
                                     : parseType(tagName);
                             
-                            View.Builder view = View.of(type, id);
+                            View.Builder viewBuilder = View.of(type, id);
 
                             for (Listener.Type listenerType : Listener.Type.values()) {
                                 String listenerName = parser.getAttributeValue(APP_NS, HOLDR_PREFIX + listenerType.layoutName());
@@ -117,22 +125,14 @@ public class HoldrLayoutParser {
                                     if (!listenerName.equals("true")) {
                                         listener.name(listenerName);
                                     }
-                                    view.listener(listener);
+                                    viewBuilder.listener(listener);
                                 }
                             }
-                            
-                            ref = view;
-                        }
 
-                        if (isAndroidId) {
-                            ref.androidId();
+                            if (isAndroidId) viewBuilder.androidId();
+                            if (fieldName != null) viewBuilder.fieldName(fieldName);
+                            parsedLayoutBuilder.view(viewBuilder);
                         }
-
-                        if (fieldName != null) {
-                            ref.fieldName(fieldName);
-                        }
-
-                        refs.add(ref.build());
                     }
                 } else if (tag == XmlPullParser.END_TAG) {
                     if (ignoreAllTag != null && ignoreAllTag.equals(parser.getName())) {
@@ -141,7 +141,7 @@ public class HoldrLayoutParser {
                 }
             }
             
-            return new ParsedLayout(superclass, refs);
+            return parsedLayoutBuilder;
         } catch (XmlPullParserException e) {
             throw new IOException(e);
         }
