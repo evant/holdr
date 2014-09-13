@@ -2,13 +2,16 @@ package me.tatarka.holdr.compile.model;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import me.tatarka.holdr.compile.util.Pair;
 
 /**
  * Created by evan on 9/8/14.
@@ -56,27 +59,30 @@ public class Listeners implements Iterable<Listener> {
     }
 
     public static class Builder {
-        private Map<View, Collection<Listener.Builder>> listenerBuilderMap = new LinkedHashMap<View, Collection<Listener.Builder>>();
+        private Map<Listener, Collection<View>> listenerMap = new LinkedHashMap<Listener, Collection<View>>();
         
         private Builder() {
             
         }
 
         public Builder add(View view, Collection<Listener.Builder> listenerBuilders) {
-            listenerBuilderMap.put(view, listenerBuilders);
+            for (Listener.Builder listenerBuilder : listenerBuilders) {
+                Listener newListener = listenerBuilder.build(view.fieldName, view.type, view.fieldName);
+                Collection<View> views = listenerMap.remove(newListener);
+                if (views == null) {
+                    Collection<View> newViews = new ArrayList<View>();
+                    newViews.add(view);
+                    listenerMap.put(newListener, newViews);
+                } else {
+                    Listener mergedListener = Listener.of(newListener).build("", newListener.viewType, "view");
+                    views.add(view);
+                    listenerMap.put(mergedListener, views);
+                }
+            }
             return this;
         }
 
         public Listeners build() {
-            Map<Listener, Collection<View>> listenerMap = new LinkedHashMap<Listener, Collection<View>>();
-            for (Map.Entry<View, Collection<Listener.Builder>> entry : listenerBuilderMap.entrySet()) {
-                View view = entry.getKey();
-                Collection<Listener.Builder> listenerBuilders = entry.getValue();
-                for (Listener.Builder listenerBuilder : listenerBuilders) {
-                    listenerMap.put(listenerBuilder.build(view.fieldName, view.type, view.fieldName), Collections.singletonList(view));
-                }
-            }
-
             return new Listeners(listenerMap);
         }
     }

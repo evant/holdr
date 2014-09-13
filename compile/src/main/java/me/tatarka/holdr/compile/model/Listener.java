@@ -3,6 +3,8 @@ package me.tatarka.holdr.compile.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ListResourceBundle;
+
 import me.tatarka.holdr.compile.util.FormatUtils;
 import me.tatarka.holdr.compile.util.Objects;
 
@@ -76,6 +78,19 @@ public class Listener {
 
         private static String nameFromView(Listener.Type type, String fieldName) {
             return "on" + FormatUtils.capiatalize(fieldName) + type.nameSuffix();
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Builder builder = (Builder) o;
+            return name != null && builder.name != null && name.equals(builder.name);
+        }
+        
+        @Override
+        public int hashCode() {
+            return name != null ? Objects.hashCode(name) : 0;
         }
     }
 

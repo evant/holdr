@@ -70,6 +70,11 @@ public class CallbackExampleFragment extends TitledFragment implements Holdr_Fra
     }
 
     @Override
+    public void onShareButtonClick(Button view) {
+        Toast.makeText(getActivity(), "You clicked shared button! (" + (view.getId() == R.id.share_button1 ? "1" : "2") + ")", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void onListItemClick(ListView list, View item, int position, long id) {
         Toast.makeText(getActivity(), "You item clicked me! (" + position + ")", Toast.LENGTH_SHORT).show();
     }

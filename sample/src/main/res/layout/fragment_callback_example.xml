@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
     <Button
         android:id="@+id/click_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/click_me"
-        app:holdr_onClick="true" />
+        app:holdr_onClick="true"/>
 
     <Button
         android:id="@+id/long_click_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/long_click_me"
-        app:holdr_onLongClick="true" />
+        app:holdr_onLongClick="true"/>
 
     <Button
         android:id="@+id/touch_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/touch_me"
-        app:holdr_onTouch="true" />
+        app:holdr_onTouch="true"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -40,7 +40,7 @@
             android:text="@string/check_me"
             android:layout_weight="1"
             android:padding="8dp"
-            app:holdr_onCheckedChanged="true" />
+            app:holdr_onCheckedChanged="true"/>
 
         <TextView
             android:id="@+id/focus_text"
@@ -52,7 +52,29 @@
             android:focusableInTouchMode="true"
             android:focusable="true"
             android:clickable="true"
-            app:holdr_onFocusChange="true" />
+            app:holdr_onFocusChange="true"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/share_button1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/click_me"
+            app:holdr_onClick="onShareButtonClick"/>
+
+        <Button
+            android:id="@+id/share_button2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/click_me"
+            app:holdr_onClick="onShareButtonClick"/>
     </LinearLayout>
 
     <ListView
@@ -61,5 +83,5 @@
         android:layout_height="match_parent"
         tools:listitem="@layout/list_item"
         app:holdr_onItemClick="true"
-        app:holdr_onItemLongClick="true" />
+        app:holdr_onItemLongClick="true"/>
 </LinearLayout>

@@ -6,8 +6,6 @@ import me.tatarka.holdr.compile.model.View
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static SpecHelpers.code
-
 class HoldrGeneratorSpec extends Specification {
     @Shared
     HoldrGenerator generator = new HoldrGenerator("me.tatarka.test")
@@ -171,7 +169,7 @@ public class Holdr_Test
 }
 """
     }
-    
+
     def "a single nullable view generates a Holdr that instantiates that view with an annotation"() {
         expect:
         generator.generate(Layout.of("test")
@@ -398,6 +396,89 @@ public class Holdr_Test
 
 
         public void onMyButtonClick(android.widget.Button myButton);
+
+    }
+
+}
+"""
+    }
+
+def "two listeners with the same name generates only one listener callback"() {
+    expect:
+    generator.generate(Layout.of("test")
+            .view(View.of("android.widget.Button", "my_buttonA")
+            .listener(Listener.of(Listener.Type.ON_CLICK).name("onMyButtonClick")))
+            .view(View.of("android.widget.Button", "my_buttonB")
+            .listener(Listener.of(Listener.Type.ON_CLICK).name("onMyButtonClick")))
+            .build()) == """
+package me.tatarka.test.holdr;
+
+import android.view.View;
+import android.view.View.OnClickListener;
+import me.tatarka.holdr.Holdr;
+import me.tatarka.test.R;
+
+public class Holdr_Test
+    extends Holdr
+{
+
+    public final static int LAYOUT = R.layout.test;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_buttonA}.
+     * 
+     */
+    public android.widget.Button myButtonA;
+    /**
+     * View for {@link me.tatarka.test.R.id#my_buttonB}.
+     * 
+     */
+    public android.widget.Button myButtonB;
+    private Holdr_Test.Listener _holdrListener;
+
+    /**
+     * Constructs a new {@link me.tatarka.holdr.Holdr} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the holdr's views.
+     */
+    public Holdr_Test(View view) {
+        super(view);
+        myButtonA = ((android.widget.Button) view.findViewById(R.id.my_buttonA));
+        myButtonB = ((android.widget.Button) view.findViewById(R.id.my_buttonB));
+        myButtonA.setOnClickListener(new OnClickListener() {
+
+
+            @Override
+            public void onClick(View view) {
+                if (_holdrListener!= null) {
+                    _holdrListener.onMyButtonClick(myButtonA);
+                }
+            }
+
+        }
+        );
+        myButtonB.setOnClickListener(new OnClickListener() {
+
+
+            @Override
+            public void onClick(View view) {
+                if (_holdrListener!= null) {
+                    _holdrListener.onMyButtonClick(myButtonB);
+                }
+            }
+
+        }
+        );
+    }
+
+    public void setListener(Holdr_Test.Listener listener) {
+        _holdrListener = listener;
+    }
+
+    public interface Listener {
+
+
+        public void onMyButtonClick(android.widget.Button view);
 
     }
 
