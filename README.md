@@ -28,7 +28,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.2'
-        classpath 'me.tatarka.holdr:gradle-plugin:1.1.0'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.2.0'
     }
 }
 
@@ -137,6 +137,35 @@ public class MyCustomView extends LinearLayout {
 }
 ```
 
+### Multiple layouts
+
+You may have multiple instances of a layout (in `layout` and `layout-land` for
+example). In that case Holdr will merge the id's accross them. If an id appears
+in one and not the other, a `@Nullable` annotation will be generated to warn you
+of this.
+
+If the type of the view doesn't match, Holdr will take the most
+conservative route and use type `View`. If instead, they share a common
+superclass and you wan't to use that, you can use the `app:holdr_class` to
+override the view type so that they match.
+
+```xml
+<!-- layout/hand.xml -->
+<TextView
+    android:id="@+id/text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:text="Hello, Holdr!"/>
+
+<!-- layout-land/hand.xml -->
+<com.example.MyCustomTextView
+    android:id="@+id/text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:text="Hello, Holdr!"
+    app:holdr_class="TextView"/>
+```
+
 ### Callback Listeners
 
 You can also specify listeners for your Activity/Fragment/Whatever to handle
@@ -196,7 +225,9 @@ Here is a list of all the listeners you can handle:
 - `holdr_onItemLongClick`
 
 You can also specify a custom method name by doing
-`app:holdr_onClick="myCustomMethodName"` instead.
+`app:holdr_onClick="myCustomMethodName"` instead. You can also specify the same
+name on multiple views and they will share a listener (provided the listeners
+are of the same type).
 
 ### Custom Superclass
 
