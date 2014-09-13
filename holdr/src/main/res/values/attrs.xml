@@ -3,27 +3,29 @@
     <declare-styleable name="Holdr">
         <!-- Don't generate any code for a view. -->
         <attr name="holdr_ignore" format="enum">
-            <enum name="none" value="0" />
-            <enum name="view" value="1" />
-            <enum name="all" value="2" />
+            <enum name="none" value="0"/>
+            <enum name="view" value="1"/>
+            <enum name="all" value="2"/>
         </attr>
         <!-- Generate code for a view, even when it's within a view with "holdr_ignore"="all" -->
         <attr name="holdr_include" format="enum">
-            <enum name="none" value="0" />
-            <enum name="view" value="1" />
-            <enum name="all" value="2" />
+            <enum name="none" value="0"/>
+            <enum name="view" value="1"/>
+            <enum name="all" value="2"/>
         </attr>
-        <attr name="holdr_field_name" format="string" />
-        <attr name="holdr_superclass" format="string" />
+
+        <attr name="holdr_field_name" format="string"/>
+        <attr name="holdr_superclass" format="string"/>
+        <attr name="holdr_class" format="string"/>
 
         <!-- listener attributes -->
-        <attr name="holdr_onTouch" format="boolean|string" />
-        <attr name="holdr_onClick" format="boolean|string" />
-        <attr name="holdr_onLongClick" format="boolean|string" />
-        <attr name="holdr_onFocusChange" format="boolean|string" />
-        <attr name="holdr_onCheckedChanged" format="boolean|string" />
-        <attr name="holdr_onEditorAction" format="boolean|string" />
-        <attr name="holdr_onItemClick" format="boolean|string" />
-        <attr name="holdr_onItemLongClick" format="boolean|string" />
+        <attr name="holdr_onTouch" format="boolean|string"/>
+        <attr name="holdr_onClick" format="boolean|string"/>
+        <attr name="holdr_onLongClick" format="boolean|string"/>
+        <attr name="holdr_onFocusChange" format="boolean|string"/>
+        <attr name="holdr_onCheckedChanged" format="boolean|string"/>
+        <attr name="holdr_onEditorAction" format="boolean|string"/>
+        <attr name="holdr_onItemClick" format="boolean|string"/>
+        <attr name="holdr_onItemLongClick" format="boolean|string"/>
     </declare-styleable>
 </resources>

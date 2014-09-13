@@ -35,6 +35,8 @@ public class AdvancedExampleFragment extends TitledFragment {
         }
         
         holdr.includeLayout.subHeader.setText("This is included.");
+        
+        holdr.differentView.setText("This is a different view in landscape and portrait");
     }
 
     @Override

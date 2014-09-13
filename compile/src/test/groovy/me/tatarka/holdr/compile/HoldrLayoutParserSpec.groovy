@@ -288,5 +288,17 @@ class HoldrLayoutParserSpec extends Specification {
             )
         }).build() == Layout.of("test").view(View.of('test.Test.Inner', 'my_test_view')).build()
     }
+    
+    def "a view with custom holdr_class parses with that class instead of the on defined by the tag"() {
+        expect:
+        parser.parse("test", xml {
+            'test.CustomTextView'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'xmlns:app': 'http://schemas.android.com/apk/res-auto',
+                    'android:id': '@+id/my_text_view',
+                    'app:holdr_class': 'TextView',
+            )
+        }).build() == Layout.of("test").view(View.of("android.widget.TextView", "my_text_view")).build()
+    }
 }
 

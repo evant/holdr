@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -13,7 +15,7 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/display2"
         android:textColor="@color/text_color"
-        tools:text="Hello, Holdr!" />
+        tools:text="Hello, Holdr!"/>
 
     <TextView
         android:id="@+id/sub_header_landscape"
@@ -21,11 +23,22 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/headline"
         android:textColor="@color/text_color"
-        tools:text="This is only in portrait" />
+        tools:text="This is only in portrait"/>
 
-    <include android:id="@+id/include_layout" layout="@layout/include_layout"/>
-    
+    <include
+        android:id="@+id/include_layout"
+        layout="@layout/include_layout"/>
+
     <me.tatarka.sample.CustomView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+
+    <me.tatarka.sample.CustomTextView
+        android:id="@+id/different_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/headline"
+        android:textColor="@color/text_color"
+        app:holdr_class="TextView"
+        tools:text="This is a different view in landscape and portrait"/>
 </LinearLayout>

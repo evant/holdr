@@ -27,6 +27,7 @@ public class HoldrLayoutParser {
     private static final String HOLDR_INCLUDE = HOLDR_PREFIX + "include";
     private static final String HOLDR_FIELD_NAME = HOLDR_PREFIX + "field_name";
     private static final String HOLDR_SUPERCLASS = HOLDR_PREFIX + "superclass";
+    private static final String HOLDR_CLASS = HOLDR_PREFIX + "class";
     
     private static final String VIEW = "view";
     private static final String ALL = "all";
@@ -112,9 +113,16 @@ public class HoldrLayoutParser {
                             if (fieldName != null) includeBuilder.fieldName(fieldName);
                             parsedLayoutBuilder.include(includeBuilder);
                         } else {
-                            String type = tagName.equals(VIEW)
-                                    ? parseClassType(parser.getAttributeValue(null, CLASS))
-                                    : parseType(tagName);
+                            String holdrClass = parseType(parser.getAttributeValue(APP_NS, HOLDR_CLASS));
+
+                            String type;
+                            if (holdrClass != null) {
+                                type = holdrClass;
+                            } else if (tagName.equals(VIEW)) {
+                                type = parseClassType(parser.getAttributeValue(null, CLASS));
+                            } else {
+                                type = parseType(tagName);
+                            }
                             
                             View.Builder viewBuilder = View.of(type, id);
 
