@@ -28,6 +28,12 @@ public class LibraryExampleFragment extends TitledFragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        holdr = null;
+    }
+
+    @Override
     public String getTitle() {
         return "Library Example";
     }

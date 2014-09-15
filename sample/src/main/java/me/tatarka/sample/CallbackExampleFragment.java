@@ -34,6 +34,12 @@ public class CallbackExampleFragment extends TitledFragment implements Holdr_Fra
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        holdr = null;
+    }
+
+    @Override
     public String getTitle() {
         return "Callback Example";
     }

@@ -98,6 +98,12 @@ public class MyFragment extends Fragment {
         holdr = new Holdr_Hand(view);
         holdr.text.setText("Hello, Holdr!");
     }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        holdr = null;
+    }
 }
 ```
 
