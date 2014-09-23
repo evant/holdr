@@ -23,7 +23,7 @@ public class Layouts implements Iterable<Layout> {
     public Iterator<Layout> iterator() {
         return new Iterator<Layout>() {
             private Iterator<Layout.Builder> builderIterator = layoutBuilders.values().iterator();
-            
+
             @Override
             public boolean hasNext() {
                 return builderIterator.hasNext();
@@ -32,6 +32,11 @@ public class Layouts implements Iterable<Layout> {
             @Override
             public Layout next() {
                 return builderIterator.next().build();
+            }
+
+            @Override
+            public void remove() {
+                builderIterator.remove();
             }
         };
     }

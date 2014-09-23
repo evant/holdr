@@ -17,7 +17,7 @@ import me.tatarka.holdr.compile.util.FileUtils;
 
 public class HoldrCompiler {
     public static final String PACKAGE = "holdr";
-    
+
     private final String packageName;
     private final HoldrLayoutParser parser;
     private final HoldrGenerator generator;
@@ -32,7 +32,7 @@ public class HoldrCompiler {
     public void compile(Collection<File> resDirs, File outputDir) throws IOException {
         compile(outputDir, getAllLayoutFiles(resDirs));
     }
-    
+
     public void compileIncremental(Collection<File> changeFiles, Collection<File> removedFiles, File outputDir) throws IOException {
         compile(outputDir, getChangedLayoutFiles(changeFiles, removedFiles));
     }
@@ -93,11 +93,24 @@ public class HoldrCompiler {
         }
         return layoutFiles;
     }
-    
-    private static List<File> getChangedLayoutFiles(Collection<File> changedLayoutFiles, Collection<File> removedFiles) {
-        List<File> layoutFiles = new ArrayList<File>(changedLayoutFiles);
 
-        changedLayoutFiles.addAll(removedFiles);
+    private static List<File> getChangedLayoutFiles(Collection<File> changedFiles, Collection<File> removedFiles) {
+        List<File> changedLayoutFiles = new ArrayList<File>();
+        List<File> layoutFiles = new ArrayList<File>();
+
+        for (File changedFile : changedFiles) {
+            if (isLayoutDir(changedFile.getParentFile().getName())) {
+                changedLayoutFiles.add(changedFile);
+                layoutFiles.add(changedFile);
+            }
+        }
+
+        for (File removedFile : removedFiles) {
+            if (isLayoutDir(removedFile.getParentFile().getName())) {
+                changedLayoutFiles.add(removedFile);
+            }
+        }
+
         for (File file : changedLayoutFiles) {
             File inputDir = file.getParentFile().getParentFile();
 
@@ -122,8 +135,12 @@ public class HoldrCompiler {
                 }
             }
         }
-        
+
         return layoutFiles;
+    }
+
+    private static boolean isLayoutDir(String dirName) {
+        return dirName.startsWith("layout");
     }
 
     public File outputFile(File outputDir, String layoutName) {
