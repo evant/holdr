@@ -147,6 +147,10 @@ public class HoldrCompiler {
         String className = generator.getClassName(layoutName);
         return new File(packageToFile(outputDir, packageName), className + ".java");
     }
+    
+    public File outputFile(File outputDir, File layoutFile) {
+        return outputFile(outputDir, FileUtils.stripExtension(layoutFile.getName()));
+    }
 
     private static File packageToFile(File baseDir, String packageName) {
         return new File(baseDir, (packageName + "." + PACKAGE).replaceAll("\\.", File.separator));
