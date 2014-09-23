@@ -30,7 +30,7 @@ class HoldrPlugin implements Plugin<Project> {
     
     private static void createHoldrTasks(Project project, BasePlugin androidPlugin, HoldrExtension holdr) {
         project.dependencies {
-            compile 'me.tatarka.holdr:holdr:1.2.1-SNAPSHOT@aar'
+            compile 'me.tatarka.holdr:holdr:1.2.1@aar'
         }
         
         def variants = androidPlugin instanceof AppPlugin ?
