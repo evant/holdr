@@ -152,7 +152,7 @@ of this.
 
 If the type of the view doesn't match, Holdr will take the most
 conservative route and use type `View`. If instead, they share a common
-superclass and you wan't to use that, you can use the `app:holdr_class` to
+superclass and you want to use that, you can use the `app:holdr_class` to
 override the view type so that they match.
 
 ```xml
