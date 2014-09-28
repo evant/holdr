@@ -5,3 +5,9 @@
 build
 /gradle
 *.iml
+
+intellij-plugin/out
+
+# don't exclude intellij files for plugin
+!intellij-plugin/intellij-plugin.iml
+!intellij-plugin/.idea/
