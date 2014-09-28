@@ -20,10 +20,6 @@
 
     <depends>org.jetbrains.android</depends>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <lang.psiAugmentProvider implementation="me.tatarka.holdr.intellij.plugin.HoldrAugmentProvider" />
-    </extensions>
-
     <application-components>
         <!-- Add your application components here -->
     </application-components>

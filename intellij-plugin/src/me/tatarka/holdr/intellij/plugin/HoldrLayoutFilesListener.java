@@ -12,6 +12,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -38,29 +39,56 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
     }
 
     @Override
-    public void after(@NotNull List<? extends VFileEvent> events) {
-        final Set<VirtualFile> filesToProcess = getFilesToProcess(events);
+    public void before(@NotNull List<? extends VFileEvent> events) {
+        // Delete events need to be run before the file is deleted.
+        final Set<VirtualFile> filesToDelete = getDeletedLayoutFiles(events);
 
-        if (filesToProcess.size() > 0) {
-            myQueue.queue(new MyUpdate(filesToProcess));
+        if (!filesToDelete.isEmpty()) {
+            HoldrLayoutUpdate update = new HoldrLayoutUpdate(filesToDelete, true);
+            update.run();
+        }
+    }
+
+    @Override
+    public void after(@NotNull List<? extends VFileEvent> events) {
+        final Set<VirtualFile> filesToUpdate = getLayoutFiles(events);
+
+        if (!filesToUpdate.isEmpty()) {
+            myQueue.queue(new HoldrLayoutUpdate(filesToUpdate, false));
         }
     }
 
     @NotNull
-    private static Set<VirtualFile> getFilesToProcess(@NotNull List<? extends VFileEvent> events) {
+    private static Set<VirtualFile> getLayoutFiles(@NotNull List<? extends VFileEvent> events) {
         final Set<VirtualFile> result = new HashSet<VirtualFile>();
 
         for (VFileEvent event : events) {
             final VirtualFile file = event.getFile();
 
-            if (file != null && shouldScheduleUpdate(file)) {
+            if (file != null && isLayoutFile(file)) {
                 result.add(file);
             }
         }
         return result;
     }
 
-    private static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
+    @NotNull
+    private static Set<VirtualFile> getDeletedLayoutFiles(@NotNull List<? extends VFileEvent> events) {
+        final Set<VirtualFile> result = new HashSet<VirtualFile>();
+
+        for (VFileEvent event : events) {
+            if (event instanceof VFileDeleteEvent) {
+                final VirtualFile file = event.getFile();
+
+                if (file != null && isLayoutFile(file)) {
+                    result.add(file);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static boolean isLayoutFile(@NotNull VirtualFile file) {
         final FileType fileType = file.getFileType();
 
         if (fileType == StdFileTypes.XML) {
@@ -79,12 +107,14 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
 
     }
 
-    private class MyUpdate extends Update {
+    private class HoldrLayoutUpdate extends Update {
         private final Set<VirtualFile> myFiles;
+        private final boolean myShouldDelete;
 
-        public MyUpdate(@NotNull Set<VirtualFile> files) {
+        public HoldrLayoutUpdate(@NotNull Set<VirtualFile> files, boolean shouldDelete) {
             super(files);
             myFiles = files;
+            myShouldDelete = shouldDelete;
         }
 
         @Override
@@ -118,7 +148,7 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
 
                 final VirtualFile parent = file.getParent();
                 final VirtualFile gp = parent != null ? parent.getParent() : null;
-                final List<VirtualFile> resourceDirs =  facet.getAllResourceDirectories();
+                final List<VirtualFile> resourceDirs = facet.getAllResourceDirectories();
 
                 for (VirtualFile resourceDir : resourceDirs) {
                     if (gp != null &&
@@ -128,17 +158,29 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
                     }
                 }
 
-                invalidHoldrModules(holdrModulesToInvalidate);
+                invalidateHoldrModules(holdrModulesToInvalidate);
+
+                if (!holdrModulesToInvalidate.isEmpty()) {
+                    VirtualFileManager.getInstance().asyncRefresh(null);
+                }
             }
         }
 
-        private void invalidHoldrModules(Set<Module> modules) {
+        private void invalidateHoldrModules(Set<Module> modules) {
             for (Module module : AndroidUtils.getSetWithBackwardDependencies(modules)) {
                 HoldrModel holdrModel = HoldrModel.getInstance(AndroidFacet.getInstance(module));
 
                 if (holdrModel != null) {
-                    holdrModel.invalidateLayouts();
+                    invalidateHoldrModule(holdrModel);
                 }
+            }
+        }
+
+        private void invalidateHoldrModule(@NotNull HoldrModel holdrModel) {
+            if (myShouldDelete) {
+                holdrModel.delete(myFiles);
+            } else {
+                holdrModel.update(myFiles);
             }
         }
     }
