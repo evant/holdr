@@ -5,10 +5,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import me.tatarka.holdr.compile.HoldrGenerator;
-import me.tatarka.holdr.compile.HoldrLayoutParser;
-import me.tatarka.holdr.compile.Layout;
-import me.tatarka.holdr.compile.Layouts;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import me.tatarka.holdr.compile.*;
 import me.tatarka.holdr.compile.util.FileUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -86,10 +85,6 @@ public class HoldrModel {
         }
     }
 
-    public String getClassName(String layoutName) {
-        return myGenerator.getClassName(layoutName);
-    }
-
     public Layout getLayoutForClass(String className) {
         ensureLayouts();
         return myLayoutsByClassName.get(className);
@@ -112,5 +107,30 @@ public class HoldrModel {
         } finally {
             if (reader != null) reader.close();
         }
+    }
+
+    public String getClassName(String layoutName) {
+        return myGenerator.getClassName(layoutName);
+    }
+
+    public String getQualifiedClassName(String layoutName) {
+        return getHoldrPackage() + "." + getClassName(layoutName);
+    }
+
+    public boolean isHoldrClass(PsiFile file) {
+        if (!(file instanceof PsiJavaFile)) {
+            return false;
+        }
+        PsiJavaFile javaFile = (PsiJavaFile) file;
+        return javaFile.getPackageName().equals(getHoldrPackage());
+    }
+
+    public String getHoldrPackage() {
+        final String manifestPackage = getPackageName(myAndroidFacet);
+        if (manifestPackage == null) {
+            return null;
+        }
+
+        return manifestPackage + "." + HoldrCompiler.PACKAGE;
     }
 }

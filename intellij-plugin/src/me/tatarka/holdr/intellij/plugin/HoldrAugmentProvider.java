@@ -4,10 +4,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.augment.PsiAugmentProvider;
 import com.intellij.psi.impl.source.PsiExtensibleClass;
-import me.tatarka.holdr.compile.HoldrCompiler;
 import me.tatarka.holdr.compile.HoldrGenerator;
 import me.tatarka.holdr.compile.Layout;
 import me.tatarka.holdr.compile.model.Ref;
@@ -17,8 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static me.tatarka.holdr.intellij.plugin.HoldrUtils.getPackageName;
 
 /**
  * Created by evan on 9/23/14.
@@ -54,11 +50,12 @@ public class HoldrAugmentProvider extends PsiAugmentProvider {
             return Collections.emptyList();
         }
 
-        if (!isHoldrClass(facet, containingFile)) {
+        HoldrModel holdrModel = HoldrModel.getInstance(facet);
+
+        if (!holdrModel.isHoldrClass(containingFile)) {
             return Collections.emptyList();
         }
 
-        HoldrModel holdrModel = HoldrModel.getInstance(facet);
         Layout layout = holdrModel.getLayoutForClass(className);
 
         if (layout == null) {
@@ -72,20 +69,5 @@ public class HoldrAugmentProvider extends PsiAugmentProvider {
         }
 
         return result;
-    }
-
-    private static boolean isHoldrClass(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
-        if (!(file instanceof PsiJavaFile)) {
-            return false;
-        }
-        PsiJavaFile javaFile = (PsiJavaFile) file;
-
-        final String manifestPackage = getPackageName(facet);
-        if (manifestPackage == null) {
-            return false;
-        }
-
-        final String holdrPackage = manifestPackage + "." + HoldrCompiler.PACKAGE;
-        return javaFile.getPackageName().equals(holdrPackage);
     }
 }

@@ -23,7 +23,7 @@ public class HoldrField extends LightField {
             return getType(project, view.type);
         } else if (ref instanceof Include) {
             Include include = (Include) ref;
-            return getType(project, holdrModel.getClassName(include.layout));
+            return getType(project, holdrModel.getQualifiedClassName(include.layout));
         } else {
             throw new IllegalArgumentException("Unknown ref type: " + ref);
         }
