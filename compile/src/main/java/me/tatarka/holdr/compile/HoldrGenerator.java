@@ -16,11 +16,11 @@ import static com.sun.codemodel.JMod.*;
 public class HoldrGenerator {
     public static final String CLASS_PREFIX = "Holdr_";
     public static final String HOLDR_SUPERCLASS = "me.tatarka.holdr.Holdr";
-    
-    private final String packageName;
 
-    public HoldrGenerator(String packageName) {
-        this.packageName = packageName;
+    private final HoldrConfig config;
+
+    public HoldrGenerator(HoldrConfig config) {
+        this.config = config;
     }
     
     public String generate(Layout layout) throws IOException {
@@ -31,10 +31,10 @@ public class HoldrGenerator {
 
     public void generate(Layout layout, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
-        JPackage pkg = m._package(packageName + "." + HoldrCompiler.PACKAGE);
+        JPackage pkg = m._package(config.getHoldrPackage());
 
         try {
-            Refs r = new Refs(m, packageName, layout.name, layout.superclass);
+            Refs r = new Refs(m, config.getManifestPackage(), layout.name, layout.superclass);
 
             // public class MyLayoutViewModel {
             JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layout.name))._extends(r.viewHolder);
@@ -81,7 +81,7 @@ public class HoldrGenerator {
     private Map<Ref, JFieldVar> genFields(Refs r, JDefinedClass clazz, Collection<Ref> refs) {
         Map<Ref, JFieldVar> fieldVarMap = new LinkedHashMap<Ref, JFieldVar>();
         for (Ref ref : refs) {
-            String idPackage = (ref.isAndroidId ? "android" : r.packageName) + ".R";
+            String idPackage = (ref.isAndroidId ? "android" : r.rPackage) + ".R";
             JFieldVar var;
             if (ref instanceof View) {
                 var = clazz.field(PUBLIC, r.ref(((View) ref).type), ref.fieldName);
@@ -117,7 +117,7 @@ public class HoldrGenerator {
         genListeners(r, fieldVarMap, holderListener, refs, listeners, body, listenerTypeMap);
 
         JDocComment doc = constructor.javadoc();
-        doc.append("Constructs a new {@link me.tatarka.holdr.Holdr} for {@link " + r.packageName + ".R.layout#" + r.layoutName + "}.");
+        doc.append("Constructs a new {@link me.tatarka.holdr.Holdr} for {@link " + r.rPackage + ".R.layout#" + r.layoutName + "}.");
         doc.addParam(viewVar).append("The root view to search for the holdr's views.");
     }
 
@@ -215,7 +215,7 @@ public class HoldrGenerator {
 
     private static class Refs {
         public final JCodeModel m;
-        public final String packageName;
+        public final String rPackage;
         public final String layoutName;
         public final JClass viewHolder;
         public final JClass viewClass;
@@ -225,15 +225,15 @@ public class HoldrGenerator {
         public final JClass overrideAnnotation;
         public final JFieldRef layoutRef;
 
-        private Refs(JCodeModel m, String packageName, String layoutName, String superclass) {
+        private Refs(JCodeModel m, String rPackage, String layoutName, String superclass) {
             this.m = m;
-            this.packageName = packageName;
+            this.rPackage = rPackage;
             this.layoutName = layoutName;
 
             viewHolder = m.ref(superclass);
             viewClass = m.ref("android.view.View");
             androidRClass = m.ref("android.R");
-            rClass = m.ref(packageName + ".R");
+            rClass = m.ref(rPackage + ".R");
             nullableAnnotation = m.ref("android.support.annotation.Nullable");
             overrideAnnotation = m.ref("java.lang.Override");
             layoutRef = rClass.staticRef("layout").ref(layoutName);

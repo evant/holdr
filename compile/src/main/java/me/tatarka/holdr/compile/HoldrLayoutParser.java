@@ -1,5 +1,9 @@
 package me.tatarka.holdr.compile;
 
+import me.tatarka.holdr.compile.model.HoldrConfig;
+import me.tatarka.holdr.compile.model.Include;
+import me.tatarka.holdr.compile.model.Listener;
+import me.tatarka.holdr.compile.model.View;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -9,10 +13,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
-
-import me.tatarka.holdr.compile.model.Include;
-import me.tatarka.holdr.compile.model.Listener;
-import me.tatarka.holdr.compile.model.View;
 
 public class HoldrLayoutParser {
     private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
@@ -50,10 +50,10 @@ public class HoldrLayoutParser {
         }
     };
     
-    private boolean defaultInclude;
+    private final HoldrConfig config;
     
-    public HoldrLayoutParser(boolean defaultInclude) {
-        this.defaultInclude = defaultInclude;
+    public HoldrLayoutParser(HoldrConfig config) {
+        this.config = config;
     }
 
     public Layout.Builder parse(String layoutName, String res) throws IOException {
@@ -157,7 +157,7 @@ public class HoldrLayoutParser {
 
     private boolean include(boolean hasId, HoldrInclude include, boolean hasIncludeAllTag, HoldrIgnore ignore, boolean hasIgnoreAllTag) {
         if (!hasId) return false;
-        if (defaultInclude) {
+        if (config.getDefaultInclude()) {
             return (include == HoldrInclude.VIEW) || hasIncludeAllTag || (ignore == HoldrIgnore.NONE && !hasIgnoreAllTag);
         } else {
             return (include != HoldrInclude.NONE) || (hasIncludeAllTag && !hasIgnoreAllTag);

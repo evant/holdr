@@ -1,34 +1,44 @@
 package me.tatarka.holdr.gradle
-
-import com.android.build.gradle.AppExtension
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.BasePlugin
-import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.LibraryPlugin
+import com.android.build.gradle.*
 import com.android.build.gradle.api.BaseVariant
 import com.android.builder.core.VariantConfiguration
+import me.tatarka.holdr.compile.model.HoldrConfig
+import me.tatarka.holdr.compile.model.HoldrConfigImpl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+
+import javax.inject.Inject
 
 class HoldrPlugin implements Plugin<Project> {
+    private final ToolingModelBuilderRegistry registry
+    private HoldrExtension extension
+    private BasePlugin androidPlugin
+    private String manifestPackage
+
+    @Inject
+    public HoldrPlugin(ToolingModelBuilderRegistry registry) {
+        this.registry = registry
+    }
+
     @Override
     void apply(Project project) {
-
-        def holdr = project.extensions.create('holdr', HoldrExtension)
+        extension = project.extensions.create('holdr', HoldrExtension, this)
 
         project.plugins.withType(AppPlugin) {
-            AppPlugin androidPlugin = project.plugins.getPlugin(AppPlugin)
-            createHoldrTasks(project, androidPlugin, holdr)
+            androidPlugin = project.plugins.getPlugin(AppPlugin)
+            applyHoldrPlugin(project)
         }
         
         project.plugins.withType(LibraryPlugin) {
-            LibraryPlugin androidPlugin = project.plugins.getPlugin(LibraryPlugin)
-            createHoldrTasks(project, androidPlugin, holdr)
+            androidPlugin = project.plugins.getPlugin(LibraryPlugin)
+            applyHoldrPlugin(project)
         }
     }
     
-    private static void createHoldrTasks(Project project, BasePlugin androidPlugin, HoldrExtension holdr) {
+    private void applyHoldrPlugin(Project project) {
         project.dependencies {
             compile 'me.tatarka.holdr:holdr:1.3.0-SNAPSHOT@aar'
         }
@@ -37,34 +47,59 @@ class HoldrPlugin implements Plugin<Project> {
                 ((AppExtension) androidPlugin.extension).applicationVariants :
                 ((LibraryExtension) androidPlugin.extension).libraryVariants
 
-        def applicationId 
         variants.all { BaseVariant variant ->
-            if (applicationId == null) applicationId = getApplicationId(androidPlugin)
-            
             def taskName = "generate${variant.name.capitalize()}Holdr"
             def outputDir = project.file("$project.buildDir/generated/source/holdr/$variant.name")
-            HoldrTask task = project.task(taskName, dependsOn: [variant.mergeResources], type: HoldrTask) {
-                packageName = applicationId
+            def task = project.task(taskName, dependsOn: [variant.mergeResources], type: HoldrTask) {
+                holdrPackage = extension.holdrPackage
+                defaultInclude = extension.defaultInclude
                 resDirectories = getResDirectories(project, variant)
                 outputDirectory = outputDir
-                defaultInclude = holdr.defaultInclude
             }
+            task.manifestPackage = getManifestPackage()
             variant.registerJavaGeneratingTask(task, outputDir)
             variant.addJavaSourceFoldersToModel(outputDir)
         }
+
+        registry.register(new HoldrToolingModelBuilder(this))
     }
     
     private static FileCollection getResDirectories(Project project, BaseVariant variant) {
         project.files(variant.sourceSets*.resDirectories.flatten())
     }
 
-    /**
-     * Gets the package name from the android plugin default configuration or the manifest if not
-     * defined.
-     * @param project the project with the android plugin
-     * @return the main package name
-     */
-    private static String getApplicationId(BasePlugin androidPlugin) {
-        VariantConfiguration.getManifestPackage(androidPlugin.defaultConfigData.sourceSet.manifestFile)
+    String getManifestPackage() {
+        if (manifestPackage == null) {
+            manifestPackage = VariantConfiguration.getManifestPackage(androidPlugin.defaultConfigData.sourceSet.manifestFile)
+        }
+        return manifestPackage
+    }
+
+    public HoldrExtension getExtension() {
+        return extension
+    }
+
+    private static class HoldrToolingModelBuilder implements ToolingModelBuilder {
+        HoldrPlugin plugin
+
+        public HoldrToolingModelBuilder(HoldrPlugin plugin) {
+            this.plugin = plugin
+        }
+
+        @Override
+        boolean canBuild(String modelName) {
+            println("can build: $modelName ? ${modelName == HoldrConfig.name}")
+            modelName == HoldrConfig.name
+        }
+
+        @Override
+        Object buildAll(String modelName, Project project) {
+            println("build all: $modelName")
+            return new HoldrConfigImpl(
+                    plugin.manifestPackage,
+                    plugin.extension.holdrPackage,
+                    plugin.extension.defaultInclude
+            )
+        }
     }
 }

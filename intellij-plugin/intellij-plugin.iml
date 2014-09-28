@@ -22,6 +22,19 @@
         <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/android/lib" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" recursive="false" />
+        <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
   </component>
 </module>
 

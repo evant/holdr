@@ -15,7 +15,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -139,25 +138,25 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
                 if (module == null || module.isDisposed()) {
                     continue;
                 }
-                final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-                if (facet == null) {
+                final HoldrModel holdrModel = HoldrModel.get(module);
+
+                if (holdrModel == null) {
                     continue;
                 }
 
                 holdrModulesToInvalidate.add(module);
             }
 
-            invalidateHoldrModules(holdrModulesToInvalidate);
-
             if (!holdrModulesToInvalidate.isEmpty()) {
+                invalidateHoldrModules(holdrModulesToInvalidate);
                 VirtualFileManager.getInstance().asyncRefresh(null);
             }
         }
 
         private void invalidateHoldrModules(Set<Module> modules) {
             for (Module module : AndroidUtils.getSetWithBackwardDependencies(modules)) {
-                HoldrModel holdrModel = HoldrModel.getInstance(AndroidFacet.getInstance(module));
+                HoldrModel holdrModel = HoldrModel.get(module);
 
                 if (holdrModel != null) {
                     invalidateHoldrModule(holdrModel);

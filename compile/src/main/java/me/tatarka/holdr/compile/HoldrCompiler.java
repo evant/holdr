@@ -1,5 +1,6 @@
 package me.tatarka.holdr.compile;
 
+import me.tatarka.holdr.compile.model.HoldrConfig;
 import me.tatarka.holdr.compile.util.FileUtils;
 
 import java.io.*;
@@ -9,17 +10,18 @@ import java.util.Collection;
 import java.util.List;
 
 public class HoldrCompiler {
-    public static final String PACKAGE = "holdr";
-
-    private final String packageName;
+    private final HoldrConfig config;
     private final HoldrLayoutParser parser;
     private final HoldrGenerator generator;
 
-    public HoldrCompiler(String packageName, boolean defaultInclude) {
-        this.packageName = packageName;
+    public HoldrCompiler(HoldrConfig config) {
+        this.config = config;
 
-        parser = new HoldrLayoutParser(defaultInclude);
-        generator = new HoldrGenerator(packageName);
+        System.out.println("RPackage: " + config.getManifestPackage());
+        System.out.println("HoldrPackage: " + config.getHoldrPackage());
+
+        parser = new HoldrLayoutParser(config);
+        generator = new HoldrGenerator(config);
     }
 
     public void compile(Collection<File> resDirs, File outputDir) throws IOException {
@@ -145,14 +147,14 @@ public class HoldrCompiler {
 
     private File outputFile(File outputDir, String layoutName) {
         String className = generator.getClassName(layoutName);
-        return new File(packageToFile(outputDir, packageName), className + ".java");
+        return new File(packageToFile(outputDir, config.getHoldrPackage()), className + ".java");
     }
 
     private File outputFile(File outputDir, File layoutFile) {
         return outputFile(outputDir, FileUtils.stripExtension(layoutFile.getName()));
     }
 
-    private static File packageToFile(File baseDir, String packageName) {
-        return new File(baseDir, (packageName + "." + PACKAGE).replaceAll("\\.", File.separator));
+    private static File packageToFile(File baseDir, String holdrPackage) {
+        return new File(baseDir, holdrPackage.replaceAll("\\.", File.separator));
     }
 }

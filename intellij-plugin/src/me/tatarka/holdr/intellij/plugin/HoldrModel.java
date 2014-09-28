@@ -7,6 +7,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import me.tatarka.holdr.compile.HoldrCompiler;
+import me.tatarka.holdr.compile.model.HoldrConfig;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,8 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static me.tatarka.holdr.intellij.plugin.HoldrUtils.getPackageName;
-
 /**
  * Created by evan on 9/27/14.
  */
@@ -27,30 +26,34 @@ public class HoldrModel {
     private static final Logger LOGGER = Logger.getInstance(HoldrModel.class);
     public static final Key<HoldrModel> HOLDR_MODEL_KEY = Key.create("HoldrModelKey");
 
-    public static synchronized HoldrModel getInstance(AndroidFacet androidFacet) {
-        if (androidFacet == null) {
+    @Nullable
+    public static synchronized HoldrModel get(@Nullable Module module) {
+        if (module == null) {
             return null;
         }
+        return module.getUserData(HOLDR_MODEL_KEY);
+    }
 
-        Module module = androidFacet.getModule();
-
-        HoldrModel model = module.getUserData(HOLDR_MODEL_KEY);
-
-        if (model == null) {
-            model = new HoldrModel(androidFacet);
-            module.putUserData(HOLDR_MODEL_KEY, model);
+    public static synchronized boolean put(@NotNull Module module, @NotNull HoldrConfig config) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null) {
+            module.putUserData(HOLDR_MODEL_KEY, new HoldrModel(androidFacet, config));
+            return true;
+        }  else {
+            return false;
         }
+    }
 
-        return model;
+    public static synchronized void delete(@NotNull Module module) {
+        module.putUserData(HOLDR_MODEL_KEY, null);
     }
 
     private final AndroidFacet myAndroidFacet;
     private HoldrCompiler myCompiler;
 
-    protected HoldrModel(AndroidFacet androidFacet) {
+    protected HoldrModel(AndroidFacet androidFacet, HoldrConfig holdrConfig) {
         myAndroidFacet = androidFacet;
-        // TODO: get arguments from gradle plugin
-        myCompiler = new HoldrCompiler(getPackageName(androidFacet), true);
+        myCompiler = new HoldrCompiler(holdrConfig);
     }
 
     public void update(@NotNull Collection<VirtualFile> layoutFiles) {
@@ -77,8 +80,9 @@ public class HoldrModel {
         }
     }
 
+    // TODO: get outputDir from plugin
     @Nullable
-    public File getOutputDir() {
+    private File getOutputDir() {
         IdeaAndroidProject androidProject = myAndroidFacet.getIdeaAndroidProject();
         if (androidProject == null) return null;
         Variant selectedVariant = androidProject.getSelectedVariant();

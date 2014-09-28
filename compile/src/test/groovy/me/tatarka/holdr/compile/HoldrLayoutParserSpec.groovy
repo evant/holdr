@@ -7,10 +7,11 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static SpecHelpers.xml
+import static me.tatarka.holdr.compile.SpecHelpers.testHoldrConfig
 
 class HoldrLayoutParserSpec extends Specification {
     @Shared
-    def parser = new HoldrLayoutParser(true)
+    def parser = new HoldrLayoutParser(testHoldrConfig())
 
     def "a single non-id view parses as an empty list"() {
         expect:
