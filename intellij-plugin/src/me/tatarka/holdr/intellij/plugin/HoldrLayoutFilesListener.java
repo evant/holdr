@@ -8,7 +8,6 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -132,9 +131,9 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
         }
 
         private void updateHoldrModel() {
-            for (VirtualFile file : myFiles) {
-                final Set<Module> holdrModulesToInvalidate = new HashSet<Module>();
+            final Set<Module> holdrModulesToInvalidate = new HashSet<Module>();
 
+            for (VirtualFile file : myFiles) {
                 final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
 
                 if (module == null || module.isDisposed()) {
@@ -146,23 +145,13 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
                     continue;
                 }
 
-                final VirtualFile parent = file.getParent();
-                final VirtualFile gp = parent != null ? parent.getParent() : null;
-                final List<VirtualFile> resourceDirs = facet.getAllResourceDirectories();
+                holdrModulesToInvalidate.add(module);
+            }
 
-                for (VirtualFile resourceDir : resourceDirs) {
-                    if (gp != null &&
-                            Comparing.equal(gp, resourceDir) &&
-                            ResourceFolderType.LAYOUT.getName().equals(AndroidCommonUtils.getResourceTypeByDirName(parent.getName()))) {
-                        holdrModulesToInvalidate.add(module);
-                    }
-                }
+            invalidateHoldrModules(holdrModulesToInvalidate);
 
-                invalidateHoldrModules(holdrModulesToInvalidate);
-
-                if (!holdrModulesToInvalidate.isEmpty()) {
-                    VirtualFileManager.getInstance().asyncRefresh(null);
-                }
+            if (!holdrModulesToInvalidate.isEmpty()) {
+                VirtualFileManager.getInstance().asyncRefresh(null);
             }
         }
 

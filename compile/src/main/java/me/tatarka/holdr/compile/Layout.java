@@ -1,16 +1,15 @@
 package me.tatarka.holdr.compile;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import me.tatarka.holdr.compile.model.Include;
 import me.tatarka.holdr.compile.model.Listeners;
 import me.tatarka.holdr.compile.model.Ref;
 import me.tatarka.holdr.compile.model.View;
 import me.tatarka.holdr.compile.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by evan on 8/30/14.

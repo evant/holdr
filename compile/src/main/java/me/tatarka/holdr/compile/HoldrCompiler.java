@@ -1,19 +1,12 @@
 package me.tatarka.holdr.compile;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.Writer;
+import me.tatarka.holdr.compile.util.FileUtils;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import me.tatarka.holdr.compile.util.FileUtils;
 
 public class HoldrCompiler {
     public static final String PACKAGE = "holdr";
@@ -34,7 +27,7 @@ public class HoldrCompiler {
     }
 
     public void compileIncremental(Collection<File> changeFiles, Collection<File> removedFiles, File outputDir) throws IOException {
-        compile(outputDir, getChangedLayoutFiles(changeFiles, removedFiles));
+        compile(outputDir, getChangedLayoutFiles(changeFiles, removedFiles, outputDir));
     }
 
     private void compile(File outputDir, List<File> layoutFiles) throws IOException {
@@ -58,8 +51,8 @@ public class HoldrCompiler {
         }
 
         for (Layout layout : layouts) {
+            File outputFile = outputFile(outputDir, layout.name);
             if (!layout.isEmpty()) {
-                File outputFile = outputFile(outputDir, layout.name);
                 outputFile.getParentFile().mkdirs();
 
                 Writer writer = null;
@@ -70,6 +63,8 @@ public class HoldrCompiler {
                 } finally {
                     if (writer != null) writer.close();
                 }
+            } else if (outputFile.exists()) {
+                outputFile.delete();
             }
         }
     }
@@ -94,7 +89,7 @@ public class HoldrCompiler {
         return layoutFiles;
     }
 
-    private static List<File> getChangedLayoutFiles(Collection<File> changedFiles, Collection<File> removedFiles) {
+    private List<File> getChangedLayoutFiles(Collection<File> changedFiles, Collection<File> removedFiles, File outputDir) {
         List<File> changedLayoutFiles = new ArrayList<File>();
         List<File> layoutFiles = new ArrayList<File>();
 
@@ -108,6 +103,11 @@ public class HoldrCompiler {
         for (File removedFile : removedFiles) {
             if (isLayoutDir(removedFile.getParentFile().getName())) {
                 changedLayoutFiles.add(removedFile);
+
+                File outputFile = outputFile(outputDir, removedFile);
+                if (outputFile.exists()) {
+                    outputFile.delete();
+                }
             }
         }
 
@@ -143,12 +143,12 @@ public class HoldrCompiler {
         return dirName.startsWith("layout");
     }
 
-    public File outputFile(File outputDir, String layoutName) {
+    private File outputFile(File outputDir, String layoutName) {
         String className = generator.getClassName(layoutName);
         return new File(packageToFile(outputDir, packageName), className + ".java");
     }
-    
-    public File outputFile(File outputDir, File layoutFile) {
+
+    private File outputFile(File outputDir, File layoutFile) {
         return outputFile(outputDir, FileUtils.stripExtension(layoutFile.getName()));
     }
 

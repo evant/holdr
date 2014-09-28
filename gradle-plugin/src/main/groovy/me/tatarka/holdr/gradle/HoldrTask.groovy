@@ -39,8 +39,6 @@ public class HoldrTask extends DefaultTask {
             
             inputs.removed { InputFileDetails change ->
                 removedFiles += change.file
-                File outputFile = compiler.outputFile(outputDirectory, change.file);
-                if (outputFile.exists()) outputFile.delete()
             }
 
             compiler.compileIncremental(changedFiles, removedFiles, outputDirectory)

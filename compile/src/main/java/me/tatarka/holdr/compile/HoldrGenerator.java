@@ -1,35 +1,17 @@
 package me.tatarka.holdr.compile;
 
 import com.sun.codemodel.*;
+import me.tatarka.holdr.compile.model.*;
+import me.tatarka.holdr.compile.util.FormatUtils;
+import me.tatarka.holdr.compile.util.Pair;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import me.tatarka.holdr.compile.model.Include;
-import me.tatarka.holdr.compile.model.Listener;
-import me.tatarka.holdr.compile.model.Listeners;
-import me.tatarka.holdr.compile.model.Ref;
-import me.tatarka.holdr.compile.model.View;
-import me.tatarka.holdr.compile.util.FormatUtils;
-import me.tatarka.holdr.compile.util.Pair;
-
-import static com.sun.codemodel.JExpr.FALSE;
-import static com.sun.codemodel.JExpr._new;
-import static com.sun.codemodel.JExpr._null;
-import static com.sun.codemodel.JExpr.cast;
-import static com.sun.codemodel.JExpr.ref;
-import static com.sun.codemodel.JMod.FINAL;
-import static com.sun.codemodel.JMod.PRIVATE;
-import static com.sun.codemodel.JMod.PUBLIC;
-import static com.sun.codemodel.JMod.STATIC;
+import static com.sun.codemodel.JExpr.*;
+import static com.sun.codemodel.JMod.*;
 
 public class HoldrGenerator {
     public static final String CLASS_PREFIX = "Holdr_";
