@@ -1,18 +1,18 @@
 <component name="libraryTable">
-  <library name="me.tatarka.holdr:compile:1.3.0-SNAPSHOT" type="repository">
-    <properties maven-id="me.tatarka.holdr:compile:1.3.0-SNAPSHOT" />
+  <library name="me.tatarka.holdr:compile:1.3.0" type="repository">
+    <properties maven-id="me.tatarka.holdr:compile:1.3.0" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/compile-1.3.0-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/compile-1.3.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/codemodel-2.6.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/annotations-13.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/kxml2-2.3.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/commons-io-2.4.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/lib/compile-1.3.0-SNAPSHOT-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/compile-1.3.0-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/lib/compile-1.3.0-SNAPSHOT-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/compile-1.3.0-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
