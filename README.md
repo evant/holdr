@@ -293,3 +293,11 @@ later version if there is a need.
 
 Finally, if you don't like the field name generated for a specific id, you can
 set it yourself by using `app:holdr_field_name="myBetterFieldName"` on a view.
+
+### Android Studio Plugin
+
+Tired of having to build your project after every layout change? With the intellij plugin the Holdr classes will be auto-generated as soon as you save!
+
+Download the [zip](https://github.com/evant/holdr/blob/master/intellij-plugin/intellij-plugin.zip?raw=true) and go to `Settings -> Plugins -> Install plugin from disk...` to install.
+
+(Requires Android Studio `0.6.0+` or Intellij 14)
