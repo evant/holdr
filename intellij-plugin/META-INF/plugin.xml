@@ -7,8 +7,7 @@
     </vendor>
 
     <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+        IDE integration with <a href="https://github.com/evant/holdr">Holdr</a>.
     ]]></description>
 
     <change-notes><![CDATA[
