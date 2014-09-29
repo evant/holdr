@@ -11,3 +11,5 @@ intellij-plugin/out
 # don't exclude intellij files for plugin
 !intellij-plugin/intellij-plugin.iml
 !intellij-plugin/.idea/
+
+intellij-plugin/.idea/workspace.xml
