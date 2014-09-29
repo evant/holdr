@@ -1,0 +1,47 @@
+<idea-plugin version="2">
+    <id>me.tatarka.holdr.intellij.plugin</id>
+    <name>Holdr</name>
+    <version>1.0</version>
+    <vendor email="evan@tatarka.me"
+        url="https://github.com/evant/holdr">Evan Tatarka
+    </vendor>
+
+    <description><![CDATA[
+      Enter short description for your plugin here.<br>
+      <em>most HTML tags may be used</em>
+    ]]></description>
+
+    <change-notes><![CDATA[
+    ]]>
+    </change-notes>
+
+    <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="131" />
+
+    <depends>org.jetbrains.android</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
+
+    <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+        <projectResolve implementation="me.tatarka.holdr.intellij.plugin.HoldrProjectResolver" />
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <externalProjectDataService implementation="me.tatarka.holdr.intellij.plugin.HoldrDataService"/>
+    </extensions>
+
+    <application-components>
+        <!-- Add your application components here -->
+    </application-components>
+
+    <project-components>
+        <component>
+            <implementation-class>me.tatarka.holdr.intellij.plugin.HoldrPluginComponent
+            </implementation-class>
+        </component>
+    </project-components>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+</idea-plugin>

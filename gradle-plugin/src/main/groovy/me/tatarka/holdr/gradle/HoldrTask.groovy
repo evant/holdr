@@ -1,6 +1,7 @@
 package me.tatarka.holdr.gradle
 
 import me.tatarka.holdr.compile.HoldrCompiler
+import me.tatarka.holdr.compile.model.HoldrConfigImpl
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.LogLevel
@@ -13,7 +14,10 @@ import org.gradle.api.tasks.incremental.InputFileDetails
 
 public class HoldrTask extends DefaultTask {
     @Input
-    String packageName
+    String manifestPackage
+
+    @Input
+    String holdrPackage
 
     @Input
     boolean defaultInclude
@@ -28,7 +32,7 @@ public class HoldrTask extends DefaultTask {
     void execute(IncrementalTaskInputs inputs) {
         logging.captureStandardOutput(LogLevel.INFO)
 
-        def compiler = new HoldrCompiler(packageName, defaultInclude)
+        def compiler = new HoldrCompiler(new HoldrConfigImpl(manifestPackage, holdrPackage, defaultInclude))
 
         if (inputs.incremental) {
             List<File> changedFiles = []
@@ -39,8 +43,6 @@ public class HoldrTask extends DefaultTask {
             
             inputs.removed { InputFileDetails change ->
                 removedFiles += change.file
-                File outputFile = compiler.outputFile(outputDirectory, change.file);
-                if (outputFile.exists()) outputFile.delete()
             }
 
             compiler.compileIncremental(changedFiles, removedFiles, outputDirectory)

@@ -6,9 +6,11 @@ import me.tatarka.holdr.compile.model.View
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static me.tatarka.holdr.compile.SpecHelpers.testHoldrConfig
+
 class HoldrGeneratorSpec extends Specification {
     @Shared
-    HoldrGenerator generator = new HoldrGenerator("me.tatarka.test")
+    HoldrGenerator generator = new HoldrGenerator(testHoldrConfig())
 
     def "an empty list of views generates an empty Holdr"() {
         expect:

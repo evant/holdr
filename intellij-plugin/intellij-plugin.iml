@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PLUGIN_MODULE" version="4">
+  <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" />
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="me.tatarka.holdr:compile:1.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="file://$APPLICATION_HOME_DIR$/plugins/android/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$APPLICATION_HOME_DIR$/plugins/android/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/android/lib" recursive="false" />
+        <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/android/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" recursive="false" />
+        <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/gradle/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+  </component>
+</module>
+

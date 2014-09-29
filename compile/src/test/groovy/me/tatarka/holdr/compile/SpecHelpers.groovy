@@ -1,7 +1,7 @@
 package me.tatarka.holdr.compile
 
 import groovy.xml.MarkupBuilder
-import me.tatarka.holdr.compile.model.Ref
+import me.tatarka.holdr.compile.model.HoldrConfig
 
 class SpecHelpers {
     public static String xml(Closure f) {
@@ -10,5 +10,24 @@ class SpecHelpers {
         f.delegate = xml
         f()
         writer.toString()
+    }
+
+    public static HoldrConfig testHoldrConfig() {
+        return new HoldrConfig() {
+            @Override
+            String getManifestPackage() {
+                return "me.tatarka.test"
+            }
+
+            @Override
+            String getHoldrPackage() {
+                return "me.tatarka.test.holdr"
+            }
+
+            @Override
+            boolean getDefaultInclude() {
+                return true
+            }
+        }
     }
 }
