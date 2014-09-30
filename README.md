@@ -298,6 +298,8 @@ set it yourself by using `app:holdr_field_name="myBetterFieldName"` on a view.
 
 Tired of having to build your project after every layout change? With the intellij plugin the Holdr classes will be auto-generated as soon as you save!
 
-Download the [zip](https://github.com/evant/holdr/blob/master/intellij-plugin/intellij-plugin.zip?raw=true) and go to `Settings -> Plugins -> Install plugin from disk...` to install.
+Go to `Settings -> Plugins -> Browse Repositories...` and search for "Holdr".
+
+If instead you feel like living on the edge, you can download the [zip](https://github.com/evant/holdr/blob/master/intellij-plugin/intellij-plugin.zip?raw=true) and go to `Settings -> Plugins -> Install plugin from disk...` to install.
 
 (Requires Android Studio `0.6.0+` or Intellij 14)
