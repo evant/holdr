@@ -18,7 +18,6 @@ class HoldrPlugin implements Plugin<Project> {
     private HoldrExtension extension
     private BasePlugin androidPlugin
     private String manifestPackage
-    private File outputDir
 
     @Inject
     public HoldrPlugin(ToolingModelBuilderRegistry registry) {
@@ -51,7 +50,7 @@ class HoldrPlugin implements Plugin<Project> {
 
         variants.all { BaseVariant variant ->
             def taskName = "generate${variant.name.capitalize()}Holdr"
-            outputDir = project.file("$project.buildDir/generated/source/holdr/$variant.name")
+            def outputDir = project.file("$project.buildDir/generated/source/holdr/$variant.name")
             def task = project.task(taskName, dependsOn: [variant.mergeResources], type: HoldrTask) {
                 holdrPackage = extension.holdrPackage
                 defaultInclude = extension.defaultInclude

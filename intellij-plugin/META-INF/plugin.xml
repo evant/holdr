@@ -30,6 +30,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <externalProjectDataService implementation="me.tatarka.holdr.intellij.plugin.HoldrDataService"/>
+        <gotoDeclarationHandler implementation="me.tatarka.holdr.intellij.plugin.HoldrGotoDeclarationHandler"/>
     </extensions>
 
     <application-components>

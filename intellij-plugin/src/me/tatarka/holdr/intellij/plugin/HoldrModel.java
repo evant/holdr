@@ -2,10 +2,12 @@ package me.tatarka.holdr.intellij.plugin;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.google.common.base.CaseFormat;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import me.tatarka.holdr.model.HoldrCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -86,5 +88,15 @@ public class HoldrModel {
         if (androidProject == null) return null;
         Variant selectedVariant = androidProject.getSelectedVariant();
         return new File(androidProject.getDelegate().getBuildFolder(), "generated/source/holdr/" + selectedVariant.getName());
+    }
+
+    public boolean isHoldrClass(@NotNull PsiClass psiClass) {
+        String holdrPackage = myCompiler.getConfig().getHoldrPackage();
+        String className = psiClass.getQualifiedName();
+        return className != null && className.startsWith(holdrPackage + ".Holdr_");
+    }
+
+    public String getLayoutName(@NotNull PsiClass psiClass) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, psiClass.getName().replace("Holdr_", ""));
     }
 }
