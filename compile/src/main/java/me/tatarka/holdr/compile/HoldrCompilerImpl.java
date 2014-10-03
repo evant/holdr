@@ -1,7 +1,8 @@
 package me.tatarka.holdr.compile;
 
-import me.tatarka.holdr.compile.model.HoldrConfig;
 import me.tatarka.holdr.compile.util.FileUtils;
+import me.tatarka.holdr.model.HoldrCompiler;
+import me.tatarka.holdr.model.HoldrConfig;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -9,30 +10,33 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class HoldrCompiler {
+public class HoldrCompilerImpl implements HoldrCompiler, Serializable {
     private final HoldrConfig config;
     private final HoldrLayoutParser parser;
     private final HoldrGenerator generator;
 
-    public HoldrCompiler(HoldrConfig config) {
+    public HoldrCompilerImpl(HoldrConfig config) {
         this.config = config;
-
-        System.out.println("RPackage: " + config.getManifestPackage());
-        System.out.println("HoldrPackage: " + config.getHoldrPackage());
-
         parser = new HoldrLayoutParser(config);
         generator = new HoldrGenerator(config);
     }
 
-    public void compile(Collection<File> resDirs, File outputDir) throws IOException {
-        compile(outputDir, getAllLayoutFiles(resDirs));
+    @Override
+    public void compile(File outputDirectory, Collection<File> resDirs) throws IOException {
+        compileInternal(outputDirectory, getAllLayoutFiles(resDirs));
     }
 
-    public void compileIncremental(Collection<File> changeFiles, Collection<File> removedFiles, File outputDir) throws IOException {
-        compile(outputDir, getChangedLayoutFiles(changeFiles, removedFiles, outputDir));
+    @Override
+    public void compileIncremental(File outputDirectory, Collection<File> changeFiles, Collection<File> removedFiles) throws IOException {
+        compileInternal(outputDirectory, getChangedLayoutFiles(outputDirectory, changeFiles, removedFiles));
     }
 
-    private void compile(File outputDir, List<File> layoutFiles) throws IOException {
+    @Override
+    public HoldrConfig getConfig() {
+        return config;
+    }
+
+    private void compileInternal(File outputDirectory, List<File> layoutFiles) throws IOException {
         System.out.println("Holdr: processing " + layoutFiles.size() + " layout files");
         if (layoutFiles.isEmpty()) return;
 
@@ -53,7 +57,7 @@ public class HoldrCompiler {
         }
 
         for (Layout layout : layouts) {
-            File outputFile = outputFile(outputDir, layout.name);
+            File outputFile = outputFile(outputDirectory, layout.name);
             if (!layout.isEmpty()) {
                 outputFile.getParentFile().mkdirs();
 
@@ -91,7 +95,7 @@ public class HoldrCompiler {
         return layoutFiles;
     }
 
-    private List<File> getChangedLayoutFiles(Collection<File> changedFiles, Collection<File> removedFiles, File outputDir) {
+    private List<File> getChangedLayoutFiles(File outputDirectory, Collection<File> changedFiles, Collection<File> removedFiles) {
         List<File> changedLayoutFiles = new ArrayList<File>();
         List<File> layoutFiles = new ArrayList<File>();
 
@@ -106,7 +110,7 @@ public class HoldrCompiler {
             if (isLayoutDir(removedFile.getParentFile().getName())) {
                 changedLayoutFiles.add(removedFile);
 
-                File outputFile = outputFile(outputDir, removedFile);
+                File outputFile = outputFile(outputDirectory, removedFile);
                 if (outputFile.exists()) {
                     outputFile.delete();
                 }

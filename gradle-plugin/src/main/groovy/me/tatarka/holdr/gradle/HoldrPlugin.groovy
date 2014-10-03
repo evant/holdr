@@ -2,8 +2,9 @@ package me.tatarka.holdr.gradle
 import com.android.build.gradle.*
 import com.android.build.gradle.api.BaseVariant
 import com.android.builder.core.VariantConfiguration
-import me.tatarka.holdr.compile.model.HoldrConfig
-import me.tatarka.holdr.compile.model.HoldrConfigImpl
+import me.tatarka.holdr.compile.HoldrCompilerImpl
+import me.tatarka.holdr.compile.HoldrConfigImpl
+import me.tatarka.holdr.model.HoldrCompiler
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -17,6 +18,7 @@ class HoldrPlugin implements Plugin<Project> {
     private HoldrExtension extension
     private BasePlugin androidPlugin
     private String manifestPackage
+    private File outputDir
 
     @Inject
     public HoldrPlugin(ToolingModelBuilderRegistry registry) {
@@ -40,7 +42,7 @@ class HoldrPlugin implements Plugin<Project> {
     
     private void applyHoldrPlugin(Project project) {
         project.dependencies {
-            compile 'me.tatarka.holdr:holdr:1.3.0@aar'
+            compile 'me.tatarka.holdr:holdr:1.4.0-SNAPSHOT@aar'
         }
         
         def variants = androidPlugin instanceof AppPlugin ?
@@ -49,7 +51,7 @@ class HoldrPlugin implements Plugin<Project> {
 
         variants.all { BaseVariant variant ->
             def taskName = "generate${variant.name.capitalize()}Holdr"
-            def outputDir = project.file("$project.buildDir/generated/source/holdr/$variant.name")
+            outputDir = project.file("$project.buildDir/generated/source/holdr/$variant.name")
             def task = project.task(taskName, dependsOn: [variant.mergeResources], type: HoldrTask) {
                 holdrPackage = extension.holdrPackage
                 defaultInclude = extension.defaultInclude
@@ -88,18 +90,16 @@ class HoldrPlugin implements Plugin<Project> {
 
         @Override
         boolean canBuild(String modelName) {
-            println("can build: $modelName ? ${modelName == HoldrConfig.name}")
-            modelName == HoldrConfig.name
+            modelName == HoldrCompiler.name
         }
 
         @Override
         Object buildAll(String modelName, Project project) {
-            println("build all: $modelName")
-            return new HoldrConfigImpl(
+            return new HoldrCompilerImpl(new HoldrConfigImpl(
                     plugin.manifestPackage,
                     plugin.extension.holdrPackage,
-                    plugin.extension.defaultInclude
-            )
+                    plugin.extension.defaultInclude,
+            ))
         }
     }
 }

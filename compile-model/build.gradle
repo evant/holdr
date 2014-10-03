@@ -1,5 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
@@ -10,7 +9,6 @@ dependencies {
     compile 'com.sun.codemodel:codemodel:2.6'
     compile 'commons-io:commons-io:2.4'
     compile 'org.jetbrains:annotations:13.0'
-    compile project(':compile-model')
 
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
 }
@@ -55,7 +53,7 @@ if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.pa
                 }
 
                 pom.project {
-                    name 'Holdr (compile)'
+                    name 'Holdr (model)'
                     packaging 'jar'
                     description 'Generates view holders from Android layout files'
                     url 'https://github.com/evant/holdr'

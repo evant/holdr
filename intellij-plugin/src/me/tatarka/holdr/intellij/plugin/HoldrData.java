@@ -1,6 +1,6 @@
 package me.tatarka.holdr.intellij.plugin;
 
-import me.tatarka.holdr.compile.model.HoldrConfig;
+import me.tatarka.holdr.model.HoldrCompiler;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -10,18 +10,18 @@ import java.io.Serializable;
  */
 public class HoldrData implements Serializable {
     @NotNull private final String myModuleName;
-    @NotNull private final HoldrConfig myConfig;
+    @NotNull private final HoldrCompiler myCompiler;
 
-    public HoldrData(@NotNull String moduleName, @NotNull HoldrConfig config) {
+    public HoldrData(@NotNull String moduleName, @NotNull HoldrCompiler compiler) {
         this.myModuleName = moduleName;
-        this.myConfig = config;
+        this.myCompiler = compiler;
     }
 
     public String getModuleName() {
         return myModuleName;
     }
 
-    public HoldrConfig getConfig() {
-        return myConfig;
+    public HoldrCompiler getCompiler() {
+        return myCompiler;
     }
 }

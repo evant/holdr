@@ -6,8 +6,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import me.tatarka.holdr.compile.HoldrCompiler;
-import me.tatarka.holdr.compile.model.HoldrConfig;
+import me.tatarka.holdr.model.HoldrCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,10 +33,10 @@ public class HoldrModel {
         return module.getUserData(HOLDR_MODEL_KEY);
     }
 
-    public static synchronized boolean put(@NotNull Module module, @NotNull HoldrConfig config) {
+    public static synchronized boolean put(@NotNull Module module, @NotNull HoldrCompiler compiler) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
         if (androidFacet != null) {
-            module.putUserData(HOLDR_MODEL_KEY, new HoldrModel(androidFacet, config));
+            module.putUserData(HOLDR_MODEL_KEY, new HoldrModel(androidFacet, compiler));
             return true;
         }  else {
             return false;
@@ -51,9 +50,9 @@ public class HoldrModel {
     private final AndroidFacet myAndroidFacet;
     private HoldrCompiler myCompiler;
 
-    protected HoldrModel(AndroidFacet androidFacet, HoldrConfig holdrConfig) {
+    protected HoldrModel(AndroidFacet androidFacet, HoldrCompiler compiler) {
         myAndroidFacet = androidFacet;
-        myCompiler = new HoldrCompiler(holdrConfig);
+        myCompiler = compiler;
     }
 
     public void update(@NotNull Collection<VirtualFile> layoutFiles) {
@@ -62,7 +61,7 @@ public class HoldrModel {
             updateFiles.add(new File(file.getPath()));
         }
         try {
-            myCompiler.compileIncremental(updateFiles, Collections.<File>emptyList(), getOutputDir());
+            myCompiler.compileIncremental(getOutputDir(), updateFiles, Collections.<File>emptyList());
         } catch (IOException e) {
             LOGGER.warn("Error generating Holdr classes", e);
         }
@@ -74,7 +73,7 @@ public class HoldrModel {
             removedFiles.add(new File(file.getPath()));
         }
         try {
-            myCompiler.compileIncremental(Collections.<File>emptyList(), removedFiles, getOutputDir());
+            myCompiler.compileIncremental(getOutputDir(), Collections.<File>emptyList(), removedFiles);
         } catch (IOException e) {
             LOGGER.warn("Error generating Holdr classes", e);
         }

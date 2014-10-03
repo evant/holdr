@@ -1,11 +1,15 @@
-package me.tatarka.holdr.compile.model;
+package me.tatarka.holdr.compile;
+
+import me.tatarka.holdr.model.HoldrConfig;
 
 import java.io.Serializable;
 
 /**
- * Created by evan on 9/28/14.
+ * User: evantatarka
+ * Date: 10/2/14
+ * Time: 5:21 PM
  */
-public final class HoldrConfigImpl implements HoldrConfig, Serializable {
+public class HoldrConfigImpl implements HoldrConfig, Serializable {
     private final String manifestPackage;
     private final String holdrPackage;
     private final boolean defaultInclude;
