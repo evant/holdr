@@ -99,4 +99,8 @@ public class HoldrModel {
     public String getLayoutName(@NotNull PsiClass psiClass) {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, psiClass.getName().replace("Holdr_", ""));
     }
+
+    public String getFieldIdName(@NotNull String fieldName) {
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
+    }
 }

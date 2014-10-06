@@ -54,7 +54,7 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
             return null;
         }
 
-        PsiReferenceExpression idField = findIdField(referencedClass, identifier);
+        PsiReferenceExpression idField = HoldrPsiUtils.findIdForField(referencedClass, identifier.getText());
         if (idField == null) {
             return null;
         }
@@ -105,71 +105,7 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
         }
 
         PsiField field = (PsiField) resolvedElement;
-        PsiTypeElement holdrClassType = field.getTypeElement();
-        if (holdrClassType == null) {
-            return null;
-        }
-
-        PsiJavaCodeReferenceElement elementReference = holdrClassType.getInnermostComponentReferenceElement();
-        if (elementReference == null) {
-            return null;
-        }
-
-        PsiElement element = elementReference.resolve();
-
-        if (!(element instanceof PsiClass)) {
-            return null;
-        }
-
-        return (PsiClass) element;
-    }
-
-    @Nullable
-    private static PsiReferenceExpression findIdField(@NotNull PsiClass holdrClass, @NotNull PsiIdentifier holdrIdentifier) {
-        PsiMethod[] constructors = holdrClass.getConstructors();
-        if (constructors.length == 0) {
-            return null;
-        }
-
-        PsiCodeBlock body = constructors[0].getBody();
-        if (body == null) {
-            return null;
-        }
-
-        PsiStatement[] statements = body.getStatements();
-        if (statements.length == 0) {
-            return null;
-        }
-
-        for (PsiStatement statement : statements) {
-            if (!(statement.getFirstChild() instanceof PsiAssignmentExpression)) {
-                continue;
-            }
-
-            PsiAssignmentExpression assignment = (PsiAssignmentExpression) statement.getFirstChild();
-            PsiExpression leftExpression = assignment.getLExpression();
-            if (!leftExpression.getText().equals(holdrIdentifier.getText())) {
-                continue;
-            }
-
-            PsiMethodCallExpression methodCall = PsiTreeUtil.findChildOfType(assignment, PsiMethodCallExpression.class);
-            if (methodCall == null) {
-                continue;
-            }
-
-            PsiExpression[] arguments = methodCall.getArgumentList().getExpressions();
-            if (arguments.length == 0) {
-                continue;
-            }
-
-            PsiExpression arg = arguments[0];
-
-            if (arg instanceof PsiReferenceExpression) {
-                return (PsiReferenceExpression) arg;
-            }
-        }
-
-        return null;
+        return HoldrPsiUtils.getClassForField(field);
     }
 
     private static void filterByHoldrName(HoldrModel holdrModel, Collection<PsiElement> resourceList, PsiClass holdrClass) {

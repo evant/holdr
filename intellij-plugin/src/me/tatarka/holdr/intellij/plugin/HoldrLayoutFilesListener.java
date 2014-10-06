@@ -1,10 +1,7 @@
 package me.tatarka.holdr.intellij.plugin;
 
-import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -15,7 +12,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +59,7 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
         for (VFileEvent event : events) {
             final VirtualFile file = event.getFile();
 
-            if (file != null && isLayoutFile(file)) {
+            if (file != null && HoldrAndroidUtils.isLayoutFile(file)) {
                 result.add(file);
             }
         }
@@ -78,26 +74,12 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
             if (event instanceof VFileDeleteEvent) {
                 final VirtualFile file = event.getFile();
 
-                if (file != null && isLayoutFile(file)) {
+                if (file != null && HoldrAndroidUtils.isLayoutFile(file)) {
                     result.add(file);
                 }
             }
         }
         return result;
-    }
-
-    private static boolean isLayoutFile(@NotNull VirtualFile file) {
-        final FileType fileType = file.getFileType();
-
-        if (fileType == StdFileTypes.XML) {
-            final VirtualFile parent = file.getParent();
-
-            if (parent != null && parent.isDirectory()) {
-                final String resType = AndroidCommonUtils.getResourceTypeByDirName(parent.getName());
-                return ResourceFolderType.LAYOUT.getName().equals(resType);
-            }
-        }
-        return false;
     }
 
     @Override
