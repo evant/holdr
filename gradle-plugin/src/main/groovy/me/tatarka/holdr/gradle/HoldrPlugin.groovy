@@ -41,7 +41,7 @@ class HoldrPlugin implements Plugin<Project> {
     
     private void applyHoldrPlugin(Project project) {
         project.dependencies {
-            compile 'me.tatarka.holdr:holdr:1.4.0-SNAPSHOT@aar'
+            compile 'me.tatarka.holdr:holdr:1.4.0@aar'
         }
         
         def variants = androidPlugin instanceof AppPlugin ?
