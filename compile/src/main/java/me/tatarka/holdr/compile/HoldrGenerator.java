@@ -4,8 +4,10 @@ import com.sun.codemodel.*;
 import me.tatarka.holdr.compile.model.*;
 import me.tatarka.holdr.compile.util.FormatUtils;
 import me.tatarka.holdr.compile.util.Pair;
+import me.tatarka.holdr.model.HoldrConfig;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.*;
@@ -13,7 +15,7 @@ import java.util.*;
 import static com.sun.codemodel.JExpr.*;
 import static com.sun.codemodel.JMod.*;
 
-public class HoldrGenerator {
+public class HoldrGenerator implements Serializable {
     public static final String CLASS_PREFIX = "Holdr_";
     public static final String HOLDR_SUPERCLASS = "me.tatarka.holdr.Holdr";
 

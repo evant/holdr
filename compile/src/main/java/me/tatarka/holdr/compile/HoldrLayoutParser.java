@@ -1,20 +1,21 @@
 package me.tatarka.holdr.compile;
 
-import me.tatarka.holdr.compile.model.HoldrConfig;
 import me.tatarka.holdr.compile.model.Include;
 import me.tatarka.holdr.compile.model.Listener;
 import me.tatarka.holdr.compile.model.View;
+import me.tatarka.holdr.model.HoldrConfig;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HoldrLayoutParser {
+public class HoldrLayoutParser implements Serializable{
     private static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
     private static final String APP_NS = "http://schemas.android.com/apk/res-auto";
     private static final String ID = "id";

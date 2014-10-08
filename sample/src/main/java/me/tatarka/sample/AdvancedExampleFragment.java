@@ -23,8 +23,8 @@ public class AdvancedExampleFragment extends TitledFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         holdr = new Holdr_FragmentAdvancedExample(view);
-        
-        holdr.header.setText("Hello, Holdr!");
+
+        holdr.myHeader.setText("Hello, Holdr!");
         
         if (holdr.subHeaderPortrait != null) {
             holdr.subHeaderPortrait.setText("This is only in portrait.");

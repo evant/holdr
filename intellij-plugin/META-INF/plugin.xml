@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>me.tatarka.holdr.intellij.plugin</id>
     <name>Holdr</name>
-    <version>1.0</version>
+    <version>1.1</version>
     <vendor email="evan@tatarka.me"
         url="https://github.com/evant/holdr">Evan Tatarka
     </vendor>
@@ -11,6 +11,12 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <ul>
+        <li>Uses the version specified in the build.gradle to compile, for better forwards-compatibility. Version 1.3.0
+        of the gradle plugin is still supported, but may be dropped in a future update.</li>
+        <li>Goto declaration for Holdr class fields goes to the layout</li>
+        <li>Refactor rename Holdr class fields renames the id in the layout.</li>
+        </ul>
     ]]>
     </change-notes>
 
@@ -26,6 +32,8 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <externalProjectDataService implementation="me.tatarka.holdr.intellij.plugin.HoldrDataService"/>
+        <gotoDeclarationHandler implementation="me.tatarka.holdr.intellij.plugin.HoldrGotoDeclarationHandler"/>
+        <renamePsiElementProcessor implementation="me.tatarka.holdr.intellij.plugin.HoldrRenameProcessor" order="first"/>
     </extensions>
 
     <application-components>

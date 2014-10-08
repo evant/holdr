@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/display2"
         android:textColor="@color/text_color"
+        app:holdr_field_name="myHeader"
         tools:text="Hello, Holdr!"/>
 
     <TextView

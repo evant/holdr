@@ -4,9 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
-
 import me.tatarka.sample.holdr.Holdr_FragmentBasicExample;
 import me.tatarka.samplelibrary.TitledFragment;
 
@@ -25,7 +22,7 @@ public class BasicExampleFragment extends TitledFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         holdr = new Holdr_FragmentBasicExample(view);
-        
+
         holdr.header.setText("Hello, Holdr!");
         holdr.subHeader.setText("This is so easy!");
     }
