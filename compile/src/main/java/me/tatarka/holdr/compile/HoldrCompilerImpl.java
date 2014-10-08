@@ -159,6 +159,6 @@ public class HoldrCompilerImpl implements HoldrCompiler, Serializable {
     }
 
     private static File packageToFile(File baseDir, String holdrPackage) {
-        return new File(baseDir, holdrPackage.replaceAll("\\.", File.separator));
+        return new File(baseDir, holdrPackage.replace('.', File.separatorChar));
     }
 }
