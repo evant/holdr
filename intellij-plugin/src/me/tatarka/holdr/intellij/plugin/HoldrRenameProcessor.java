@@ -2,10 +2,12 @@ package me.tatarka.holdr.intellij.plugin;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
+import com.intellij.refactoring.rename.RenameUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import me.tatarka.holdr.compile.util.FileUtils;
@@ -24,6 +26,11 @@ import java.util.Map;
 public class HoldrRenameProcessor extends RenamePsiElementProcessor {
     @Override
     public boolean canProcessElement(PsiElement element) {
+        if (element instanceof PsiFile) {
+            PsiFile file = (PsiFile) element;
+            return HoldrAndroidUtils.isUserLayoutFile(element.getProject(), file.getVirtualFile());
+        }
+
         if (!(element instanceof PsiField)) {
             return false;
         }
@@ -50,9 +57,6 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
     public void prepareRenaming(PsiElement element, final String newName, final Map<PsiElement, String> allRenames) {
         allRenames.put(element, newName);
 
-        final PsiField holdrField = (PsiField) element;
-        final PsiClass holdrClass = (PsiClass) element.getParent();
-
         AndroidFacet androidFacet = AndroidFacet.getInstance(element);
         if (androidFacet == null) {
             return;
@@ -63,13 +67,23 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return;
         }
 
+        if (element instanceof PsiField) {
+            renameHoldrField(holdrModel, (PsiField) element, newName, allRenames);
+        } else if (element instanceof PsiFile) {
+            renameHoldrFile(holdrModel, (PsiFile) element, newName, allRenames);
+        }
+    }
+
+    private void renameHoldrField(final HoldrModel holdrModel, PsiField holdrField, final String newName, final Map<PsiElement, String> allRenames) {
+        final PsiClass holdrClass = (PsiClass) holdrField.getParent();
+
         String layoutName = holdrModel.getLayoutName(holdrClass);
-        PsiManager manager = PsiManager.getInstance(element.getProject());
+        PsiManager manager = PsiManager.getInstance(holdrField.getProject());
         List<PsiFile> layoutFiles = new ArrayList<PsiFile>();
 
-        for (VirtualFile resDirs : androidFacet.getAllResourceDirectories()) {
+        for (VirtualFile resDirs : holdrModel.getAndroidFacet().getAllResourceDirectories()) {
             for (VirtualFile resDir : resDirs.getChildren()) {
-                if (!HoldrAndroidUtils.isUserLayoutDir(element.getProject(), resDir)) {
+                if (!HoldrAndroidUtils.isUserLayoutDir(holdrField.getProject(), resDir)) {
                     continue;
                 }
 
@@ -133,8 +147,24 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         }
     }
 
+    private void renameHoldrFile(HoldrModel holderModel, PsiFile layoutFile, String newName, Map<PsiElement, String> allRenames) {
+        String holdrClassName = holderModel.getHoldrClassName(layoutFile.getVirtualFile().getNameWithoutExtension());
+        JavaPsiFacade javaPsiFacade =  JavaPsiFacade.getInstance(layoutFile.getProject());
+        PsiClass holdrClass = javaPsiFacade.findClass(holdrClassName, GlobalSearchScope.moduleScope(holderModel.getModule()));
+        if (holdrClass == null) {
+            return;
+        }
+
+        String newHoldrName = holderModel.getHoldrShortClassName(FileUtils.stripExtension(newName));
+        allRenames.put(holdrClass, newHoldrName);
+    }
+
     @Override
     public void renameElement(PsiElement element, String newName, UsageInfo[] usages, RefactoringElementListener listener) throws IncorrectOperationException {
-        super.renameElement(element, newName, usages, listener);
+        if (element instanceof PsiField) {
+            super.renameElement(element, newName, usages, listener);
+        } else {
+            RenameUtil.doRename(element, newName, usages, element.getProject(), listener);
+        }
     }
 }

@@ -1,6 +1,5 @@
 package me.tatarka.holdr.intellij.plugin;
 
-import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -13,7 +12,6 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
 
 /**
@@ -51,16 +49,10 @@ public class HoldrAndroidUtils {
             return false;
         }
 
-        SourceProvider sourceProvider = androidFacet.getVariantSourceProvider();
-        if (sourceProvider == null) {
-            return false;
-        }
-
-        Collection<File> resDirs = sourceProvider.getResDirectories();
-        File resDir = new File(dir.getParent().getPath());
+        Collection<VirtualFile> resDirs = androidFacet.getAllResourceDirectories();
 
         final String resType = AndroidCommonUtils.getResourceTypeByDirName(dir.getName());
-        return ResourceFolderType.LAYOUT.getName().equals(resType) && resDirs.contains(resDir);
+        return ResourceFolderType.LAYOUT.getName().equals(resType) && resDirs.contains(dir.getParent());
     }
 
     public static boolean areIdsEquivalent(@NotNull String fieldId, @NotNull String xmlId) {

@@ -57,6 +57,14 @@ public class HoldrModel {
         myCompiler = compiler;
     }
 
+    public Module getModule() {
+        return myAndroidFacet.getModule();
+    }
+
+    public AndroidFacet getAndroidFacet() {
+        return myAndroidFacet;
+    }
+
     public void update(@NotNull Collection<VirtualFile> layoutFiles) {
         List<File> updateFiles = new ArrayList<File>();
         for (VirtualFile file : layoutFiles) {
@@ -102,5 +110,14 @@ public class HoldrModel {
 
     public String getFieldIdName(@NotNull String fieldName) {
         return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
+    }
+
+    public String getHoldrClassName(@NotNull String layoutName) {
+        String holdrPackage = myCompiler.getConfig().getHoldrPackage();
+        return holdrPackage + "." + getHoldrShortClassName(layoutName);
+    }
+
+    public String getHoldrShortClassName(@NotNull String layoutName) {
+        return "Holdr_" + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, layoutName);
     }
 }
