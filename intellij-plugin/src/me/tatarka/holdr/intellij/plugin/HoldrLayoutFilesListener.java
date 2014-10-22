@@ -12,6 +12,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
     @Override
     public void before(@NotNull List<? extends VFileEvent> events) {
         // Delete events need to be run before the file is deleted.
-        final Set<VirtualFile> filesToDelete = getDeletedLayoutFiles(events);
+        final Set<VirtualFile> filesToDelete = getDeletedLayoutFiles(myProject, events);
 
         if (!filesToDelete.isEmpty()) {
             HoldrLayoutUpdate update = new HoldrLayoutUpdate(filesToDelete, true);
@@ -45,21 +46,20 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
 
     @Override
     public void after(@NotNull List<? extends VFileEvent> events) {
-        final Set<VirtualFile> filesToUpdate = getLayoutFiles(events);
-
+        final Set<VirtualFile> filesToUpdate = getLayoutFiles(myProject, events);
         if (!filesToUpdate.isEmpty()) {
             myQueue.queue(new HoldrLayoutUpdate(filesToUpdate, false));
         }
     }
 
     @NotNull
-    private static Set<VirtualFile> getLayoutFiles(@NotNull List<? extends VFileEvent> events) {
+    private static Set<VirtualFile> getLayoutFiles(@NotNull Project project, @NotNull List<? extends VFileEvent> events) {
         final Set<VirtualFile> result = new HashSet<VirtualFile>();
 
         for (VFileEvent event : events) {
             final VirtualFile file = event.getFile();
 
-            if (file != null && HoldrAndroidUtils.isLayoutFile(file)) {
+            if (file != null && HoldrAndroidUtils.isUserLayoutFile(project, file)) {
                 result.add(file);
             }
         }
@@ -67,14 +67,14 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
     }
 
     @NotNull
-    private static Set<VirtualFile> getDeletedLayoutFiles(@NotNull List<? extends VFileEvent> events) {
+    private static Set<VirtualFile> getDeletedLayoutFiles(@NotNull Project project, @NotNull List<? extends VFileEvent> events) {
         final Set<VirtualFile> result = new HashSet<VirtualFile>();
 
         for (VFileEvent event : events) {
             if (event instanceof VFileDeleteEvent) {
                 final VirtualFile file = event.getFile();
 
-                if (file != null && HoldrAndroidUtils.isLayoutFile(file)) {
+                if (file != null && HoldrAndroidUtils.isUserLayoutFile(project, file)) {
                     result.add(file);
                 }
             }
@@ -124,6 +124,11 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
                 final HoldrModel holdrModel = HoldrModel.get(module);
 
                 if (holdrModel == null) {
+                    continue;
+                }
+
+                final AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+                if (androidFacet == null) {
                     continue;
                 }
 

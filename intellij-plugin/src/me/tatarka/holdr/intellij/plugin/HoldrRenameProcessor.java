@@ -69,7 +69,7 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
 
         for (VirtualFile resDirs : androidFacet.getAllResourceDirectories()) {
             for (VirtualFile resDir : resDirs.getChildren()) {
-                if (!HoldrAndroidUtils.isLayoutDir(resDir)) {
+                if (!HoldrAndroidUtils.isUserLayoutDir(element.getProject(), resDir)) {
                     continue;
                 }
 

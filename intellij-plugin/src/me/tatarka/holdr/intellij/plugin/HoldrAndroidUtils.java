@@ -1,12 +1,20 @@
 package me.tatarka.holdr.intellij.plugin;
 
+import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.Collection;
 
 /**
  * User: evantatarka
@@ -14,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * Time: 8:48 AM
  */
 public class HoldrAndroidUtils {
-    public static boolean isLayoutFile(@Nullable VirtualFile file) {
+    public static boolean isUserLayoutFile(@NotNull Project project, @Nullable VirtualFile file) {
         if (file == null) {
             return false;
         }
@@ -23,17 +31,36 @@ public class HoldrAndroidUtils {
 
         if (fileType == StdFileTypes.XML) {
             final VirtualFile parent = file.getParent();
-            return isLayoutDir(parent);
+            return isUserLayoutDir(project, parent);
         }
         return false;
     }
 
-    public static boolean isLayoutDir(@Nullable VirtualFile dir) {
-        if (dir != null && dir.isDirectory()) {
-            final String resType = AndroidCommonUtils.getResourceTypeByDirName(dir.getName());
-            return ResourceFolderType.LAYOUT.getName().equals(resType);
+    public static boolean isUserLayoutDir(@NotNull Project project, @Nullable VirtualFile dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return false;
         }
-        return false;
+
+        Module module = ModuleUtilCore.findModuleForFile(dir, project);
+        if (module == null) {
+            return false;
+        }
+
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet == null) {
+            return false;
+        }
+
+        SourceProvider sourceProvider = androidFacet.getVariantSourceProvider();
+        if (sourceProvider == null) {
+            return false;
+        }
+
+        Collection<File> resDirs = sourceProvider.getResDirectories();
+        File resDir = new File(dir.getParent().getPath());
+
+        final String resType = AndroidCommonUtils.getResourceTypeByDirName(dir.getName());
+        return ResourceFolderType.LAYOUT.getName().equals(resType) && resDirs.contains(resDir);
     }
 
     public static boolean areIdsEquivalent(@NotNull String fieldId, @NotNull String xmlId) {
