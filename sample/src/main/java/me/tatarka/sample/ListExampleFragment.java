@@ -16,7 +16,7 @@ public class ListExampleFragment extends TitledFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_list_example, container, false);
+        return inflater.inflate(Holdr_FragmentListExample.LAYOUT, container, false);
     }
 
     @Override

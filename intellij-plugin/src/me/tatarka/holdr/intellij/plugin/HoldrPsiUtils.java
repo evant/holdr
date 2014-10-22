@@ -79,4 +79,20 @@ public class HoldrPsiUtils {
 
         return null;
     }
+
+    @Nullable
+    public static PsiReferenceExpression findIdForLayout(@NotNull PsiClass holdrClass) {
+        for (PsiField field : holdrClass.getFields()) {
+            if (!field.getName().equals("LAYOUT")) {
+                continue;
+            }
+
+            PsiExpression initializer = field.getInitializer();
+            if (initializer instanceof PsiReferenceExpression) {
+                return (PsiReferenceExpression) initializer;
+            }
+        }
+
+        return null;
+    }
 }

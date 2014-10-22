@@ -24,7 +24,7 @@ public class CustomView extends LinearLayout {
     }
     
     private void init() {
-        inflate(getContext(), R.layout.custom_view_layout, this);
+        inflate(getContext(), Holdr_CustomViewLayout.LAYOUT, this);
         holdr = new Holdr_CustomViewLayout(this);
         
         holdr.text.setText("This is in a custom view.");

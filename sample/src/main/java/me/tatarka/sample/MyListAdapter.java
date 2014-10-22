@@ -37,7 +37,7 @@ class MyListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         Holdr_ListItem holdr;
         if (convertView == null) {
-            holdr = new Holdr_ListItem(layoutInflater.inflate(R.layout.list_item, parent, false));
+            holdr = new Holdr_ListItem(layoutInflater.inflate(Holdr_ListItem.LAYOUT, parent, false));
             holdr.getView().setTag(holdr);
         } else {
             holdr = (Holdr_ListItem) convertView.getTag();

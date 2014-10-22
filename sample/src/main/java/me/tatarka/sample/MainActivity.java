@@ -15,7 +15,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(Holdr_ActivityMain.LAYOUT);
         holdr = new Holdr_ActivityMain(findViewById(android.R.id.content));
         holdr.pager.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
     }

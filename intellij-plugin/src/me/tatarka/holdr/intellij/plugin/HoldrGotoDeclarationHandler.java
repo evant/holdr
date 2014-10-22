@@ -54,7 +54,15 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
             return null;
         }
 
-        PsiReferenceExpression idField = HoldrPsiUtils.findIdForField(referencedClass, identifier.getText());
+        String identifierText = identifier.getText();
+
+        PsiReferenceExpression idField;
+        if (identifierText.equals("LAYOUT")) {
+            idField = HoldrPsiUtils.findIdForLayout(referencedClass);
+        } else {
+            idField = HoldrPsiUtils.findIdForField(referencedClass, identifier.getText());
+        }
+
         if (idField == null) {
             return null;
         }
@@ -99,6 +107,10 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
         }
         final PsiReferenceExpression reference = (PsiReferenceExpression) qExp;
         final PsiElement resolvedElement = reference.resolve();
+
+        if (resolvedElement instanceof PsiClass) {
+            return (PsiClass) resolvedElement;
+        }
 
         if (!(resolvedElement instanceof PsiField)) {
             return null;
