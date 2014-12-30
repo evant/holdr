@@ -1,20 +1,22 @@
 package me.tatarka.holdr.intellij.plugin;
 
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
-import com.intellij.refactoring.rename.RenameUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
-import me.tatarka.holdr.compile.util.FileUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +42,7 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return false;
         }
 
-        HoldrModel holdrModel = HoldrModel.get(androidFacet.getModule());
+        HoldrModel holdrModel = HoldrModel.getInstance(androidFacet.getModule());
         if (holdrModel == null) {
             return false;
         }
@@ -49,6 +51,14 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         if (!(parent instanceof PsiClass)) {
             return false;
         }
+
+        PsiClass parentClass = (PsiClass) parent;
+
+        // Disable for now as it causes file conflicts.
+//        if (parentClass.getName().equals("layout") && parentClass.getParent() instanceof PsiClass && ((PsiClass) parentClass.getParent()).getName().equals(AndroidUtils.R_CLASS_NAME)) {
+//            // We want to remove references to the layout in the generated Holdr class.
+//            return true;
+//        }
 
         return holdrModel.isHoldrClass((PsiClass) parent);
     }
@@ -62,7 +72,7 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return;
         }
 
-        final HoldrModel holdrModel = HoldrModel.get(androidFacet.getModule());
+        final HoldrModel holdrModel = HoldrModel.getInstance(androidFacet.getModule());
         if (holdrModel == null) {
             return;
         }
@@ -89,7 +99,7 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
 
                 PsiDirectory dir = manager.findDirectory(resDir);
                 for (PsiFile file : dir.getFiles()) {
-                    if (layoutName.equals(FileUtils.stripExtension(file.getName()))) {
+                    if (layoutName.equals(FileUtil.getNameWithoutExtension(file.getName()))) {
                         layoutFiles.add(file);
                     }
                 }
@@ -155,16 +165,44 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return;
         }
 
-        String newHoldrName = holderModel.getHoldrShortClassName(FileUtils.stripExtension(newName));
+        String newHoldrName = holderModel.getHoldrShortClassName(FileUtil.getNameWithoutExtension(newName));
         allRenames.put(holdrClass, newHoldrName);
+    }
+
+    @NotNull
+    @Override
+    public Collection<PsiReference> findReferences(PsiElement element) {
+        Collection<PsiReference> references = super.findReferences(element);
+        return references;
+    }
+
+    @NotNull
+    @Override
+    public Collection<PsiReference> findReferences(PsiElement element, boolean searchInCommentsAndStrings) {
+        return super.findReferences(element, searchInCommentsAndStrings);
     }
 
     @Override
     public void renameElement(PsiElement element, String newName, UsageInfo[] usages, RefactoringElementListener listener) throws IncorrectOperationException {
-        if (element instanceof PsiField) {
-            super.renameElement(element, newName, usages, listener);
-        } else {
-            RenameUtil.doRename(element, newName, usages, element.getProject(), listener);
+        HoldrModel holdrModel = HoldrModel.getInstance(element);
+        if (holdrModel == null) {
+            return;
         }
+        super.renameElement(element, newName, filterHoldrUsageInfo(holdrModel, usages), listener);
+    }
+
+    private static UsageInfo[] filterHoldrUsageInfo(HoldrModel holdrModel, UsageInfo[] usages) {
+        if (usages == null) return null;
+
+        List<UsageInfo> result = new ArrayList<UsageInfo>();
+        for (UsageInfo usage : usages) {
+            PsiClass parent = PsiTreeUtil.getParentOfType(usage.getElement(), PsiClass.class);
+            if (parent != null && holdrModel.isHoldrClass(parent)) {
+                continue; // Skip refactors in holdr classes.
+            }
+            result.add(usage);
+        }
+
+        return result.toArray(new UsageInfo[result.size()]);
     }
 }

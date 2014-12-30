@@ -121,7 +121,7 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
                     continue;
                 }
 
-                final HoldrModel holdrModel = HoldrModel.get(module);
+                final HoldrModel holdrModel = HoldrModel.getInstance(module);
 
                 if (holdrModel == null) {
                     continue;
@@ -143,7 +143,7 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
 
         private void invalidateHoldrModules(Set<Module> modules) {
             for (Module module : AndroidUtils.getSetWithBackwardDependencies(modules)) {
-                HoldrModel holdrModel = HoldrModel.get(module);
+                HoldrModel holdrModel = HoldrModel.getInstance(module);
 
                 if (holdrModel != null) {
                     invalidateHoldrModule(holdrModel);

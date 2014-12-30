@@ -1,6 +1,7 @@
 package me.tatarka.holdr.intellij.plugin;
 
 import com.android.builder.model.Variant;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.base.CaseFormat;
 import com.intellij.openapi.diagnostic.Logger;
@@ -8,6 +9,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import me.tatarka.holdr.model.HoldrCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -28,11 +30,20 @@ public class HoldrModel {
     public static final Key<HoldrModel> HOLDR_MODEL_KEY = Key.create("HoldrModelKey");
 
     @Nullable
-    public static synchronized HoldrModel get(@Nullable Module module) {
+    public static synchronized HoldrModel getInstance(@Nullable Module module) {
         if (module == null) {
             return null;
         }
         return module.getUserData(HOLDR_MODEL_KEY);
+    }
+
+    @Nullable
+    public static synchronized HoldrModel getInstance(@Nullable PsiElement element) {
+        if (element == null) {
+            return null;
+        }
+        Module module = AndroidPsiUtils.getModuleSafely(element);
+        return getInstance(module);
     }
 
     public static synchronized boolean put(@NotNull Module module, @NotNull HoldrCompiler compiler) {

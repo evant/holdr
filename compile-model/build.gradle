@@ -6,10 +6,10 @@ version = '1.0.0'
 sourceCompatibility = 1.6
 
 dependencies {
-    compile 'net.sf.kxml:kxml2:2.3.0'
-    compile 'com.sun.codemodel:codemodel:2.6'
-    compile 'commons-io:commons-io:2.4'
-    compile 'org.jetbrains:annotations:13.0'
+//    compile 'net.sf.kxml:kxml2:2.3.0'
+//    compile 'com.sun.codemodel:codemodel:2.6'
+//    compile 'commons-io:commons-io:2.4'
+//    compile 'org.jetbrains:annotations:13.0'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

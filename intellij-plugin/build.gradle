@@ -1,0 +1,67 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+def studio_path = property('studio.path')
+def plugin_version = property('plugin.version')
+
+def studio_libs = fileTree(dir: "$studio_path/lib", include: '*.jar')
+
+def java_home = {
+  def javaHomeProp = hasProperty('java.home') ? property('java.home') : System.properties.'java.home'
+  if (javaHomeProp) {
+    def jreIndex = javaHomeProp.lastIndexOf("${File.separator}jre")
+    if (jreIndex != -1) {
+      javaHomeProp.substring(0, jreIndex)
+    } else {
+      javaHomeProp
+    }
+  } else {
+    System.getenv("JAVA_HOME")
+  }
+}()
+
+// Dependencies to includes in the jar.
+configurations { provided }
+sourceSets.main.compileClasspath += configurations.provided
+idea {
+  module {
+    scopes.PROVIDED.plus += [configurations.provided]
+  }
+}
+
+dependencies {
+  provided studio_libs
+  provided fileTree(dir: "$studio_path/plugins/android/lib", include: '*.jar')
+  provided fileTree(dir: "$studio_path/plugins/gradle/lib", include: '*.jar')
+  compile project(':compile-model')
+}
+
+jar {
+  from("src/main/resources/META-INF") {
+    include 'plugin.xml'
+    into "META-INF"
+    filter { String line -> line.replaceAll("<version>(.+)</version>", "<version>${plugin_version}</version>") }
+  }
+
+  from { configurations.compile.collect { zipTree(it) } }
+}
+
+task copyIntoIdea(dependsOn: build, type: Copy) {
+  into "build/run/plugins/"
+  from jar.archivePath
+}
+
+task run(type: JavaExec, dependsOn: copyIntoIdea) {
+  main = "com.intellij.idea.Main"
+  classpath = studio_libs.plus(files("$java_home/lib/tools.jar"))
+  systemProperty "idea.config.path", "build/run/config"
+  systemProperty "idea.system.path", "build/run/system"
+  systemProperty "idea.plugins.path", "build/run/plugins"
+  systemProperty "idea.launcher.port", "8998"
+  systemProperty "idea.platform.prefix", "AndroidStudio"
+  systemProperty "idea.paths.selector", "AndroidStudio"
+  systemProperty "idea.launcher.bin.path", "$studio_path/bin/"
+}

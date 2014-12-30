@@ -3,9 +3,9 @@ package me.tatarka.holdr.intellij.plugin;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import me.tatarka.holdr.compile.util.FileUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -39,7 +39,7 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
             return null;
         }
 
-        HoldrModel holdrModel = HoldrModel.get(facet.getModule());
+        HoldrModel holdrModel = HoldrModel.getInstance(facet.getModule());
         if (holdrModel == null) {
             return null;
         }
@@ -125,7 +125,7 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
         Iterator<PsiElement> iter = resourceList.iterator();
         while (iter.hasNext()) {
             PsiElement resource = iter.next();
-            String layoutName = FileUtils.stripExtension(resource.getContainingFile().getName());
+            String layoutName = FileUtil.getNameWithoutExtension(resource.getContainingFile().getName());
             if (!holdrLayout.equals(layoutName)) {
                 iter.remove();
             }
