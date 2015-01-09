@@ -13,6 +13,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -52,13 +53,9 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return false;
         }
 
-        PsiClass parentClass = (PsiClass) parent;
-
-        // Disable for now as it causes file conflicts.
-//        if (parentClass.getName().equals("layout") && parentClass.getParent() instanceof PsiClass && ((PsiClass) parentClass.getParent()).getName().equals(AndroidUtils.R_CLASS_NAME)) {
-//            // We want to remove references to the layout in the generated Holdr class.
-//            return true;
-//        }
+        if (isRLayoutField(element)) {
+            return true;
+        }
 
         return holdrModel.isHoldrClass((PsiClass) parent);
     }
@@ -77,10 +74,10 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return;
         }
 
-        if (element instanceof PsiField) {
+        if (isRLayoutField(element) || element instanceof PsiFile) {
+            renameHoldrFile(holdrModel, element, newName, allRenames);
+        } else if (element instanceof PsiField) {
             renameHoldrField(holdrModel, (PsiField) element, newName, allRenames);
-        } else if (element instanceof PsiFile) {
-            renameHoldrFile(holdrModel, (PsiFile) element, newName, allRenames);
         }
     }
 
@@ -157,15 +154,22 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         }
     }
 
-    private void renameHoldrFile(HoldrModel holderModel, PsiFile layoutFile, String newName, Map<PsiElement, String> allRenames) {
-        String holdrClassName = holderModel.getHoldrClassName(layoutFile.getVirtualFile().getNameWithoutExtension());
-        JavaPsiFacade javaPsiFacade =  JavaPsiFacade.getInstance(layoutFile.getProject());
-        PsiClass holdrClass = javaPsiFacade.findClass(holdrClassName, GlobalSearchScope.moduleScope(holderModel.getModule()));
+    private void renameHoldrFile(HoldrModel holdrModel, PsiElement element, String newName, Map<PsiElement, String> allRenames) {
+        String oldName;
+        if (element instanceof PsiFile) {
+            oldName = ((PsiFile) element).getVirtualFile().getNameWithoutExtension();
+        } else {
+            oldName = ((PsiField) element).getName();
+        }
+
+        String holdrClassName = holdrModel.getHoldrClassName(oldName);
+        JavaPsiFacade javaPsiFacade =  JavaPsiFacade.getInstance(element.getProject());
+        PsiClass holdrClass = javaPsiFacade.findClass(holdrClassName, GlobalSearchScope.moduleScope(holdrModel.getModule()));
         if (holdrClass == null) {
             return;
         }
 
-        String newHoldrName = holderModel.getHoldrShortClassName(FileUtil.getNameWithoutExtension(newName));
+        String newHoldrName = holdrModel.getHoldrShortClassName(FileUtil.getNameWithoutExtension(newName));
         allRenames.put(holdrClass, newHoldrName);
     }
 
@@ -204,5 +208,16 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         }
 
         return result.toArray(new UsageInfo[result.size()]);
+    }
+
+    private static boolean isRLayoutField(PsiElement element) {
+        PsiElement parent = element.getParent();
+        if (!(parent instanceof PsiClass)) {
+            return false;
+        }
+        PsiClass parentClass = (PsiClass) parent;
+        return parentClass.getName().equals("layout")
+                && parentClass.getParent() instanceof PsiClass
+                && ((PsiClass) parentClass.getParent()).getName().equals(AndroidUtils.R_CLASS_NAME);
     }
 }
