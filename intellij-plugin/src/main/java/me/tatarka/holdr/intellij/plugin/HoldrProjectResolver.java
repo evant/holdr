@@ -35,6 +35,6 @@ public class HoldrProjectResolver extends AbstractProjectResolverExtension {
     @Override
     @NotNull
     public Set<Class> getExtraProjectModelClasses() {
-        return Sets.<Class>newHashSet(AndroidProject.class);
+        return Sets.<Class>newHashSet(AndroidProject.class, HoldrCompiler.class);
     }
 }
