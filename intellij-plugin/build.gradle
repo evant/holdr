@@ -47,6 +47,9 @@ jar {
   }
 
   from { configurations.compile.collect { zipTree(it) } }
+
+  baseName 'holdr-plugin'
+  version plugin_version
 }
 
 task copyIntoIdea(dependsOn: build, type: Copy) {
