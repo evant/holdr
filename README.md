@@ -307,6 +307,6 @@ The plugin will also allow you to do a refactor-rename on holdr fields and use g
 If instead you feel like living on the edge, you can build install the plugin manually.
 
 1. Clone the repo
-2. Change `studio.path` in `gradle.properties` to point to your intellij instalation directory
+2. Change `studio.path` in `gradle.properties` to point to your Android Studio/Intellij instalation directory
 3. Run `./gradlew intellij-plugin:build --configure-on-demand`
 4. Go to `Settings -> Plugins -> Install plugin from disk...` and install the jar in `./intellij-plugin/build/libs/`
