@@ -301,5 +301,15 @@ class HoldrLayoutParserSpec extends Specification {
             )
         }).build() == Layout.of("test").view(View.of("android.widget.TextView", "my_text_view")).build()
     }
+
+    def "a view with a fragment with an id is ignored"() {
+        expect:
+        parser.parse("test", xml {
+            'fragment'(
+                    'xmlns:android': 'http://schemas.android.com/apk/res/android',
+                    'android:id': '@+id/my_fragment'
+            )
+        }).build() == Layout.of("test").build()
+    }
 }
 

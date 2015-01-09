@@ -21,6 +21,7 @@ public class HoldrLayoutParser implements Serializable{
     private static final String ID = "id";
     private static final String LAYOUT = "layout";
     private static final String INCLUDE = "include";
+    private static final String FRAGMENT = "fragment";
     private static final String CLASS = "class";
 
     private static final String HOLDR_PREFIX = "holdr_";
@@ -105,8 +106,10 @@ public class HoldrLayoutParser implements Serializable{
                     if (include(id != null, include, includeAllTag != null, ignore, ignoreAllTag != null)) {
                         boolean isAndroidId = parseIsAndroidId(idString);
                         String fieldName = parser.getAttributeValue(APP_NS, HOLDR_FIELD_NAME);
-                        
-                        if (tagName.equals(INCLUDE)) {
+
+                        if (tagName.equals(FRAGMENT)) {
+                            // Skip since fragments are already managed through the fragment manager.
+                        } else if (tagName.equals(INCLUDE)) {
                             String layout = parseId(parser.getAttributeValue(null, LAYOUT));
                             Include.Builder includeBuilder = Include.of(layout, id);
                             
