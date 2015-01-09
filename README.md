@@ -300,8 +300,13 @@ Tired of having to build your project after every layout change? With the intell
 
 Go to `Settings -> Plugins -> Browse Repositories...` and search for "Holdr".
 
-If instead you feel like living on the edge, you can download the [zip](https://github.com/evant/holdr/blob/master/intellij-plugin/intellij-plugin.zip?raw=true) and go to `Settings -> Plugins -> Install plugin from disk...` to install.
-
 The plugin will also allow you to do a refactor-rename on holdr fields and use goto-source (Ctrl-click or Ctrl-B) to go directly to the view in the layout.
 
 (Requires Android Studio `0.6.0+` or Intellij 14)
+
+If instead you feel like living on the edge, you can build install the plugin manually.
+
+1. Clone the repo
+2. Change `studio.path` in `gradle.properties` to point to your intellij instalation directory
+3. Run `./gradlew intellij-plugin:build --configure-on-demand`
+4. Go to `Settings -> Plugins -> Install plugin from disk...` and install the jar in `./intellij-plugin/build/libs/`
