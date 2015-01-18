@@ -45,7 +45,7 @@ public class HoldrTask extends DefaultTask {
                 removedFiles += change.file
             }
 
-            compiler.compileIncremental(outputDirectory, changedFiles, removedFiles)
+            compiler.compileIncremental(outputDirectory, resDirectories.files, changedFiles, removedFiles)
         } else {
             outputDirectory.deleteDir()
             compiler.compile(outputDirectory, resDirectories.files)

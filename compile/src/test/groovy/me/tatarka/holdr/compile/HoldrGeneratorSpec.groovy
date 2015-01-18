@@ -7,6 +7,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static me.tatarka.holdr.compile.SpecHelpers.testHoldrConfig
+import static me.tatarka.holdr.compile.SpecHelpers.emptyIncludeResolver
 
 class HoldrGeneratorSpec extends Specification {
     @Shared
@@ -14,7 +15,7 @@ class HoldrGeneratorSpec extends Specification {
 
     def "an empty list of views generates an empty Holdr"() {
         expect:
-        generator.generate(Layout.of("test").build()) == """
+        generator.generate(Layout.of("test").build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -41,7 +42,7 @@ public class Holdr_Test
         expect:
         generator.generate(Layout.of("test")
                 .view(View.of("android.widget.TextView", "my_text_view"))
-                .build()) == """
+                .build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -74,7 +75,7 @@ public class Holdr_Test
         expect:
         generator.generate(Layout.of("test")
                 .view(View.of("android.widget.TextView", "my_text_view").fieldName("myCustomField"))
-                .build()) == """
+                .build(),emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -107,7 +108,7 @@ public class Holdr_Test
         expect:
         generator.generate(Layout.of("test")
                 .view(View.of("android.widget.TextView", "text1").androidId())
-                .build()) == """
+                .build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 
 import android.view.View;
@@ -141,9 +142,53 @@ public class Holdr_Test
 
     def "an include with an id generates a reference to a holdr with it's layout"() {
         expect:
-        generator.generate(Layout.of("test")
-                .include(Include.of("my_layout", "my_include"))
-                .build()) == """
+        Layouts layouts = Layouts.of(
+                Layout.of("test")
+                        .include(Include.of("my_layout", "my_include")),
+                Layout.of("my_layout")
+                        .view(View.of('android.widget.TextView', 'my_text_view'))
+        )
+        
+        generator.generate(layouts.get("test"), layouts.asIncludeResolver()) == """
+package me.tatarka.test.holdr;
+$IMPORTS
+public class Holdr_Test
+    extends Holdr
+{
+
+    public final static int LAYOUT = R.layout.test;
+    /**
+     * Holdr for {@link me.tatarka.test.R.layout#my_layout}.
+     * 
+     */
+    public Holdr_MyLayout myInclude;
+
+    /**
+     * Constructs a new {@link me.tatarka.holdr.Holdr} for {@link me.tatarka.test.R.layout#test}.
+     * 
+     * @param view
+     *     The root view to search for the holdr's views.
+     */
+    public Holdr_Test(View view) {
+        super(view);
+        myInclude = new Holdr_MyLayout(view.findViewById(R.id.my_include));
+    }
+
+}
+"""
+    }
+
+    def "an include with an id and a merge root generates a reference to a holdr with the root layout"() {
+        expect:
+        Layouts layouts = Layouts.of(
+                Layout.of("test")
+                        .include(Include.of("my_layout", "my_include")),
+                Layout.of("my_layout")
+                        .rootMerge(true)
+                        .view(View.of('android.widget.TextView', 'my_text_view'))
+        )
+
+        generator.generate(layouts.get("test"), layouts.asIncludeResolver()) == """
 package me.tatarka.test.holdr;
 $IMPORTS
 public class Holdr_Test
@@ -176,7 +221,7 @@ public class Holdr_Test
         expect:
         generator.generate(Layout.of("test")
                 .view(View.of("android.widget.TextView", "my_text_view").nullable())
-                .build()) == """
+                .build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 
 import android.support.annotation.Nullable;
@@ -213,7 +258,7 @@ public class Holdr_Test
 
     def "a custom superclass generates a Holdr that subclasses that superclass"() {
         expect:
-        generator.generate(Layout.of("test").superclass("test.TestHoldr").build()) == """
+        generator.generate(Layout.of("test").superclass("test.TestHoldr").build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 
 import android.view.View;
@@ -247,7 +292,7 @@ public class Holdr_Test
                 .listener(Listener.Type.ON_CLICK)
                 .listener(Listener.Type.ON_LONG_CLICK)
                 .listener(Listener.Type.ON_TOUCH))
-                .build()) == """
+                .build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 
 import android.view.MotionEvent;
@@ -343,7 +388,7 @@ public class Holdr_Test
         generator.generate(Layout.of("test")
                 .view(View.of("android.widget.Button", "my_button")
                 .listener(Listener.Type.ON_CLICK).nullable())
-                .build()) == """
+                .build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 
 import android.support.annotation.Nullable;
@@ -412,7 +457,7 @@ def "two listeners with the same name generates only one listener callback"() {
             .listener(Listener.of(Listener.Type.ON_CLICK).name("onMyButtonClick")))
             .view(View.of("android.widget.Button", "my_buttonB")
             .listener(Listener.of(Listener.Type.ON_CLICK).name("onMyButtonClick")))
-            .build()) == """
+            .build(), emptyIncludeResolver()) == """
 package me.tatarka.test.holdr;
 
 import android.view.View;

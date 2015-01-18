@@ -21,6 +21,7 @@ public class HoldrLayoutParser implements Serializable{
     private static final String ID = "id";
     private static final String LAYOUT = "layout";
     private static final String INCLUDE = "include";
+    private static final String MERGE = "merge";
     private static final String FRAGMENT = "fragment";
     private static final String CLASS = "class";
 
@@ -87,6 +88,10 @@ public class HoldrLayoutParser implements Serializable{
                             parsedLayoutBuilder.superclass(superclass);
                         }
                         isRootTag = false;
+                        
+                        if (tagName.equals(MERGE)) {
+                            parsedLayoutBuilder.rootMerge(true);
+                        }
                     }
 
                     HoldrIgnore ignore = parseIgnore(parser.getAttributeValue(APP_NS, HOLDR_IGNORE));

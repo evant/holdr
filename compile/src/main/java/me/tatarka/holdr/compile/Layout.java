@@ -1,15 +1,16 @@
 package me.tatarka.holdr.compile;
 
-import me.tatarka.holdr.compile.model.Include;
-import me.tatarka.holdr.compile.model.Listeners;
-import me.tatarka.holdr.compile.model.Ref;
-import me.tatarka.holdr.compile.model.View;
-import me.tatarka.holdr.compile.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import me.tatarka.holdr.compile.model.Include;
+import me.tatarka.holdr.compile.model.Listeners;
+import me.tatarka.holdr.compile.model.Ref;
+import me.tatarka.holdr.compile.model.View;
+import me.tatarka.holdr.compile.util.Objects;
 
 /**
  * Created by evan on 8/30/14.
@@ -19,14 +20,16 @@ public class Layout {
     public final String name;
     @NotNull
     public final String superclass;
+    public final boolean isRootMerge;
     @NotNull
     public final List<Ref> refs;
     @NotNull
     public final Listeners listeners;
 
-    private Layout(@NotNull String name, @NotNull String superclass, @NotNull List<Ref> refs, @NotNull Listeners listeners) {
+    private Layout(@NotNull String name, @NotNull String superclass, boolean isRootMerge, @NotNull List<Ref> refs, @NotNull Listeners listeners) {
         this.name = name;
         this.superclass = superclass;
+        this.isRootMerge = isRootMerge;
         this.refs = refs;
         this.listeners = listeners;
     }
@@ -34,7 +37,7 @@ public class Layout {
     public static Builder of(String name) {
         return new Builder(name);
     }
-    
+
     @Nullable
     public static Layout merge(Builder... builders) {
         if (builders.length == 0) {
@@ -47,7 +50,7 @@ public class Layout {
         }
         return first.build();
     }
-    
+
     public boolean isEmpty() {
         return refs.isEmpty();
     }
@@ -58,32 +61,34 @@ public class Layout {
         if (o == null || getClass() != o.getClass()) return false;
         Layout that = (Layout) o;
 
-        return name.equals(that.name) 
+        return name.equals(that.name)
                 && superclass.equals(that.superclass)
+                && isRootMerge == that.isRootMerge
                 && refs.equals(that.refs)
                 && listeners.equals(that.listeners);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, superclass, refs, listeners);
+        return Objects.hashCode(name, superclass, isRootMerge, refs, listeners);
     }
 
     public static class Builder {
         public final String name;
         private String superclass;
+        private boolean isRootMerge;
         private List<Ref> refs = new ArrayList<Ref>();
         private Listeners.Builder listenersBuilder = Listeners.of();
-        
+
         private Builder(String name) {
             this.name = name;
         }
-        
+
         public Builder include(Include.Builder includeBuilder) {
             refs.add(includeBuilder.build());
             return this;
         }
-        
+
         public Builder view(View.Builder viewBuilder) {
             View view = viewBuilder.build();
             refs.add(view);
@@ -95,10 +100,15 @@ public class Layout {
             this.superclass = superclass;
             return this;
         }
+        
+        public Builder rootMerge(boolean isRootMerge) {
+            this.isRootMerge = isRootMerge;
+            return this;
+        }
 
         public Layout build() {
             if (superclass == null) superclass = HoldrGenerator.HOLDR_SUPERCLASS;
-            return new Layout(name, superclass, refs, listenersBuilder.build());
+            return new Layout(name, superclass, isRootMerge, refs, listenersBuilder.build());
         }
 
         public Builder merge(Builder other) {
@@ -109,12 +119,13 @@ public class Layout {
             if (!name.equals(other.name)) {
                 throw new IllegalArgumentException("Can't merge different layouts ('" + name + "' and '" + other.name + "').");
             }
-            
-            mergeSuperclass(other.superclass); 
+
+            mergeSuperclass(other.superclass);
+            mergeIsRootMerge(other.isRootMerge);
             mergeRefs(other.refs);
             return this;
         }
-        
+
         private void mergeSuperclass(String otherSuperclass) {
             if (otherSuperclass != null) {
                 if (superclass == null) {
@@ -125,6 +136,10 @@ public class Layout {
             }
         }
         
+        private void mergeIsRootMerge(boolean otherIsRootMerge) {
+            this.isRootMerge |= otherIsRootMerge;
+        }
+
         private void mergeRefs(List<Ref> newRefs) {
             // We need to make sure we update every ref currently in the map because if there is not
             // a matching new ref, we still need to mark it as nullable. Similarly, new refs that
@@ -151,6 +166,16 @@ public class Layout {
                 }
             }
             return null;
+        }
+
+        List<String> getIncludes() {
+            List<String> includes = new ArrayList<String>();
+            for (Ref ref : refs) {
+                if (ref instanceof Include) {
+                   includes.add(((Include) ref).layout); 
+                }
+            }
+            return includes;
         }
     }
 }

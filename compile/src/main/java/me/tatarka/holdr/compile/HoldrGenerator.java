@@ -25,13 +25,13 @@ public class HoldrGenerator implements Serializable {
         this.config = config;
     }
     
-    public String generate(Layout layout) throws IOException {
+    public String generate(Layout layout, IncludeResolver includeResolver) throws IOException {
         StringWriter writer = new StringWriter();
-        generate(layout, writer);
+        generate(layout, includeResolver, writer);
         return writer.toString();
     }
 
-    public void generate(Layout layout, Writer writer) throws IOException {
+    public void generate(Layout layout, IncludeResolver includeResolver, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(config.getHoldrPackage());
 
@@ -57,7 +57,7 @@ public class HoldrGenerator implements Serializable {
                 holdrListener = clazz.field(PRIVATE, listenerInterface, "_holdrListener");
             }
 
-            genConstructor(r, clazz, layout.refs, layout.listeners, fieldVarMap, holdrListener, listenerTypeMap);
+            genConstructor(r, clazz, layout.refs, layout.listeners, fieldVarMap, holdrListener, includeResolver, listenerTypeMap);
             
             // public void setListener(Listener listener) {
             genSetListener(r, clazz, listenerInterface, holdrListener);
@@ -102,7 +102,7 @@ public class HoldrGenerator implements Serializable {
         return fieldVarMap;
     }
 
-    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Listeners listeners, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Map<Listener.Type, ListenerType> listenerTypeMap) {
+    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Listeners listeners, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, IncludeResolver includeResolver, Map<Listener.Type, ListenerType> listenerTypeMap) {
         // private MyLayoutViewModel(View view) {
         JMethod constructor = clazz.constructor(PUBLIC);
         JVar viewVar = constructor.param(r.viewClass, "view");
@@ -113,7 +113,7 @@ public class HoldrGenerator implements Serializable {
 
         // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
         // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
-        genInitFields(r, fieldVarMap, viewVar, refs, body);
+        genInitFields(r, fieldVarMap, viewVar, refs, includeResolver, body);
         
         // myButton.setOnClickListener((view) -> { if (_holderListener != null) _holderListener.onMyButtonClick(myButton); });
         genListeners(r, fieldVarMap, holderListener, refs, listeners, body, listenerTypeMap);
@@ -171,7 +171,7 @@ public class HoldrGenerator implements Serializable {
         }
     }
 
-    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Collection<Ref> refs, JBlock body) {
+    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Collection<Ref> refs, IncludeResolver includeResolver, JBlock body) {
         for (Ref ref : refs) {
             JFieldVar fieldVar = fieldVarMap.get(ref);
             JFieldRef idVar = (ref.isAndroidId ? r.androidRClass : r.rClass).staticRef("id").ref(ref.id);
@@ -179,8 +179,21 @@ public class HoldrGenerator implements Serializable {
                 JClass viewType = r.ref(((View) ref).type);
                 body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
             } else if (ref instanceof Include) {
-                JClass includeType = r.ref(getClassName(((Include) ref).layout));
-                body.assign(fieldVar, _new(includeType).arg(viewVar));
+                Include include = (Include) ref;
+                JClass includeType = r.ref(getClassName(include.layout));
+                Layout includeLayout = includeResolver.resolveInclude(include);
+                
+                if (includeLayout == null) {
+                    throw new IllegalStateException("Cannot find included layout: " + include.layout);
+                }
+                
+                if (includeLayout.isRootMerge) {
+                    // findViewById is not safe if the root tag of the included layout is a merge.
+                    // instead, just use the current view, which should be 'good enough'
+                    body.assign(fieldVar, _new(includeType).arg(viewVar));
+                } else {
+                    body.assign(fieldVar, _new(includeType).arg(viewVar.invoke("findViewById").arg(idVar)));
+                }
             }
         }
     }

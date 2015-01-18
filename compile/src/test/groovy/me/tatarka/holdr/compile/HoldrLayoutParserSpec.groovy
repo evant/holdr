@@ -257,7 +257,7 @@ class HoldrLayoutParserSpec extends Specification {
                 .listener(Listener.of(Listener.Type.ON_CLICK).name("onTestButtonClick")))
                 .build()
     }
-    
+
     def "a custom view defined as the tag parses as that view"() {
         expect:
         parser.parse("test", xml {
@@ -267,7 +267,7 @@ class HoldrLayoutParserSpec extends Specification {
             )
         }).build() == Layout.of("test").view(View.of('test.Test', 'my_test_view')).build()
     }
-    
+
     def "a custom view defined as a class on a <view/> tag parses as that view"() {
         expect:
         parser.parse("test", xml {
@@ -289,7 +289,7 @@ class HoldrLayoutParserSpec extends Specification {
             )
         }).build() == Layout.of("test").view(View.of('test.Test.Inner', 'my_test_view')).build()
     }
-    
+
     def "a view with custom holdr_class parses with that class instead of the on defined by the tag"() {
         expect:
         parser.parse("test", xml {
@@ -311,5 +311,17 @@ class HoldrLayoutParserSpec extends Specification {
             )
         }).build() == Layout.of("test").build()
     }
+
+    def "a view with a root merge tag is detected as such"() {
+        expect:
+        parser.parse("test", xml {
+            'merge'('xmlns:android': 'http://schemas.android.com/apk/res/android') {
+                'TextView'(
+                        'android:id': '@+id/my_text_view'
+                )
+            }
+        }).build() == Layout.of("test").rootMerge(true).view(View.of('android.widget.TextView', 'my_text_view')).build()
+    }
 }
+
 

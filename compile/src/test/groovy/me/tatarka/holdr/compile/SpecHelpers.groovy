@@ -1,6 +1,7 @@
 package me.tatarka.holdr.compile
 
 import groovy.xml.MarkupBuilder
+import me.tatarka.holdr.compile.model.Include
 import me.tatarka.holdr.model.HoldrConfig
 
 class SpecHelpers {
@@ -27,6 +28,15 @@ class SpecHelpers {
             @Override
             boolean getDefaultInclude() {
                 return true
+            }
+        }
+    }
+    
+    public static IncludeResolver emptyIncludeResolver() {
+        return new IncludeResolver() {
+            @Override
+            Layout resolveInclude(Include include) {
+                return null
             }
         }
     }

@@ -11,6 +11,6 @@ import java.util.Collection;
  */
 public interface HoldrCompiler {
     public void compile(File outputDirectory, Collection<File> resDirs) throws IOException;
-    public void compileIncremental(File outputDirectory, Collection<File> changedFiles, Collection<File> removedFiles) throws IOException;
+    public void compileIncremental(File outputDirectory, Collection<File> resDirs, Collection<File> changedFiles, Collection<File> removedFiles) throws IOException;
     public HoldrConfig getConfig();
 }
