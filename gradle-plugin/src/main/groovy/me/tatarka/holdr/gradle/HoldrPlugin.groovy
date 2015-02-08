@@ -41,7 +41,7 @@ class HoldrPlugin implements Plugin<Project> {
     
     private void applyHoldrPlugin(Project project) {
         project.dependencies {
-            compile 'me.tatarka.holdr:holdr:1.4.0@aar'
+            compile 'me.tatarka.holdr:holdr:1.4.1@aar'
         }
         
         def variants = androidPlugin instanceof AppPlugin ?
@@ -71,7 +71,7 @@ class HoldrPlugin implements Plugin<Project> {
 
     String getManifestPackage() {
         if (manifestPackage == null) {
-            manifestPackage = VariantConfiguration.getManifestPackage(androidPlugin.defaultConfigData.sourceSet.manifestFile)
+            manifestPackage = VariantConfiguration.getManifestPackage(androidPlugin.extension.sourceSets.main.manifestFile)
         }
         return manifestPackage
     }
