@@ -1,7 +1,6 @@
 package me.tatarka.holdr.compile;
 
 import me.tatarka.holdr.compile.util.FileUtils;
-import me.tatarka.holdr.model.HoldrCompiler;
 import me.tatarka.holdr.model.HoldrConfig;
 
 import java.io.*;
@@ -10,30 +9,23 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class HoldrCompilerImpl implements HoldrCompiler, Serializable {
+public class HoldrCompiler {
     private final HoldrConfig config;
     private final HoldrLayoutParser parser;
     private final HoldrGenerator generator;
 
-    public HoldrCompilerImpl(HoldrConfig config) {
+    public HoldrCompiler(HoldrConfig config) {
         this.config = config;
         parser = new HoldrLayoutParser(config);
         generator = new HoldrGenerator(config);
     }
 
-    @Override
     public void compile(File outputDirectory, Collection<File> resDirs) throws IOException {
         compileInternal(outputDirectory, resDirs, getAllLayoutFiles(resDirs));
     }
 
-    @Override
     public void compileIncremental(File outputDirectory, Collection<File> resDirs, Collection<File> changeFiles, Collection<File> removedFiles) throws IOException {
         compileInternal(outputDirectory, resDirs, getChangedLayoutFiles(outputDirectory, changeFiles, removedFiles));
-    }
-
-    @Override
-    public HoldrConfig getConfig() {
-        return config;
     }
 
     private void compileInternal(File outputDirectory, Collection<File> resDirs, List<File> layoutFiles) throws IOException {

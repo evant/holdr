@@ -10,6 +10,7 @@ import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBusConnection;
+
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +38,7 @@ public class HoldrPluginComponent implements ProjectComponent {
 
             if (ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) {
                 createHoldrLayoutFilesListener();
-            }
-            else {
+            } else {
                 final MessageBusConnection connection = myProject.getMessageBus().connect(myDisposable);
 
                 connection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {

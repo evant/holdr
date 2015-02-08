@@ -35,21 +35,10 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
     }
 
     @Override
-    public void before(@NotNull List<? extends VFileEvent> events) {
-        // Delete events need to be run before the file is deleted.
-        final Set<VirtualFile> filesToDelete = getDeletedLayoutFiles(myProject, events);
-
-        if (!filesToDelete.isEmpty()) {
-            HoldrLayoutUpdate update = new HoldrLayoutUpdate(filesToDelete, true);
-            update.run();
-        }
-    }
-
-    @Override
     public void after(@NotNull List<? extends VFileEvent> events) {
         final Set<VirtualFile> filesToUpdate = getLayoutFiles(myProject, events);
         if (!filesToUpdate.isEmpty()) {
-            myQueue.queue(new HoldrLayoutUpdate(filesToUpdate, false));
+            myQueue.queue(new HoldrLayoutUpdate(filesToUpdate));
         }
     }
 
@@ -94,12 +83,10 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
 
     private class HoldrLayoutUpdate extends Update {
         private final Set<VirtualFile> myFiles;
-        private final boolean myShouldDelete;
 
-        public HoldrLayoutUpdate(@NotNull Set<VirtualFile> files, boolean shouldDelete) {
+        public HoldrLayoutUpdate(@NotNull Set<VirtualFile> files) {
             super(files);
             myFiles = files;
-            myShouldDelete = shouldDelete;
         }
 
         @Override
@@ -151,16 +138,15 @@ public class HoldrLayoutFilesListener extends BulkFileListener.Adapter implement
                 HoldrModel holdrModel = HoldrModel.getInstance(module);
 
                 if (holdrModel != null) {
-                    invalidateHoldrModule(holdrModel);
+                    invalidateHoldrModule(module, holdrModel);
                 }
             }
         }
 
-        private void invalidateHoldrModule(@NotNull HoldrModel holdrModel) {
-            if (myShouldDelete) {
-                holdrModel.delete(myFiles);
-            } else {
-                holdrModel.update(myFiles);
+        private void invalidateHoldrModule(@NotNull Module module, @NotNull HoldrModel holdrModel) {
+            AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+            if (androidFacet != null) {
+                holdrModel.compile(androidFacet);
             }
         }
     }

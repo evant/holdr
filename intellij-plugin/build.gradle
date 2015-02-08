@@ -36,7 +36,8 @@ dependencies {
   provided studio_libs
   provided fileTree(dir: "$studio_path/plugins/android/lib", include: '*.jar')
   provided fileTree(dir: "$studio_path/plugins/gradle/lib", include: '*.jar')
-  compile project(':compile-model')
+  // Use older version of the model for backwards compat.
+  compile 'me.tatarka.holdr:compile-model:1.0.0'
 }
 
 jar {
@@ -60,6 +61,7 @@ task copyIntoIdea(dependsOn: build, type: Copy) {
 task run(type: JavaExec, dependsOn: copyIntoIdea) {
   main = "com.intellij.idea.Main"
   classpath = studio_libs.plus(files("$java_home/lib/tools.jar"))
+  //workingDir = project.rootDir
   systemProperty "idea.config.path", "build/run/config"
   systemProperty "idea.system.path", "build/run/system"
   systemProperty "idea.plugins.path", "build/run/plugins"

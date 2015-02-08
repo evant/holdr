@@ -45,6 +45,7 @@
         <externalProjectDataService implementation="me.tatarka.holdr.intellij.plugin.HoldrDataService"/>
         <gotoDeclarationHandler implementation="me.tatarka.holdr.intellij.plugin.HoldrGotoDeclarationHandler"/>
         <renamePsiElementProcessor implementation="me.tatarka.holdr.intellij.plugin.HoldrRenameProcessor" order="first"/>
+        <projectService serviceImplementation="me.tatarka.holdr.intellij.plugin.HoldrConfigPersister"/>
     </extensions>
 
     <application-components>
@@ -57,7 +58,7 @@
             </implementation-class>
         </component>
     </project-components>
-
+    
     <actions>
         <!-- Add your actions here -->
     </actions>

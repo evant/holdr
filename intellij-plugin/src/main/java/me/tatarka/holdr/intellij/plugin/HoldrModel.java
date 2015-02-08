@@ -1,26 +1,22 @@
 package me.tatarka.holdr.intellij.plugin;
 
-import com.android.builder.model.Variant;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.google.common.base.CaseFormat;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import me.tatarka.holdr.model.HoldrCompiler;
+import me.tatarka.holdr.model.HoldrConfig;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by evan on 9/27/14.
@@ -34,9 +30,26 @@ public class HoldrModel {
         if (module == null) {
             return null;
         }
-        return module.getUserData(HOLDR_MODEL_KEY);
-    }
 
+        HoldrModel model = module.getUserData(HOLDR_MODEL_KEY);
+        if (model != null) {
+            return model;
+        }
+
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet == null) {
+            return null;
+        }
+        HoldrConfig config = HoldrConfigPersister.getConfig(module);
+        if (config == null) {
+            return null;
+        }
+
+        model = new HoldrModel(androidFacet, config);
+        module.putUserData(HOLDR_MODEL_KEY, model);
+        return model;
+    }
+    
     @Nullable
     public static synchronized HoldrModel getInstance(@Nullable PsiElement element) {
         if (element == null) {
@@ -46,71 +59,46 @@ public class HoldrModel {
         return getInstance(module);
     }
 
-    public static synchronized boolean put(@NotNull Module module, @NotNull HoldrCompiler compiler) {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null) {
-            module.putUserData(HOLDR_MODEL_KEY, new HoldrModel(androidFacet, compiler));
-            return true;
-        }  else {
-            return false;
+    public static synchronized void create(@Nullable Module module, @NotNull HoldrConfig config) {
+        if (module == null) {
+            return;
         }
+        HoldrConfigPersister.setConfig(module, config);
     }
 
-    public static synchronized void delete(@NotNull Module module) {
+    public static synchronized void delete(@Nullable Module module) {
+        if (module == null) {
+            return;
+        }
         module.putUserData(HOLDR_MODEL_KEY, null);
+        HoldrConfigPersister.deleteConfig(module);
     }
 
-    private final AndroidFacet myAndroidFacet;
-    private HoldrCompiler myCompiler;
+    private AndroidFacet myAndroidFacet;
+    private HoldrConfig myConfig;
 
-    protected HoldrModel(AndroidFacet androidFacet, HoldrCompiler compiler) {
+    private HoldrModel(AndroidFacet androidFacet, HoldrConfig config) {
+        myConfig = config;
         myAndroidFacet = androidFacet;
-        myCompiler = compiler;
     }
 
-    public Module getModule() {
-        return myAndroidFacet.getModule();
-    }
+    public void compile(AndroidFacet androidFacet) {
+        GradleInvoker invoker = GradleInvoker.getInstance(androidFacet.getModule().getProject());
 
-    public AndroidFacet getAndroidFacet() {
-        return myAndroidFacet;
-    }
-
-    public void update(@NotNull Collection<VirtualFile> layoutFiles) {
-        List<File> updateFiles = new ArrayList<File>();
-        for (VirtualFile file : layoutFiles) {
-            updateFiles.add(new File(file.getPath()));
+        IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
+        String variantName;
+        if (ideaAndroidProject != null) {
+            variantName = StringUtil.capitalize(androidFacet.getIdeaAndroidProject().getSelectedVariant().getName());
+        } else {
+            variantName = "Debug";
         }
-        try {
-            myCompiler.compileIncremental(getOutputDir(), updateFiles, Collections.<File>emptyList());
-        } catch (IOException e) {
-            LOGGER.warn("Error generating Holdr classes", e);
-        }
-    }
 
-    public void delete(@NotNull Collection<VirtualFile> layoutFiles) {
-        List<File> removedFiles = new ArrayList<File>();
-        for (VirtualFile file : layoutFiles) {
-            removedFiles.add(new File(file.getPath()));
-        }
-        try {
-            myCompiler.compileIncremental(getOutputDir(), Collections.<File>emptyList(), removedFiles);
-        } catch (IOException e) {
-            LOGGER.warn("Error generating Holdr classes", e);
-        }
-    }
-
-    // TODO: get outputDir from plugin
-    @Nullable
-    private File getOutputDir() {
-        IdeaAndroidProject androidProject = myAndroidFacet.getIdeaAndroidProject();
-        if (androidProject == null) return null;
-        Variant selectedVariant = androidProject.getSelectedVariant();
-        return new File(androidProject.getDelegate().getBuildFolder(), "generated/source/holdr/" + selectedVariant.getName());
+        String taskName = "generate" + variantName + "Holdr";
+        invoker.executeTasks(Collections.singletonList(taskName));
     }
 
     public boolean isHoldrClass(@NotNull PsiClass psiClass) {
-        String holdrPackage = myCompiler.getConfig().getHoldrPackage();
+        String holdrPackage = getConfig().getHoldrPackage();
         String className = psiClass.getQualifiedName();
         return className != null && className.startsWith(holdrPackage + ".Holdr_");
     }
@@ -123,12 +111,59 @@ public class HoldrModel {
         return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
     }
 
+    @Nullable
     public String getHoldrClassName(@NotNull String layoutName) {
-        String holdrPackage = myCompiler.getConfig().getHoldrPackage();
+        String holdrPackage = getConfig().getHoldrPackage();
         return holdrPackage + "." + getHoldrShortClassName(layoutName);
     }
 
     public String getHoldrShortClassName(@NotNull String layoutName) {
         return "Holdr_" + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, layoutName);
+    }
+
+    @NotNull
+    public HoldrConfig getConfig() {
+        if (myConfig == null) {
+            myConfig = new DefaultHoldrConfig(myAndroidFacet);
+        }
+        return myConfig;
+    }
+
+    public void setConfig(HoldrConfig config) {
+        myConfig = config;
+    }
+
+    private static class DefaultHoldrConfig implements HoldrConfig {
+        @Nullable
+        private AndroidFacet myAndroidFacet;
+
+        public DefaultHoldrConfig(@Nullable AndroidFacet androidFacet) {
+            myAndroidFacet = androidFacet;
+        }
+
+        @Override
+        public String getManifestPackage() {
+            if (myAndroidFacet == null) {
+                return null;
+            }
+            Manifest manifest = myAndroidFacet.getManifest();
+            if (manifest == null) {
+                return null;
+            }
+            return manifest.getPackage().toString();
+        }
+
+        @Override
+        public String getHoldrPackage() {
+            if (myAndroidFacet == null) {
+                return null;
+            }
+            return getManifestPackage() + ".holdr";
+        }
+
+        @Override
+        public boolean getDefaultInclude() {
+            return true;
+        }
     }
 }

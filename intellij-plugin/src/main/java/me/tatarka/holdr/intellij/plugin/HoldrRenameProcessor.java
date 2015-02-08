@@ -87,14 +87,23 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         String layoutName = holdrModel.getLayoutName(holdrClass);
         PsiManager manager = PsiManager.getInstance(holdrField.getProject());
         List<PsiFile> layoutFiles = new ArrayList<PsiFile>();
+        
+        AndroidFacet androidFacet = AndroidFacet.getInstance(holdrField);
+        if (androidFacet == null) {
+            return;
+        }
 
-        for (VirtualFile resDirs : holdrModel.getAndroidFacet().getAllResourceDirectories()) {
+        for (VirtualFile resDirs : androidFacet.getAllResourceDirectories()) {
             for (VirtualFile resDir : resDirs.getChildren()) {
                 if (!HoldrAndroidUtils.isUserLayoutDir(holdrField.getProject(), resDir)) {
                     continue;
                 }
 
                 PsiDirectory dir = manager.findDirectory(resDir);
+                if (dir == null) {
+                    continue;
+                }
+                
                 for (PsiFile file : dir.getFiles()) {
                     if (layoutName.equals(FileUtil.getNameWithoutExtension(file.getName()))) {
                         layoutFiles.add(file);
@@ -163,8 +172,18 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         }
 
         String holdrClassName = holdrModel.getHoldrClassName(oldName);
+        if (holdrClassName == null) {
+            return;
+        }
+        
+        AndroidFacet androidFacet = AndroidFacet.getInstance(element);
+        if (androidFacet == null) {
+            return;
+        }
+        
         JavaPsiFacade javaPsiFacade =  JavaPsiFacade.getInstance(element.getProject());
-        PsiClass holdrClass = javaPsiFacade.findClass(holdrClassName, GlobalSearchScope.moduleScope(holdrModel.getModule()));
+        
+        PsiClass holdrClass = javaPsiFacade.findClass(holdrClassName, GlobalSearchScope.moduleScope(androidFacet.getModule()));
         if (holdrClass == null) {
             return;
         }
