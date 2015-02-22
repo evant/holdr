@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 class HoldrPlugin implements Plugin<Project> {
     private static final String holdrVersion = '1.5.0-SNAPSHOT'
-    
+
     private final ToolingModelBuilderRegistry registry
     private HoldrExtension extension
     private BasePlugin androidPlugin
@@ -34,18 +34,18 @@ class HoldrPlugin implements Plugin<Project> {
             androidPlugin = project.plugins.getPlugin(AppPlugin)
             applyHoldrPlugin(project)
         }
-        
+
         project.plugins.withType(LibraryPlugin) {
             androidPlugin = project.plugins.getPlugin(LibraryPlugin)
             applyHoldrPlugin(project)
         }
     }
-    
+
     private void applyHoldrPlugin(Project project) {
         project.dependencies {
             compile "me.tatarka.holdr:holdr:${holdrVersion}@aar"
         }
-        
+
         def variants = androidPlugin instanceof AppPlugin ?
                 ((AppExtension) androidPlugin.extension).applicationVariants :
                 ((LibraryExtension) androidPlugin.extension).libraryVariants
@@ -66,14 +66,14 @@ class HoldrPlugin implements Plugin<Project> {
 
         registry.register(new HoldrToolingModelBuilder(this))
     }
-    
+
     private static FileCollection getResDirectories(Project project, BaseVariant variant) {
         project.files(variant.sourceSets*.resDirectories.flatten())
     }
 
     String getManifestPackage() {
         if (manifestPackage == null) {
-            manifestPackage = VariantConfiguration.getManifestPackage(androidPlugin.defaultConfigData.sourceSet.manifestFile)
+            manifestPackage = VariantConfiguration.getManifestPackage(androidPlugin.extension.sourceSets.main.manifestFile)
         }
         return manifestPackage
     }
