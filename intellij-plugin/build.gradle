@@ -36,14 +36,14 @@ dependencies {
   provided studio_libs
   provided fileTree(dir: "$studio_path/plugins/android/lib", include: '*.jar')
   provided fileTree(dir: "$studio_path/plugins/gradle/lib", include: '*.jar')
-  compile 'me.tatarka.holdr:compile-model:2.0.0-SNAPSHOT'
+  compile "me.tatarka.holdr:compile-model:${property('model.version')}"
 }
 
 jar {
   from("src/main/resources/META-INF") {
     include 'plugin.xml'
     into "META-INF"
-    filter { String line -> line.replaceAll("<version>(.+)</version>", "<version>${plugin_version}</version>") }
+    filter { String line -> line.replaceAll('\\$\\{(.*)\\}') { project.property(it[1]) } }
   }
 
   from { configurations.compile.collect { zipTree(it) } }

@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
-version = getProperty('model.version')
+version = property('model.version')
 sourceCompatibility = 1.6
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

@@ -190,6 +190,6 @@
     <orderEntry type="library" exported="" scope="PROVIDED" name="gradle-tooling-extension-impl" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="gradle-tooling-extension-api" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="gradle" level="project" />
-    <orderEntry type="library" exported="" name="compile-model-2.0.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="compile-model-1.1.0-SNAPSHOT" level="project" />
   </component>
 </module>
