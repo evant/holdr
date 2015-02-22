@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.augment.PsiAugmentProvider;
 import com.intellij.psi.impl.source.PsiExtensibleClass;
+import me.tatarka.holdr.intellij.plugin.psi.HoldrLightClass;
 import me.tatarka.holdr.intellij.plugin.psi.HoldrLightField;
 import me.tatarka.holdr.intellij.plugin.psi.HoldrLightMethodBuilder;
 import me.tatarka.holdr.model.Layout;
@@ -14,6 +15,7 @@ import me.tatarka.holdr.util.GeneratorUtils;
 import me.tatarka.holdr.util.GeneratorUtils.ListenerType;
 import me.tatarka.holdr.util.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -25,12 +27,8 @@ public class HoldrPsiAugmentProvider extends PsiAugmentProvider {
     @NotNull
     @Override
     public <Psi extends PsiElement> List<Psi> getAugments(@NotNull PsiElement element, @NotNull Class<Psi> type) {
-        if ((type != PsiClass.class && (type != PsiField.class && type != PsiMethod.class)) ||
+        if ((type != PsiClass.class && (type != PsiField.class && type != PsiMethod.class && type != PsiClass.class)) ||
                 !(element instanceof PsiExtensibleClass)) {
-            return Collections.emptyList();
-        }
-
-        if (type != PsiField.class && type != PsiMethod.class) {
             return Collections.emptyList();
         }
 
@@ -85,20 +83,46 @@ public class HoldrPsiAugmentProvider extends PsiAugmentProvider {
                         result.add((Psi) field);
                     }
                 }
+            } else if (type == PsiMethod.class) {
+                if (!hasOwnListenerMethod(holdrClass)) {
+                    PsiMethod listenerMethod = buildListenerMethod(holdrClass, layout);
+                    if (listenerMethod != null) {
+                        result.add((Psi) listenerMethod);
+                    }
+                }
+            } else if (type == PsiClass.class) {
+                if (!hasOwnListenerClass(holdrClass)) {
+                    PsiClass listenerClass = buildListenerClass(holdrClass, layout);
+                    if (listenerClass != null) {
+                        result.add((Psi) listenerClass);
+                    }
+                }
             }
         }
-
         return result;
     }
 
     @NotNull
-    private static Set<String> getOwnFields(@NotNull PsiExtensibleClass aClass) {
+    private static Set<String> getOwnFields(@NotNull PsiExtensibleClass holdrClass) {
         final Set<String> result = new HashSet<String>();
 
-        for (PsiField field : aClass.getOwnFields()) {
+        for (PsiField field : holdrClass.getOwnFields()) {
             result.add(field.getName());
         }
         return result;
+    }
+
+    private static boolean hasOwnListenerMethod(@NotNull PsiExtensibleClass holdrClass) {
+        for (PsiMethod method : holdrClass.getOwnMethods()) {
+            if (method.getName().equals("setListener")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasOwnListenerClass(@NotNull PsiExtensibleClass holdrClass) {
+        return !holdrClass.getOwnInnerClasses().isEmpty();
     }
 
     @NotNull
@@ -128,6 +152,39 @@ public class HoldrPsiAugmentProvider extends PsiAugmentProvider {
         return result;
     }
 
+    @Nullable
+    private static PsiMethod buildListenerMethod(@NotNull PsiClass context, @NotNull Layout layout) {
+        if (layout.getListeners().isEmpty()) {
+            return null;
+        }
+
+        HoldrLightMethodBuilder method = new HoldrLightMethodBuilder("setListener", context);
+        String listenerClassName = context.getQualifiedName() + ".Listener";
+        PsiType listenerClassType = HoldrPsiUtils.findType(listenerClassName, context.getProject());
+        if (listenerClassType == null) {
+            PsiClass listenerClass = buildListenerClass(context, layout);
+            if (listenerClass == null) {
+                return null;
+            }
+            JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(context.getProject());
+            listenerClassType = javaPsiFacade.getElementFactory().createType(listenerClass);
+        }
+        method.addParameter("listener", listenerClassType);
+        return method;
+    }
+
+    @Nullable
+    private static PsiClass buildListenerClass(@NotNull PsiClass context, @NotNull Layout layout) {
+         if (layout.getListeners().isEmpty()) {
+             return null;
+         }
+        HoldrLightClass listenerClass = new HoldrLightClass(context, "Listener");
+        List<PsiMethod> methods = buildListenerMethods(listenerClass, layout);
+        listenerClass.setMethods(methods);
+        return listenerClass;
+    }
+
+    @NotNull
     private static List<PsiMethod> buildListenerMethods(@NotNull PsiClass context, @NotNull Layout layout) {
         List<PsiMethod> result = new ArrayList<PsiMethod>();
 

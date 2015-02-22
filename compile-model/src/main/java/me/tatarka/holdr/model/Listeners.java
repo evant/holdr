@@ -45,7 +45,11 @@ public class Listeners implements Iterable<Listener> {
     public Iterator<Listener> iterator() {
         return listenerMap.keySet().iterator();
     }
-    
+
+    public boolean isEmpty() {
+        return listenerMap.isEmpty();
+    }
+
     public int size() {
         return listenerMap.size();
     }
