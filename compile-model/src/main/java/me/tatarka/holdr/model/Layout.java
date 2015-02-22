@@ -15,14 +15,14 @@ public abstract class Layout {
         return new Builder(path);
     }
     
-    public static CompositeLayout merge(SingleLayout... layouts) {
+    public static CompositeLayout merge(SingleLayout.Builder... layouts) {
         return merge(Arrays.asList(layouts));
     }
 
-    public static CompositeLayout merge(Iterable<SingleLayout> layouts) {
+    public static CompositeLayout merge(Iterable<SingleLayout.Builder> layouts) {
         CompositeLayout compositeLayout = new CompositeLayout();
-        for (SingleLayout layout : layouts) {
-            compositeLayout.put(layout);
+        for (Layout.Builder layout : layouts) {
+            compositeLayout.put(layout.build());
         }
         return compositeLayout;
     }
@@ -73,6 +73,16 @@ public abstract class Layout {
             }
         }
         return null;
+    }
+
+    public List<Include> getIncludes() {
+        List<Include> includes = new ArrayList<Include>();
+        for (Ref ref : getRefs()) {
+            if (ref instanceof Include) {
+                includes.add((Include) ref);
+            }
+        }
+        return includes;
     }
     
     public abstract LayoutInfo getLayoutInfo();

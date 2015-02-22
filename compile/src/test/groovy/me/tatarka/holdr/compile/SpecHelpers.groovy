@@ -6,6 +6,10 @@ import me.tatarka.holdr.model.HoldrConfig
 import me.tatarka.holdr.model.Layout
 
 class SpecHelpers {
+    public static File testPath(String name = "test") {
+        return new File(name);
+    }
+
     public static String xml(Closure f) {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)

@@ -7,16 +7,26 @@ import me.tatarka.holdr.model.Listener;
  */
 public class GeneratorUtils {
     public static enum Type {
-        VIEW_CLASS(),
+        VOID("void"),
+        BOOLEAN("boolean"),
+        INT("int"),
+        LONG("long"),
+
+        VIEW_CLASS("android.widget.View"),
         MOTION_EVENT("android.view.MotionEvent"),
         COMPOUND_BUTTON("android.widget.CompoundButton"),
         TEXT_VIEW("android.widget.TextView"),
         KEY_EVENT("android.view.KeyEvent"),
         ADAPTER_VIEW("android.widget.AdapterView"),
-        BOOLEAN("boolean"),
-        INT("int"),
-        LONG("long"),
-        VOID("void");
+
+        ON_TOUCH_LISTENER("android.view.View.OnTouchListener"),
+        ON_CLICK_LISTENER("android.view.View.OnClickListener"),
+        ON_LONG_CLICK_LISTENER("android.view.View.OnLongClickListener"),
+        ON_FOCUS_CHANGE_LISTENER("android.view.View.OnFocusChangeListener"),
+        ON_CHECKED_CHANGE_LISTENER("android.widget.CompoundButton.OnCheckedChangeListener"),
+        ON_EDITOR_ACTION_LISTENER("android.widget.TextView.OnEditorActionListener"),
+        ON_ITEM_CLICK_LISTENER("android.widget.AdapterView.OnItemClickListener"),
+        ON_ITEM_LONG_CLICK_LISTENER("android.widget.AdapterView.OnItemLongClickListener");
 
         private String className;
 
@@ -40,7 +50,7 @@ public class GeneratorUtils {
     public static enum ListenerType {
         ON_TOUCH(
                 "setOnTouchListener",
-                "android.view.View.OnTOuchListener",
+                Type.ON_TOUCH_LISTENER,
                 "onTouch",
                 new Pair[]{
                         Pair.create(Type.VIEW_CLASS, "view"),
@@ -52,14 +62,14 @@ public class GeneratorUtils {
 
         ON_CLICK(
                 "setOnClickListener",
-                "android.view.View.OnClickListener",
+                Type.ON_CLICK_LISTENER,
                 "onClick",
                 Pair.create(Type.VIEW_CLASS, "view")
         ),
 
         ON_LONG_CLICK(
                 "setOnLongClickListener",
-                "android.view.View.OnLongClickListener",
+                Type.ON_LONG_CLICK_LISTENER,
                 "onLongClick",
                 new Pair[]{
                         Pair.create(Type.VIEW_CLASS, "view")
@@ -70,7 +80,7 @@ public class GeneratorUtils {
 
         ON_FOCUS_CHANGE(
                 "setOnFocusChangeListener",
-                "android.view.View.OnFocusChangeListener",
+                Type.ON_FOCUS_CHANGE_LISTENER,
                 "onFocusChange",
                 Pair.create(Type.VIEW_CLASS, "view"),
                 Pair.create(Type.BOOLEAN, "hasFocus")
@@ -78,7 +88,7 @@ public class GeneratorUtils {
 
         ON_CHECKED_CHANGE(
                 "setOnCheckedChangeListener",
-                "android.widget.CompoundButton.OnCheckedChangeListener",
+                Type.ON_CHECKED_CHANGE_LISTENER,
                 "onCheckedChanged",
                 Pair.create(Type.COMPOUND_BUTTON, "view"),
                 Pair.create(Type.BOOLEAN, "isChecked")
@@ -86,7 +96,7 @@ public class GeneratorUtils {
 
         ON_EDITOR_ACTION(
                 "setOnEditorActionListener",
-                "android.widget.TextView.OnEditorActionListener",
+                Type.ON_EDITOR_ACTION_LISTENER,
                 "onEditorAction",
                 new Pair[]{
                         Pair.create(Type.TEXT_VIEW, "view"),
@@ -99,7 +109,7 @@ public class GeneratorUtils {
 
         ON_ITEM_CLICK(
                 "setOnItemClickListener",
-                "android.widget.AdapterView.OnItemClickListener",
+                Type.ON_ITEM_CLICK_LISTENER,
                 "onItemClick",
                 Pair.create(Type.ADAPTER_VIEW, "view"),
                 Pair.create(Type.VIEW_CLASS, "item"),
@@ -109,7 +119,7 @@ public class GeneratorUtils {
 
         ON_ITEM_LONG_CLICK(
                 "setOnItemLongClickListener",
-                "android.widget.AdapterView.OnItemLongClickListener",
+                Type.ON_ITEM_LONG_CLICK_LISTENER,
                 "onItemLongClick",
                 new Pair[]{
                         Pair.create(Type.ADAPTER_VIEW, "view"),
@@ -137,20 +147,20 @@ public class GeneratorUtils {
         }
 
         private String setter;
-        private String className;
+        private Type classType;
         private String methodName;
         private Pair<Type, String>[] params;
         private Type returnType;
         private Value defaultReturn;
 
         @SafeVarargs
-        ListenerType(String setter, String className, String methodName, Pair<Type, String>... params) {
-            this(setter, className, methodName, params, Type.VOID, null);
+        ListenerType(String setter, Type classType, String methodName, Pair<Type, String>... params) {
+            this(setter, classType, methodName, params, Type.VOID, null);
         }
 
-        ListenerType(String setter, String className, String methodName, Pair<Type, String>[] params, Type returnType, Value defaultReturn) {
+        ListenerType(String setter, Type classType, String methodName, Pair<Type, String>[] params, Type returnType, Value defaultReturn) {
             this.setter = setter;
-            this.className = className;
+            this.classType = classType;
             this.methodName = methodName;
             this.params = params;
             this.returnType = returnType;
@@ -161,8 +171,8 @@ public class GeneratorUtils {
             return setter;
         }
 
-        public String getClassName() {
-            return className;
+        public Type getClassType() {
+            return classType;
         }
 
         public String getMethodName() {

@@ -40,11 +40,9 @@ public class HoldrCompiler {
                 System.out.println("Holdr: processing " + layoutFile.getPath());
                 FileReader reader = null;
 
-                String layoutName = FileUtils.stripExtension(layoutFile.getName());
-
                 try {
                     reader = new FileReader(layoutFile);
-                    layouts.add(parser.parse(layoutName, reader));
+                    layouts.put(parser.parse(layoutFile, reader));
                 } finally {
                     if (reader != null) reader.close();
                 }

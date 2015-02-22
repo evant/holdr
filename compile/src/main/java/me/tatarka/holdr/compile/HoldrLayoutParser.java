@@ -2,15 +2,13 @@ package me.tatarka.holdr.compile;
 
 import me.tatarka.holdr.model.HoldrConfig;
 import me.tatarka.holdr.model.Layout;
+import me.tatarka.holdr.model.SingleLayout;
 import me.tatarka.holdr.util.ParserUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringReader;
+import java.io.*;
 
 public class HoldrLayoutParser implements Serializable {
 
@@ -21,12 +19,12 @@ public class HoldrLayoutParser implements Serializable {
         this.config = config;
     }
 
-    public Layout.Builder parse(String layoutName, String res) throws IOException {
-        return parse(layoutName, new StringReader(res));
+    public SingleLayout parse(File path, String res) throws IOException {
+        return parse(path, new StringReader(res));
     }
 
-    public Layout.Builder parse(String layoutName, Reader res) throws IOException {
-        Layout.Builder parsedLayoutBuilder = Layout.of(layoutName);
+    public SingleLayout parse(File path, Reader res) throws IOException {
+        Layout.Builder layoutBuilder = Layout.of(path);
 
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -58,13 +56,13 @@ public class HoldrLayoutParser implements Serializable {
 
             while ((tag = parser.next()) != XmlPullParser.END_DOCUMENT) {
                 if (tag == XmlPullParser.START_TAG) {
-                    ParserUtils.parseTag(config, parsedLayoutBuilder, state, tagParser);
+                    ParserUtils.parseTag(config, layoutBuilder, state, tagParser);
                 } else if (tag == XmlPullParser.END_TAG) {
                     state.tagEnd(parser.getName());
                 }
             }
 
-            return parsedLayoutBuilder;
+            return layoutBuilder.build();
         } catch (XmlPullParserException e) {
             throw new IOException(e);
         }

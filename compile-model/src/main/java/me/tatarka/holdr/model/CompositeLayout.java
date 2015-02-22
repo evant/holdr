@@ -13,14 +13,26 @@ public class CompositeLayout extends Layout {
     private LayoutInfo layoutInfo;
     private List<Ref> refs;
     private Listeners listeners;
-    
+
+    public static CompositeLayout of(Layout.Builder... layoutBuilders) {
+        return of(Arrays.asList(layoutBuilders));
+    }
+
+    public static CompositeLayout of(Iterable<Layout.Builder> layoutBuilders) {
+        CompositeLayout compositeLayout = new CompositeLayout();
+        for (Layout.Builder layoutBuilder : layoutBuilders) {
+            compositeLayout.put(layoutBuilder.build());
+        }
+        return compositeLayout;
+    }
+
     public void put(SingleLayout layout) {
         Layout oldLayout = this.layouts.put(layout.getPath(), layout);
         if (!isDirty) {
             isDirty = oldLayout == null || !oldLayout.equals(layout);
         }
     }
-    
+
     public void remove(SingleLayout layout) {
         Layout removedLayout = this.layouts.remove(layout.getPath());
         if (!isDirty) {
@@ -45,7 +57,7 @@ public class CompositeLayout extends Layout {
         ensureMerged();
         return listeners;
     }
-    
+
     private void ensureMerged() {
         if (refs != null && listeners != null && !isDirty) {
             return;

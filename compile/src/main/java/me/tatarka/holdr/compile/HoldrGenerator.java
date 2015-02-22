@@ -18,6 +18,7 @@ import static com.sun.codemodel.JMod.*;
 
 public class HoldrGenerator implements Serializable {
     public static final String CLASS_PREFIX = "Holdr_";
+    private static Map<GeneratorUtils.Type, JType> JTYPE_MAP = new HashMap<GeneratorUtils.Type, JType>();
 
     private final HoldrConfig config;
 
@@ -138,7 +139,7 @@ public class HoldrGenerator implements Serializable {
                 for (Listener listener : listeners.forView(view)) {
                     ListenerType listenerType = listenerTypeMap.get(listener.type);
 
-                    JDefinedClass listenerClass = r.m.anonymousClass(r.ref(listenerType.getClassName()));
+                    JDefinedClass listenerClass = r.m.anonymousClass((JClass) toJType(r, listenerType.getClassType()));
 
                     JMethod method = listenerClass.method(PUBLIC, toJType(r, listenerType.getReturnType()), listenerType.getMethodName());
 
@@ -270,8 +271,18 @@ public class HoldrGenerator implements Serializable {
                 return r.m.LONG;
             case VOID:
                 return r.m.VOID;
+            case VIEW_CLASS:
+                return r.viewClass;
             default:
-                return r.ref(type.getClassName());
+                // We want to cache JTypes or imports get all weird
+                JType result = JTYPE_MAP.get(type);
+                if (result != null) {
+                    return result;
+                } else {
+                    result = r.ref(type.getClassName());
+                    JTYPE_MAP.put(type, result);
+                    return result;
+                }
         }
     }
 }
