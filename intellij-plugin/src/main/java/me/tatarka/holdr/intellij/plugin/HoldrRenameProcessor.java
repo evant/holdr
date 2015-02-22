@@ -4,15 +4,19 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import me.tatarka.holdr.model.Layout;
+import me.tatarka.holdr.model.Ref;
+import me.tatarka.holdr.util.ParserUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -89,12 +93,38 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
             return;
         }
 
+        Ref ref = layout.findRefByFieldName(holdrField.getName());
         List<XmlAttributeValue> elements = HoldrPsiUtils.findIdReferences(layout, holdrClass, holdrField.getName());
-        String idName = "@+id/" + holdrModel.getFieldIdName(newName);
 
-        for (PsiElement element : elements) {
-            allRenames.put(element, idName);
+        if (ref.isFieldNameCustom) {
+            // We should rename the custom attr instead
+
+            for (XmlAttributeValue element: elements) {
+                PsiElement renameElement = findHoldrFieldName(element);
+                if (renameElement != null) {
+                    allRenames.put(renameElement, newName);
+                }
+            }
+        } else {
+            String idName = "@+id/" + holdrModel.getFieldIdName(newName);
+
+            for (PsiElement element : elements) {
+                allRenames.put(element, idName);
+            }
         }
+    }
+
+    @Nullable
+    private static XmlAttributeValue findHoldrFieldName(XmlAttributeValue id) {
+        for (PsiElement element : id.getParent().getParent().getChildren()) {
+            if (element instanceof XmlAttribute) {
+                XmlAttribute attribute = (XmlAttribute) element;
+                if (attribute.getNamespace().equals(ParserUtils.APP_NS) && attribute.getLocalName().equals(ParserUtils.HOLDR_FIELD_NAME)) {
+                    return attribute.getValueElement();
+                }
+            }
+        }
+        return null;
     }
 
     private void renameHoldrFile(HoldrModel holdrModel, PsiElement element, String newName, Map<PsiElement, String> allRenames) {
