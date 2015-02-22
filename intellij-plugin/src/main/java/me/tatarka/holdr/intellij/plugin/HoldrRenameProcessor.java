@@ -1,18 +1,16 @@
 package me.tatarka.holdr.intellij.plugin;
 
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
+import me.tatarka.holdr.model.Layout;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,84 +80,20 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
     }
 
     private void renameHoldrField(final HoldrModel holdrModel, PsiField holdrField, final String newName, final Map<PsiElement, String> allRenames) {
-        final PsiClass holdrClass = (PsiClass) holdrField.getParent();
+        PsiClass holdrClass = (PsiClass) holdrField.getParent();
 
         String layoutName = holdrModel.getLayoutName(holdrClass);
-        PsiManager manager = PsiManager.getInstance(holdrField.getProject());
-        List<PsiFile> layoutFiles = new ArrayList<PsiFile>();
-        
-        AndroidFacet androidFacet = AndroidFacet.getInstance(holdrField);
-        if (androidFacet == null) {
+
+        Layout layout = HoldrLayoutManager.getInstance(holdrField.getProject()).getLayout(layoutName);
+        if (layout == null) {
             return;
         }
 
-        for (VirtualFile resDirs : androidFacet.getAllResourceDirectories()) {
-            for (VirtualFile resDir : resDirs.getChildren()) {
-                if (!HoldrAndroidUtils.isUserLayoutDir(holdrField.getProject(), resDir)) {
-                    continue;
-                }
+        List<XmlAttributeValue> elements = HoldrPsiUtils.findIdReferences(layout, holdrClass, holdrField.getName());
+        String idName = "@+id/" + holdrModel.getFieldIdName(newName);
 
-                PsiDirectory dir = manager.findDirectory(resDir);
-                if (dir == null) {
-                    continue;
-                }
-                
-                for (PsiFile file : dir.getFiles()) {
-                    if (layoutName.equals(FileUtil.getNameWithoutExtension(file.getName()))) {
-                        layoutFiles.add(file);
-                    }
-                }
-            }
-        }
-
-        if (!layoutFiles.isEmpty()) {
-            final PsiReferenceExpression fieldId = HoldrPsiUtils.findIdForField(holdrClass, holdrField.getName());
-            if (fieldId == null) {
-                return;
-            }
-
-            for (PsiFile file : layoutFiles) {
-                file.accept(new XmlRecursiveElementVisitor() {
-                    @Override
-                    public void visitXmlAttribute(XmlAttribute attribute) {
-                        super.visitXmlAttribute(attribute);
-
-                        XmlAttributeValue attributeValue = attribute.getValueElement();
-                        if (attributeValue == null) {
-                            return;
-                        }
-
-                        if (!AndroidResourceUtil.isIdDeclaration(attributeValue)) {
-                            return;
-                        }
-
-                        if (HoldrAndroidUtils.areIdsEquivalent(fieldId.getText(), attributeValue.getValue())) {
-                            XmlAttribute holdrFieldName = attribute.getParent().getAttribute("holdr_field_name", "http://schemas.android.com/apk/res-auto");
-
-                            String fieldName = holdrModel.getFieldIdName(newName);
-
-                            if (holdrFieldName != null) {
-                                allRenames.put(holdrFieldName.getValueElement(), newName);
-                            } else {
-                                String idName = fieldName;
-
-                                if (attributeValue.getValue().startsWith("@android:id/")) {
-                                    idName = "@android:id/" + idName;
-                                } else {
-                                    idName = "@+id/" + idName;
-                                }
-
-                                allRenames.put(attributeValue, idName);
-
-//                                PsiField[] rFields = AndroidResourceUtil.findIdFields(attributeValue);
-//                                for (PsiField field : rFields) {
-//                                    allRenames.put(field, fieldName);
-//                                }
-                            }
-                        }
-                    }
-                });
-            }
+        for (PsiElement element : elements) {
+            allRenames.put(element, idName);
         }
     }
 
@@ -175,14 +109,14 @@ public class HoldrRenameProcessor extends RenamePsiElementProcessor {
         if (holdrClassName == null) {
             return;
         }
-        
+
         AndroidFacet androidFacet = AndroidFacet.getInstance(element);
         if (androidFacet == null) {
             return;
         }
-        
-        JavaPsiFacade javaPsiFacade =  JavaPsiFacade.getInstance(element.getProject());
-        
+
+        JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(element.getProject());
+
         PsiClass holdrClass = javaPsiFacade.findClass(holdrClassName, GlobalSearchScope.moduleScope(androidFacet.getModule()));
         if (holdrClass == null) {
             return;

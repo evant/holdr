@@ -1,6 +1,7 @@
 package me.tatarka.holdr.compile;
 
-import me.tatarka.holdr.compile.model.Include;
+import me.tatarka.holdr.model.Include;
+import me.tatarka.holdr.model.Layout;
 
 /**
  * Created by evan on 1/17/15.

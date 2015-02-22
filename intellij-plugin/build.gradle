@@ -36,8 +36,7 @@ dependencies {
   provided studio_libs
   provided fileTree(dir: "$studio_path/plugins/android/lib", include: '*.jar')
   provided fileTree(dir: "$studio_path/plugins/gradle/lib", include: '*.jar')
-  // Use older version of the model for backwards compat.
-  compile 'me.tatarka.holdr:compile-model:1.0.0'
+  compile 'me.tatarka.holdr:compile-model:2.0.0-SNAPSHOT'
 }
 
 jar {

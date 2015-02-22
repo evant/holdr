@@ -1,7 +1,8 @@
 package me.tatarka.holdr.compile;
 
-import me.tatarka.holdr.compile.util.FileUtils;
+import me.tatarka.holdr.util.FileUtils;
 import me.tatarka.holdr.model.HoldrConfig;
+import me.tatarka.holdr.model.Layout;
 
 import java.io.*;
 import java.util.ArrayList;

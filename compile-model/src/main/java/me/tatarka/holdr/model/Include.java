@@ -1,8 +1,8 @@
-package me.tatarka.holdr.compile.model;
+package me.tatarka.holdr.model;
 
 import java.util.Map;
 
-import me.tatarka.holdr.compile.util.Objects;
+import me.tatarka.holdr.util.Objects;
 
 public class Include extends Ref {
     public final String layout;

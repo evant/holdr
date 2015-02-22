@@ -1,13 +1,10 @@
 package me.tatarka.holdr.intellij.plugin;
 
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.google.common.base.CaseFormat;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import me.tatarka.holdr.model.HoldrConfig;
@@ -15,8 +12,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
 
 /**
  * Created by evan on 9/27/14.
@@ -83,18 +78,18 @@ public class HoldrModel {
     }
 
     public void compile(AndroidFacet androidFacet) {
-        GradleInvoker invoker = GradleInvoker.getInstance(androidFacet.getModule().getProject());
-
-        IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-        String variantName;
-        if (ideaAndroidProject != null) {
-            variantName = StringUtil.capitalize(androidFacet.getIdeaAndroidProject().getSelectedVariant().getName());
-        } else {
-            variantName = "Debug";
-        }
-
-        String taskName = "generate" + variantName + "Holdr";
-        invoker.executeTasks(Collections.singletonList(taskName));
+//        GradleInvoker invoker = GradleInvoker.getInstance(androidFacet.getModule().getProject());
+//
+//        IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
+//        String variantName;
+//        if (ideaAndroidProject != null) {
+//            variantName = StringUtil.capitalize(androidFacet.getIdeaAndroidProject().getSelectedVariant().getName());
+//        } else {
+//            variantName = "Debug";
+//        }
+//
+//        String taskName = "generate" + variantName + "Holdr";
+//        invoker.executeTasks(Collections.singletonList(taskName));
     }
 
     public boolean isHoldrClass(@NotNull PsiClass psiClass) {
@@ -131,6 +126,10 @@ public class HoldrModel {
 
     public void setConfig(HoldrConfig config) {
         myConfig = config;
+    }
+    
+    public AndroidFacet getAndroidFacet() {
+        return myAndroidFacet;
     }
 
     private static class DefaultHoldrConfig implements HoldrConfig {

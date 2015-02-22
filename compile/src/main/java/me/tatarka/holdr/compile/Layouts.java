@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import me.tatarka.holdr.compile.model.Include;
+import me.tatarka.holdr.model.Include;
+import me.tatarka.holdr.model.Layout;
 
 /**
  * Created by evan on 8/23/14.

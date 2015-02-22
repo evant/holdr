@@ -190,11 +190,6 @@
     <orderEntry type="library" exported="" scope="PROVIDED" name="gradle-tooling-extension-impl" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="gradle-tooling-extension-api" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="gradle" level="project" />
-    <orderEntry type="library" exported="" name="compile-model-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="codemodel-2.6" level="project" />
-    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
-    <orderEntry type="library" exported="" name="kxml2-2.3.0" level="project" />
-    <orderEntry type="library" exported="" name="commons-io-2.4" level="project" />
+    <orderEntry type="library" exported="" name="compile-model-2.0.0-SNAPSHOT" level="project" />
   </component>
 </module>
-

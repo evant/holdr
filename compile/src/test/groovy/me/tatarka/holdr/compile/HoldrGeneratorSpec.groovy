@@ -1,8 +1,9 @@
 package me.tatarka.holdr.compile
 
-import me.tatarka.holdr.compile.model.Include
-import me.tatarka.holdr.compile.model.Listener
-import me.tatarka.holdr.compile.model.View
+import me.tatarka.holdr.model.Include
+import me.tatarka.holdr.model.Layout
+import me.tatarka.holdr.model.Listener
+import me.tatarka.holdr.model.View
 import spock.lang.Shared
 import spock.lang.Specification
 

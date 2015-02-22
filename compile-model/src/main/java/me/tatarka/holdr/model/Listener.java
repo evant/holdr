@@ -1,27 +1,18 @@
-package me.tatarka.holdr.compile.model;
+package me.tatarka.holdr.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ListResourceBundle;
-
-import me.tatarka.holdr.compile.util.FormatUtils;
-import me.tatarka.holdr.compile.util.Objects;
+import me.tatarka.holdr.util.FormatUtils;
+import me.tatarka.holdr.util.Objects;
 
 /**
  * Created by evan on 8/31/14.
  */
 public class Listener {
-    @NotNull
     public final Type type;
-    @NotNull
     public final String name;
-    @NotNull
     public final String viewType;
-    @NotNull
     public final String viewName;
 
-    private Listener(@NotNull Type type, @NotNull String name, @NotNull String viewType, @NotNull String viewName) {
+    private Listener(Type type, String name, String viewType, String viewName) {
         this.type = type;
         this.name = name;
         this.viewType = viewType;
@@ -52,15 +43,13 @@ public class Listener {
     }
 
     public static class Builder {
-        @NotNull
         private Type type;
-        @Nullable
         private String name;
 
-        private Builder(@NotNull Type type) {
+        private Builder(Type type) {
             this.type = type;
         }
-        
+
         private Builder(Listener listener) {
             this.type = listener.type;
             this.name = listener.name;
@@ -71,7 +60,7 @@ public class Listener {
             return this;
         }
 
-        public Listener build(@NotNull String fieldName, @NotNull String viewType, @NotNull String viewName) {
+        public Listener build(String fieldName, String viewType, String viewName) {
             if (name == null) name = nameFromView(type, fieldName);
             return new Listener(type, name, viewType, viewName);
         }
@@ -79,7 +68,7 @@ public class Listener {
         private static String nameFromView(Listener.Type type, String fieldName) {
             return "on" + FormatUtils.capiatalize(fieldName) + type.nameSuffix();
         }
-        
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -87,7 +76,7 @@ public class Listener {
             Builder builder = (Builder) o;
             return name != null && builder.name != null && name.equals(builder.name);
         }
-        
+
         @Override
         public int hashCode() {
             return name != null ? Objects.hashCode(name) : 0;
@@ -99,9 +88,9 @@ public class Listener {
         ON_CLICK("Click"), ON_LONG_CLICK("LongClick"),
         ON_FOCUS_CHANGE("FocusChange"), ON_CHECKED_CHANGE("CheckedChanged"), ON_EDITOR_ACTION("EditorAction"),
         ON_ITEM_CLICK("ItemClick"), ON_ITEM_LONG_CLICK("ItemLongClick");
-        
+
         public final String name;
-        
+
         Type(String name) {
             this.name = name;
         }

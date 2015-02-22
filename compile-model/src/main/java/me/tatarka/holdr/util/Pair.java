@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package me.tatarka.holdr.compile.util;
+package me.tatarka.holdr.util;
 
 /**
  * Container to ease passing around a tuple of two objects. This object provides a sensible

@@ -1,4 +1,4 @@
-package me.tatarka.holdr.compile.util;
+package me.tatarka.holdr.util;
 
 import java.io.File;
 

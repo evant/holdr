@@ -1,13 +1,10 @@
-package me.tatarka.holdr.compile.model;
+package me.tatarka.holdr.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import me.tatarka.holdr.util.FormatUtils;
+import me.tatarka.holdr.util.Objects;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import me.tatarka.holdr.compile.util.FormatUtils;
-import me.tatarka.holdr.compile.util.Objects;
 
 public abstract class Ref {
     public final String id;
@@ -33,7 +30,7 @@ public abstract class Ref {
         return (isAndroidId ? "android:" : "") + id;
     }
 
-    public static Ref merge(String layoutName, @Nullable Ref oldRef, @Nullable Ref newRef) {
+    public static Ref merge(String layoutName, Ref oldRef, Ref newRef) {
         if (oldRef == null && newRef == null) {
             throw new IllegalArgumentException("At least one of the refs to merge must not be null");
         }
@@ -70,15 +67,15 @@ public abstract class Ref {
 
         throw new IllegalArgumentException("Cannot merge view with include (id '" + oldRef.id + "' in layout '" + layoutName + "').");
     }
-    
-    private static View mergeViews(String layoutName, @NotNull View oldView, @NotNull View newView) {
+
+    private static View mergeViews(String layoutName, View oldView, View newView) {
         String type = oldView.type.equals(newView.type) ? oldView.type : "android.view.View";
-        View.Builder view =  View.of(type, oldView);
+        View.Builder view = View.of(type, oldView);
         view.fieldName(mergeFieldNames(layoutName, oldView, newView));
         return view.build();
     }
-    
-    private static String mergeFieldNames(String layoutName, @NotNull Ref oldRef, @NotNull Ref newRef) {
+
+    private static String mergeFieldNames(String layoutName, Ref oldRef, Ref newRef) {
         if (oldRef.isFieldNameCustom || newRef.isFieldNameCustom) {
             if (oldRef.isFieldNameCustom && newRef.isFieldNameCustom) {
                 if (oldRef.fieldName.equals(newRef.fieldName)) {
@@ -157,7 +154,7 @@ public abstract class Ref {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Ref ref = (Ref) o;
-        
+
         return id.equals(ref.id)
                 && fieldName.equals(ref.fieldName)
                 && isAndroidId == ref.isAndroidId

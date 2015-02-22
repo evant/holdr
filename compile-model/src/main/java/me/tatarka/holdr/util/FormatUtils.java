@@ -1,4 +1,4 @@
-package me.tatarka.holdr.compile.util;
+package me.tatarka.holdr.util;
 
 public class FormatUtils {
     private static String underscoreToCamel(String input, boolean firstLetterUppercase) {

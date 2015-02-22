@@ -1,10 +1,10 @@
-package me.tatarka.holdr.compile.model;
+package me.tatarka.holdr.model;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-import me.tatarka.holdr.compile.util.Objects;
+import me.tatarka.holdr.util.Objects;
 
 public class View extends Ref {
     public final String type;

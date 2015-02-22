@@ -46,6 +46,8 @@
         <gotoDeclarationHandler implementation="me.tatarka.holdr.intellij.plugin.HoldrGotoDeclarationHandler"/>
         <renamePsiElementProcessor implementation="me.tatarka.holdr.intellij.plugin.HoldrRenameProcessor" order="first"/>
         <projectService serviceImplementation="me.tatarka.holdr.intellij.plugin.HoldrConfigPersister"/>
+        <lang.psiAugmentProvider implementation="me.tatarka.holdr.intellij.plugin.HoldrPsiAugmentProvider"/>
+        <fileBasedIndex implementation="me.tatarka.holdr.intellij.plugin.HoldrLayoutIndex"/>
     </extensions>
 
     <application-components>

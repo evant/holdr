@@ -1,8 +1,9 @@
 package me.tatarka.holdr.compile
 
 import groovy.xml.MarkupBuilder
-import me.tatarka.holdr.compile.model.Include
+import me.tatarka.holdr.model.Include
 import me.tatarka.holdr.model.HoldrConfig
+import me.tatarka.holdr.model.Layout
 
 class SpecHelpers {
     public static String xml(Closure f) {
