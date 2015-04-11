@@ -180,7 +180,7 @@ public class HoldrGenerator implements Serializable {
                 body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
             } else if (ref instanceof Include) {
                 JClass includeType = r.ref(getClassName(((Include) ref).layout));
-                body.assign(fieldVar, _new(includeType).arg(viewVar));
+                body.assign(fieldVar, _new(includeType).arg(viewVar.invoke("findViewById").arg(idVar)));
             }
         }
     }
