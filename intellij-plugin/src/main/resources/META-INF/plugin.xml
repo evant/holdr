@@ -11,6 +11,8 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.2.0</h3>
+        <li>Change to psi-augmentation for holdr classes. This means gradle refreshing is no longer necessary.</li>
         <h3>1.1.2</h3>
         <ul>
         <li>Fixed wrongly generating Holdr for library layout files in some cases.</li>
