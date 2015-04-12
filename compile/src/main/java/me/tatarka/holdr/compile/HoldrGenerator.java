@@ -1,10 +1,11 @@
 package me.tatarka.holdr.compile;
 
 import com.sun.codemodel.*;
-import me.tatarka.holdr.compile.model.*;
-import me.tatarka.holdr.compile.util.FormatUtils;
-import me.tatarka.holdr.compile.util.Pair;
-import me.tatarka.holdr.model.HoldrConfig;
+import me.tatarka.holdr.model.*;
+import me.tatarka.holdr.util.FormatUtils;
+import me.tatarka.holdr.util.GeneratorUtils;
+import me.tatarka.holdr.util.GeneratorUtils.ListenerType;
+import me.tatarka.holdr.util.Pair;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -17,39 +18,39 @@ import static com.sun.codemodel.JMod.*;
 
 public class HoldrGenerator implements Serializable {
     public static final String CLASS_PREFIX = "Holdr_";
-    public static final String HOLDR_SUPERCLASS = "me.tatarka.holdr.Holdr";
+    private static Map<GeneratorUtils.Type, JType> JTYPE_MAP = new HashMap<GeneratorUtils.Type, JType>();
 
     private final HoldrConfig config;
 
     public HoldrGenerator(HoldrConfig config) {
         this.config = config;
     }
-    
-    public String generate(Layout layout) throws IOException {
+
+    public String generate(Layout layout, IncludeResolver includeResolver) throws IOException {
         StringWriter writer = new StringWriter();
-        generate(layout, writer);
+        generate(layout, includeResolver, writer);
         return writer.toString();
     }
 
-    public void generate(Layout layout, Writer writer) throws IOException {
+    public void generate(Layout layout, IncludeResolver includeResolver, Writer writer) throws IOException {
         JCodeModel m = new JCodeModel();
         JPackage pkg = m._package(config.getHoldrPackage());
 
         try {
-            Refs r = new Refs(m, config.getManifestPackage(), layout.name, layout.superclass);
+            Refs r = new Refs(m, config.getManifestPackage(), layout.getName(), layout.getSuperclass());
 
             // public class MyLayoutViewModel {
-            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layout.name))._extends(r.viewHolder);
+            JDefinedClass clazz = pkg._class(PUBLIC, getClassName(layout.getName()))._extends(r.viewHolder);
 
             // public static final int LAYOUT = R.id.my_layout;
             JFieldVar layoutVar = clazz.field(PUBLIC | STATIC | FINAL, m.INT, "LAYOUT", r.layoutRef);
 
-            Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, layout.refs);
-            
-            Map<Listener.Type, ListenerType> listenerTypeMap = createListenerTypeMap(r);
-            
+            Map<Ref, JFieldVar> fieldVarMap = genFields(r, clazz, layout.getRefs());
+
+            Map<Listener.Type, ListenerType> listenerTypeMap = createListenerTypeMap();
+
             // public interface Listener {
-            JClass listenerInterface = genListenerInterface(r, clazz, layout.listeners, listenerTypeMap);
+            JClass listenerInterface = genListenerInterface(r, clazz, layout.getListeners(), listenerTypeMap);
             // }
             JFieldVar holdrListener = null;
             if (listenerInterface != null) {
@@ -57,8 +58,8 @@ public class HoldrGenerator implements Serializable {
                 holdrListener = clazz.field(PRIVATE, listenerInterface, "_holdrListener");
             }
 
-            genConstructor(r, clazz, layout.refs, layout.listeners, fieldVarMap, holdrListener, listenerTypeMap);
-            
+            genConstructor(r, clazz, layout.getRefs(), layout.getListeners(), fieldVarMap, holdrListener, includeResolver, listenerTypeMap);
+
             // public void setListener(Listener listener) {
             genSetListener(r, clazz, listenerInterface, holdrListener);
 
@@ -68,10 +69,10 @@ public class HoldrGenerator implements Serializable {
         }
     }
 
-    private Map<Listener.Type,ListenerType> createListenerTypeMap(Refs r) {
+    private Map<Listener.Type, ListenerType> createListenerTypeMap() {
         Map<Listener.Type, ListenerType> map = new HashMap<Listener.Type, ListenerType>();
         for (Listener.Type type : Listener.Type.values()) {
-            map.put(type, new ListenerType(r, type));
+            map.put(type, ListenerType.fromType(type));
         }
         return map;
     }
@@ -102,7 +103,7 @@ public class HoldrGenerator implements Serializable {
         return fieldVarMap;
     }
 
-    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Listeners listeners, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, Map<Listener.Type, ListenerType> listenerTypeMap) {
+    private void genConstructor(Refs r, JDefinedClass clazz, Collection<Ref> refs, Listeners listeners, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holderListener, IncludeResolver includeResolver, Map<Listener.Type, ListenerType> listenerTypeMap) {
         // private MyLayoutViewModel(View view) {
         JMethod constructor = clazz.constructor(PUBLIC);
         JVar viewVar = constructor.param(r.viewClass, "view");
@@ -113,8 +114,8 @@ public class HoldrGenerator implements Serializable {
 
         // myLinearLayout = (LinearLayout) view.findViewById(R.id.my_linear_layout);
         // myTextView = (TextView) myLinearLayout.findViewById(R.id.my_text_view);
-        genInitFields(r, fieldVarMap, viewVar, refs, body);
-        
+        genInitFields(r, fieldVarMap, viewVar, refs, includeResolver, body);
+
         // myButton.setOnClickListener((view) -> { if (_holderListener != null) _holderListener.onMyButtonClick(myButton); });
         genListeners(r, fieldVarMap, holderListener, refs, listeners, body, listenerTypeMap);
 
@@ -125,53 +126,53 @@ public class HoldrGenerator implements Serializable {
 
     private void genListeners(Refs r, Map<Ref, JFieldVar> fieldVarMap, JFieldVar holdrListener, Collection<Ref> refs, Listeners listeners, JBlock body, Map<Listener.Type, ListenerType> listenerTypeMap) {
         if (holdrListener == null) return;
-        
+
         for (Ref ref : refs) {
             if (ref instanceof View) {
                 JFieldVar fieldVar = fieldVarMap.get(ref);
                 View view = (View) ref;
-                
+
                 if (view.isNullable) {
                     body = body._if(fieldVar.ne(_null()))._then();
                 }
 
                 for (Listener listener : listeners.forView(view)) {
                     ListenerType listenerType = listenerTypeMap.get(listener.type);
-                    
-                    JDefinedClass listenerClass = r.m.anonymousClass(listenerType.classType);
-                    
-                    JMethod method = listenerClass.method(PUBLIC, listenerType.methodReturn, listenerType.methodName);
-                    
+
+                    JDefinedClass listenerClass = r.m.anonymousClass((JClass) toJType(r, listenerType.getClassType()));
+
+                    JMethod method = listenerClass.method(PUBLIC, toJType(r, listenerType.getReturnType()), listenerType.getMethodName());
+
                     List<JVar> params = new ArrayList<JVar>();
-                    for (Pair<JType, String> arg : listenerType.methodParams) {
-                        JVar param = method.param(arg.first, arg.second);
+                    for (Pair<GeneratorUtils.Type, String> arg : listenerType.getParams()) {
+                        JVar param = method.param(toJType(r, arg.first), arg.second);
                         params.add(arg.second.equals("view") ? fieldVar : param);
                     }
-                    
+
                     method.annotate(r.overrideAnnotation);
                     JBlock innerBody = method.body();
                     JBlock innerIf = innerBody._if(holdrListener.ne(_null()))._then();
-                    
+
                     JInvocation invokeHoldrListener;
-                    if (listenerType.defaultReturn == null) {
+                    if (listenerType.getDefaultReturn() == null) {
                         invokeHoldrListener = innerIf.invoke(holdrListener, listener.name);
                     } else {
                         invokeHoldrListener = holdrListener.invoke(listener.name);
                         innerIf._return(invokeHoldrListener);
-                        innerBody._return(listenerType.defaultReturn);
+                        innerBody._return(FALSE /*Currently only return type value*/);
                     }
 
                     for (JVar param : params) {
                         invokeHoldrListener.arg(param);
                     }
-                    
-                    body.invoke(fieldVar, listenerType.setter).arg(_new(listenerClass));
+
+                    body.invoke(fieldVar, listenerType.getSetter()).arg(_new(listenerClass));
                 }
             }
         }
     }
 
-    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Collection<Ref> refs, JBlock body) {
+    private void genInitFields(Refs r, Map<Ref, JFieldVar> fieldVarMap, JVar viewVar, Collection<Ref> refs, IncludeResolver includeResolver, JBlock body) {
         for (Ref ref : refs) {
             JFieldVar fieldVar = fieldVarMap.get(ref);
             JFieldRef idVar = (ref.isAndroidId ? r.androidRClass : r.rClass).staticRef("id").ref(ref.id);
@@ -179,14 +180,28 @@ public class HoldrGenerator implements Serializable {
                 JClass viewType = r.ref(((View) ref).type);
                 body.assign(fieldVar, cast(viewType, viewVar.invoke("findViewById").arg(idVar)));
             } else if (ref instanceof Include) {
-                JClass includeType = r.ref(getClassName(((Include) ref).layout));
-                body.assign(fieldVar, _new(includeType).arg(viewVar));
+                Include include = (Include) ref;
+                JClass includeType = r.ref(getClassName(include.layout));
+                Layout includeLayout = includeResolver.resolveInclude(include);
+
+                if (includeLayout == null) {
+                    throw new IllegalStateException("Cannot find included layout: " + include.layout);
+                }
+
+                if (includeLayout.isRootMerge()) {
+                    // findViewById is not safe if the root tag of the included layout is a merge.
+                    // instead, just use the current view, which should be 'good enough'
+                    body.assign(fieldVar, _new(includeType).arg(viewVar));
+                } else {
+                    body.assign(fieldVar, _new(includeType).arg(viewVar.invoke("findViewById").arg(idVar)));
+                }
             }
         }
     }
+
     private JClass genListenerInterface(Refs r, JDefinedClass clazz, Listeners listeners, Map<Listener.Type, ListenerType> listenerTypeMap) throws JClassAlreadyExistsException {
         JDefinedClass listenerInterface = null;
-        
+
         for (Listener listener : listeners) {
             if (listenerInterface == null) {
                 listenerInterface = clazz._interface(PUBLIC, "Listener");
@@ -194,17 +209,17 @@ public class HoldrGenerator implements Serializable {
 
             ListenerType listenerType = listenerTypeMap.get(listener.type);
 
-            JMethod method = listenerInterface.method(PUBLIC, listenerType.methodReturn, listener.name);
-            for (Pair<JType, String> param : listenerType.methodParams) {
+            JMethod method = listenerInterface.method(PUBLIC, toJType(r, listenerType.getReturnType()), listener.name);
+            for (Pair<GeneratorUtils.Type, String> param : listenerType.getParams()) {
                 if (param.second.equals("view")) {
-                    // Replace view with reference to the field.  
+                    // Replace view with reference to the field.
                     method.param(r.ref(listener.viewType), listener.viewName);
                 } else {
-                    method.param(param.first, param.second);
+                    method.param(toJType(r, param.first), param.second);
                 }
             }
         }
-        
+
         return listenerInterface;
     }
 
@@ -245,107 +260,29 @@ public class HoldrGenerator implements Serializable {
             return m.ref(className);
         }
     }
-    
-    private static class ListenerType {
-        public final String setter;
-        public final JClass classType;
-        public final String methodName;
-        public final List<Pair<JType, String>> methodParams;
-        public final JType methodReturn;
-        public final JExpression defaultReturn;
 
-        public ListenerType(Refs r, Listener.Type type) {
-            switch (type) {
-                case ON_TOUCH:
-                    setter = "setOnTouchListener";
-                    classType = r.ref("android.view.View.OnTouchListener");
-                    methodName = "onTouch";
-                    methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.viewClass, "view"),
-                            new Pair<JType, String>(r.ref("android.view.MotionEvent"), "event")
-                    );
-                    methodReturn = r.m.BOOLEAN;
-                    defaultReturn = FALSE;
-                    break;
-                case ON_CLICK:
-                    setter = "setOnClickListener";
-                    classType = r.ref("android.view.View.OnClickListener");
-                    methodName = "onClick";
-                    methodParams = Arrays.asList(new Pair<JType, String>(r.viewClass, "view"));
-                    methodReturn = r.m.VOID;
-                    defaultReturn = null;
-                    break;
-                case ON_LONG_CLICK:
-                    setter = "setOnLongClickListener";
-                    classType = r.ref("android.view.View.OnLongClickListener");
-                    methodName = "onLongClick";
-                    methodParams = Arrays.asList(new Pair<JType, String>(r.viewClass, "view"));
-                    methodReturn = r.m.BOOLEAN;
-                    defaultReturn = FALSE;
-                    break;
-                case ON_FOCUS_CHANGE:
-                    setter = "setOnFocusChangeListener";
-                    classType = r.ref("android.view.View.OnFocusChangeListener");
-                    methodName = "onFocusChange";
-                    methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.viewClass, "view"),
-                            new Pair<JType, String>(r.m.BOOLEAN, "hasFocus")
-                    );
-                    methodReturn = r.m.VOID;
-                    defaultReturn = null;
-                    break;
-                case ON_CHECKED_CHANGE:
-                    setter = "setOnCheckedChangeListener";
-                    classType = r.ref("android.widget.CompoundButton.OnCheckedChangeListener");
-                    methodName = "onCheckedChanged";
-                    methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.ref("android.widget.CompoundButton"), "view"),
-                            new Pair<JType, String>(r.m.BOOLEAN, "isChecked")
-                    );
-                    methodReturn = r.m.VOID;
-                    defaultReturn = null;
-                    break;
-                case ON_EDITOR_ACTION:
-                    setter = "setOnEditorActionListener";
-                    classType = r.ref("android.widget.TextView.OnEditorActionListener");
-                    methodName = "onEditorAction";
-                    methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.ref("android.widget.TextView"), "view"),
-                            new Pair<JType, String>(r.m.INT, "actionId"),
-                            new Pair<JType, String>(r.ref("android.view.KeyEvent"), "event")
-                    );
-                    methodReturn = r.m.BOOLEAN;
-                    defaultReturn = FALSE;
-                    break;
-                case ON_ITEM_CLICK:
-                    setter = "setOnItemClickListener";
-                    classType = r.ref("android.widget.AdapterView.OnItemClickListener");
-                    methodName = "onItemClick";
-                    methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.ref("android.widget.AdapterView"), "view"),
-                            new Pair<JType, String>(r.viewClass, "item"),
-                            new Pair<JType, String>(r.m.INT, "position"),
-                            new Pair<JType, String>(r.m.LONG, "id")
-                    );
-                    methodReturn = r.m.VOID;
-                    defaultReturn = null;
-                    break;
-                case ON_ITEM_LONG_CLICK:
-                    setter = "setOnItemLongClickListener";
-                    classType = r.ref("android.widget.AdapterView.OnItemLongClickListener");
-                    methodName = "onItemLongClick";
-                    methodParams = Arrays.asList(
-                            new Pair<JType, String>(r.ref("android.widget.AdapterView"), "view"),
-                            new Pair<JType, String>(r.viewClass, "item"),
-                            new Pair<JType, String>(r.m.INT, "position"),
-                            new Pair<JType, String>(r.m.LONG, "id")
-                    );
-                    methodReturn = r.m.BOOLEAN;
-                    defaultReturn = FALSE;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unknown listener type: " + type.toString());
-            }
+    private static JType toJType(Refs r, GeneratorUtils.Type type) {
+        switch (type) {
+            case BOOLEAN:
+                return r.m.BOOLEAN;
+            case INT:
+                return r.m.INT;
+            case LONG:
+                return r.m.LONG;
+            case VOID:
+                return r.m.VOID;
+            case VIEW_CLASS:
+                return r.viewClass;
+            default:
+                // We want to cache JTypes or imports get all weird
+                JType result = JTYPE_MAP.get(type);
+                if (result != null) {
+                    return result;
+                } else {
+                    result = r.ref(type.getClassName());
+                    JTYPE_MAP.put(type, result);
+                    return result;
+                }
         }
     }
 }

@@ -1,48 +1,57 @@
-package me.tatarka.holdr.compile.model;
+package me.tatarka.holdr.model;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-
-import me.tatarka.holdr.compile.util.Pair;
 
 /**
  * Created by evan on 9/8/14.
  */
 public class Listeners implements Iterable<Listener> {
-    private final Map<Listener, Collection<View>> listenerMap;
+    private final Map<Listener, Collection<String>> listenerMap;
 
-    private Listeners(@NotNull Map<Listener, Collection<View>> listenerMap) {
+    private Listeners(Map<Listener, Collection<String>> listenerMap) {
         this.listenerMap = listenerMap;
     }
-    
+
     public static Builder of() {
         return new Builder();
     }
 
     public Collection<Listener> forView(View view) {
         Collection<Listener> result = new ArrayList<Listener>();
-        for (Map.Entry<Listener, Collection<View>> entry : listenerMap.entrySet()) {
+        for (Map.Entry<Listener, Collection<String>> entry : listenerMap.entrySet()) {
             Listener listener = entry.getKey();
-            Collection<View> views = entry.getValue();
-            
-            if (views.contains(view)) {
-                result.add(listener);
+            Collection<String> viewIds = entry.getValue();
+            for (String id : viewIds) {
+                if (id.equals(view.id)) {
+                    result.add(listener);
+                    break;
+                }
             }
         }
         return result;
     }
 
+
+    public Collection<String> getViewIds(Listener listener) {
+        return listenerMap.get(listener);
+    }
+
     @Override
     public Iterator<Listener> iterator() {
         return listenerMap.keySet().iterator();
+    }
+
+    public boolean isEmpty() {
+        return listenerMap.isEmpty();
+    }
+
+    public int size() {
+        return listenerMap.size();
     }
 
     @Override
@@ -59,25 +68,28 @@ public class Listeners implements Iterable<Listener> {
     }
 
     public static class Builder {
-        private Map<Listener, Collection<View>> listenerMap = new LinkedHashMap<Listener, Collection<View>>();
-        
+        private Map<Listener, Collection<String>> listenerMap = new LinkedHashMap<Listener, Collection<String>>();
+
         private Builder() {
-            
+
         }
 
         public Builder add(View view, Collection<Listener.Builder> listenerBuilders) {
             for (Listener.Builder listenerBuilder : listenerBuilders) {
                 Listener newListener = listenerBuilder.build(view.fieldName, view.type, view.fieldName);
-                Collection<View> views = listenerMap.remove(newListener);
-                if (views == null) {
-                    Collection<View> newViews = new ArrayList<View>();
-                    newViews.add(view);
-                    listenerMap.put(newListener, newViews);
-                } else {
-                    Listener mergedListener = Listener.of(newListener).build("", newListener.viewType, "view");
-                    views.add(view);
-                    listenerMap.put(mergedListener, views);
-                }
+                add(Collections.singletonList(view.id), newListener);
+            }
+            return this;
+        }
+        
+        public Builder add(Collection<String> newViewIds, Listener newListener) {
+            Collection<String> viewIds = listenerMap.remove(newListener);
+            if (viewIds == null) {
+                listenerMap.put(newListener, new ArrayList<String>(newViewIds));
+            } else {
+                Listener mergedListener = Listener.of(newListener).build("", newListener.viewType, "view");
+                viewIds.addAll(newViewIds);
+                listenerMap.put(mergedListener, viewIds);
             }
             return this;
         }

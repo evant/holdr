@@ -12,7 +12,9 @@ dependencies {
     compile 'org.jetbrains:annotations:13.0'
     compile project(':compile-model')
 
+    testCompile files("${System.properties['java.home']}/../lib/tools.jar")
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'com.google.testing.compile:compile-testing:0.6'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

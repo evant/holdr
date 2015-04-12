@@ -3,16 +3,16 @@ package me.tatarka.holdr.intellij.plugin;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import me.tatarka.holdr.model.Layout;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * User: evantatarka
@@ -56,41 +56,28 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
 
         String identifierText = identifier.getText();
 
-        PsiReferenceExpression idField;
+        List<? extends PsiElement> elements;
         if (identifierText.equals("LAYOUT")) {
-            idField = HoldrPsiUtils.findIdForLayout(referencedClass);
+            elements = HoldrPsiUtils.findLayoutFiles(holdrModel, referencedClass);
         } else {
-            idField = HoldrPsiUtils.findIdForField(referencedClass, identifier.getText());
+            String layoutName = holdrModel.getLayoutName(referencedClass);
+            Layout layout = HoldrLayoutManager.getInstance(referencedClass.getProject()).getLayout(layoutName);
+            if (layout == null) {
+                return null;
+            }
+            elements = HoldrPsiUtils.findIdReferences(layout, referencedClass, identifierText);
         }
 
-        if (idField == null) {
+        if (elements == null) {
             return null;
         }
 
-        AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, idField, false);
-        if (info == null) {
-            return null;
+        if (!elements.isEmpty()) {
+            // sort to ensure the output is stable, and to prefer the base folders
+            Collections.sort(elements, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
         }
 
-        final String nestedClassName = info.getClassName();
-        final String fieldName = info.getFieldName();
-        final List<PsiElement> resourceList = new ArrayList<PsiElement>();
-
-        final ResourceManager manager = info.isSystem()
-                ? facet.getSystemResourceManager(false)
-                : facet.getLocalResourceManager();
-        if (manager == null) {
-            return null;
-        }
-        manager.collectLazyResourceElements(nestedClassName, fieldName, false, idField, resourceList);
-
-        if (!resourceList.isEmpty()) {
-            filterByHoldrName(holdrModel, resourceList, referencedClass);
-            // Sort to ensure the output is stable, and to prefer the base folders
-            Collections.sort(resourceList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
-        }
-
-        return resourceList.toArray(new PsiElement[resourceList.size()]);
+        return elements.toArray(new PsiElement[elements.size()]);
     }
 
     @Nullable
@@ -118,17 +105,5 @@ public class HoldrGotoDeclarationHandler implements GotoDeclarationHandler {
 
         PsiField field = (PsiField) resolvedElement;
         return HoldrPsiUtils.getClassForField(field);
-    }
-
-    private static void filterByHoldrName(HoldrModel holdrModel, Collection<PsiElement> resourceList, PsiClass holdrClass) {
-        String holdrLayout = holdrModel.getLayoutName(holdrClass);
-        Iterator<PsiElement> iter = resourceList.iterator();
-        while (iter.hasNext()) {
-            PsiElement resource = iter.next();
-            String layoutName = FileUtil.getNameWithoutExtension(resource.getContainingFile().getName());
-            if (!holdrLayout.equals(layoutName)) {
-                iter.remove();
-            }
-        }
     }
 }

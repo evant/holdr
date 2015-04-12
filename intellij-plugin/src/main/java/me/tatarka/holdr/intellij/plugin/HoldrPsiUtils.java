@@ -1,9 +1,20 @@
 package me.tatarka.holdr.intellij.plugin;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiFileReferenceHelper;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.xml.XmlAttributeValue;
+import me.tatarka.holdr.model.Layout;
+import me.tatarka.holdr.model.Ref;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 /**
  * User: evantatarka
@@ -33,66 +44,64 @@ public class HoldrPsiUtils {
     }
 
     @Nullable
-    public static PsiReferenceExpression findIdForField(@NotNull PsiClass holdrClass, @NotNull String fieldName) {
-        PsiMethod[] constructors = holdrClass.getConstructors();
-        if (constructors.length == 0) {
-            return null;
+    public static List<PsiElement> findLayoutFiles(@NotNull HoldrModel holdrModel, @NotNull PsiClass holdrClass) {
+        PsiManager manager = holdrClass.getManager();
+        String layoutName = holdrModel.getLayoutName(holdrClass);
+        List<VirtualFile> files = HoldrLayoutManager.getInstance(holdrClass.getProject()).getLayoutFiles(layoutName);
+        List<PsiElement>  fileReferences = new ArrayList<PsiElement>(files.size());
+        for (VirtualFile file : files) {
+            PsiElement fileReference = PsiFileReferenceHelper.getPsiFileSystemItem(manager, file);
+            fileReferences.add(fileReference);
+        }
+        return fileReferences;
+    }
+
+    @NotNull
+    public static List<XmlAttributeValue> findIdReferences(@NotNull Layout layout, @NotNull PsiClass holdrClass, @NotNull String fieldName) {
+        Ref ref = layout.findRefByFieldName(fieldName);
+        if (ref == null) {
+            return Collections.emptyList();
         }
 
-        PsiCodeBlock body = constructors[0].getBody();
-        if (body == null) {
-            return null;
+        AndroidFacet androidFacet = AndroidFacet.getInstance(holdrClass);
+        if (androidFacet == null) {
+            return Collections.emptyList();
         }
 
-        PsiStatement[] statements = body.getStatements();
-        if (statements.length == 0) {
-            return null;
+        ResourceManager resourceManager = ref.isAndroidId
+                ? androidFacet.getSystemResourceManager()
+                : androidFacet.getLocalResourceManager();
+
+        if (resourceManager == null) {
+            return Collections.emptyList();
         }
 
-        for (PsiStatement statement : statements) {
-            if (!(statement.getFirstChild() instanceof PsiAssignmentExpression)) {
-                continue;
-            }
+        List<XmlAttributeValue> result = resourceManager.findIdDeclarations(ref.id);
 
-            PsiAssignmentExpression assignment = (PsiAssignmentExpression) statement.getFirstChild();
-            PsiExpression leftExpression = assignment.getLExpression();
-            if (!leftExpression.getText().equals(fieldName)) {
-                continue;
-            }
+        filterByHoldrName(layout.getName(), result);
 
-            PsiMethodCallExpression methodCall = PsiTreeUtil.findChildOfType(assignment, PsiMethodCallExpression.class);
-            if (methodCall == null) {
-                continue;
-            }
-
-            PsiExpression[] arguments = methodCall.getArgumentList().getExpressions();
-            if (arguments.length == 0) {
-                continue;
-            }
-
-            PsiExpression arg = arguments[0];
-
-            if (arg instanceof PsiReferenceExpression) {
-                return (PsiReferenceExpression) arg;
-            }
-        }
-
-        return null;
+        return result;
     }
 
     @Nullable
-    public static PsiReferenceExpression findIdForLayout(@NotNull PsiClass holdrClass) {
-        for (PsiField field : holdrClass.getFields()) {
-            if (!field.getName().equals("LAYOUT")) {
-                continue;
-            }
+    public static PsiType findType(@NotNull String name, @NotNull Project project) {
+        final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+        JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+        PsiClass psiClass = javaPsiFacade.findClass(name, scope);
+        if (psiClass == null) {
+            return null;
+        }
+        return javaPsiFacade.getElementFactory().createType(psiClass);
+    }
 
-            PsiExpression initializer = field.getInitializer();
-            if (initializer instanceof PsiReferenceExpression) {
-                return (PsiReferenceExpression) initializer;
+    private static void filterByHoldrName(String holdrLayout, Collection<? extends PsiElement> resourceList) {
+        Iterator<? extends  PsiElement> iter = resourceList.iterator();
+        while (iter.hasNext()) {
+            PsiElement resource = iter.next();
+            String layoutName = FileUtil.getNameWithoutExtension(resource.getContainingFile().getName());
+            if (!holdrLayout.equals(layoutName)) {
+                iter.remove();
             }
         }
-
-        return null;
     }
 }

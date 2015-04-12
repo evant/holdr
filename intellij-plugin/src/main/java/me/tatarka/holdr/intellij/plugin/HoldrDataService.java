@@ -2,6 +2,7 @@ package me.tatarka.holdr.intellij.plugin;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
@@ -10,7 +11,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import me.tatarka.holdr.model.HoldrCompiler;
+import me.tatarka.holdr.model.HoldrConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 public class HoldrDataService implements ProjectDataService<HoldrData, HoldrData> {
     public static final Key<HoldrData> HOLDR_CONFIG_KEY = Key.create(HoldrData.class, AndroidProjectKeys.IDE_ANDROID_PROJECT.getProcessingWeight() + 9);
+    private static final Logger LOGGER = Logger.getInstance(HoldrDataService.class);
 
     @NotNull
     @Override
@@ -34,13 +36,13 @@ public class HoldrDataService implements ProjectDataService<HoldrData, HoldrData
             ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
                 @Override
                 public void execute() {
-                    Map<String, HoldrCompiler> holdrCompilerMap = indexByModuleName(toImport);
+                    Map<String, HoldrConfig> holdrConfigMap = indexByModuleName(toImport);
                     ModuleManager moduleManager = ModuleManager.getInstance(project);
 
                     for (Module module : moduleManager.getModules()) {
-                        HoldrCompiler holdrCompiler = holdrCompilerMap.get(module.getName());
-                        if (holdrCompiler != null) {
-                            HoldrModel.put(module, holdrCompiler);
+                        HoldrConfig holdrConfig = holdrConfigMap.get(module.getName());
+                        if (holdrConfig != null) {
+                            HoldrModel.create(module, holdrConfig);
                         } else {
                             HoldrModel.delete(module);
                         }
@@ -56,14 +58,11 @@ public class HoldrDataService implements ProjectDataService<HoldrData, HoldrData
             ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
                 @Override
                 public void execute() {
-                    Map<String, HoldrCompiler> holdrCompilerMap = indexRemoveByModuleName(toRemove);
+                    Map<String, HoldrConfig> holdrConfigMap = indexRemoveByModuleName(toRemove);
                     ModuleManager moduleManager = ModuleManager.getInstance(project);
 
                     for (Module module : moduleManager.getModules()) {
-                        HoldrCompiler holdrCompiler = holdrCompilerMap.get(module.getName());
-                        if (holdrCompiler != null) {
-                            HoldrModel.delete(module);
-                        }
+                        HoldrModel.delete(module);
                     }
                 }
             });
@@ -71,20 +70,20 @@ public class HoldrDataService implements ProjectDataService<HoldrData, HoldrData
     }
 
     @NotNull
-    private static Map<String, HoldrCompiler> indexByModuleName(@NotNull Collection<DataNode<HoldrData>> dataNodes) {
-        Map<String, HoldrCompiler> index = Maps.newHashMap();
+    private static Map<String, HoldrConfig> indexByModuleName(@NotNull Collection<DataNode<HoldrData>> dataNodes) {
+        Map<String, HoldrConfig> index = Maps.newHashMap();
         for (DataNode<HoldrData> d : dataNodes) {
             HoldrData data = d.getData();
-            index.put(data.getModuleName(), data.getCompiler());
+            index.put(data.getModuleName(), data.getConfig());
         }
         return index;
     }
 
     @NotNull
-    private static Map<String, HoldrCompiler> indexRemoveByModuleName(@NotNull Collection<? extends HoldrData> dataNodes) {
-        Map<String, HoldrCompiler> index = Maps.newHashMap();
+    private static Map<String, HoldrConfig> indexRemoveByModuleName(@NotNull Collection<? extends HoldrData> dataNodes) {
+        Map<String, HoldrConfig> index = Maps.newHashMap();
         for (HoldrData data : dataNodes) {
-            index.put(data.getModuleName(), data.getCompiler());
+            index.put(data.getModuleName(), data.getConfig());
         }
         return index;
     }

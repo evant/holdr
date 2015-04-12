@@ -1,10 +1,9 @@
 package me.tatarka.holdr.compile
 
-import me.tatarka.holdr.compile.util.FormatUtils;
 import spock.lang.Specification
 
-import static FormatUtils.underscoreToLowerCamel
-import static FormatUtils.underscoreToUpperCamel;
+import static me.tatarka.holdr.util.FormatUtils.underscoreToLowerCamel
+import static me.tatarka.holdr.util.FormatUtils.underscoreToUpperCamel
 
 class FormatUtilsSpec extends Specification {
     def "underscore to upper camel"() {

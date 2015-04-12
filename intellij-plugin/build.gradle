@@ -36,14 +36,14 @@ dependencies {
   provided studio_libs
   provided fileTree(dir: "$studio_path/plugins/android/lib", include: '*.jar')
   provided fileTree(dir: "$studio_path/plugins/gradle/lib", include: '*.jar')
-  compile project(':compile-model')
+  compile "me.tatarka.holdr:compile-model:${property('model.version')}"
 }
 
 jar {
   from("src/main/resources/META-INF") {
     include 'plugin.xml'
     into "META-INF"
-    filter { String line -> line.replaceAll("<version>(.+)</version>", "<version>${plugin_version}</version>") }
+    filter { String line -> line.replaceAll('\\$\\{(.*)\\}') { project.property(it[1]) } }
   }
 
   from { configurations.compile.collect { zipTree(it) } }
@@ -60,6 +60,7 @@ task copyIntoIdea(dependsOn: build, type: Copy) {
 task run(type: JavaExec, dependsOn: copyIntoIdea) {
   main = "com.intellij.idea.Main"
   classpath = studio_libs.plus(files("$java_home/lib/tools.jar"))
+  //workingDir = project.rootDir
   systemProperty "idea.config.path", "build/run/config"
   systemProperty "idea.system.path", "build/run/system"
   systemProperty "idea.plugins.path", "build/run/plugins"
