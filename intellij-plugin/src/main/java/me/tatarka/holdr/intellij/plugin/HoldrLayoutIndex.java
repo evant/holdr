@@ -1,6 +1,5 @@
 package me.tatarka.holdr.intellij.plugin;
 
-import com.android.SdkConstants;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -19,9 +18,9 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.KeyDescriptor;
-import com.intellij.util.text.CharArrayUtil;
 import me.tatarka.holdr.model.*;
 import me.tatarka.holdr.util.ParserUtils;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.storage.FileKeyDescriptor;
 
@@ -61,11 +60,12 @@ public class HoldrLayoutIndex extends FileBasedIndexExtension<File, SingleLayout
                         return Collections.emptyMap();
                     }
 
-                    final PsiFile file = inputData.getPsiFile();
-
-                    final CharSequence content = inputData.getContentAsText();
-
-                    if (CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) == -1) {
+                    // For some bizarre reason, just inputData.getPsiFile() will sometimes not allow you to get the parent directory.
+                    final PsiFile file = inputData.getPsiFile().getManager().findFile(inputData.getFile());
+                    if (file == null) {
+                        return Collections.emptyMap();
+                    }
+                    if (!AndroidResourceUtil.isInResourceSubdirectory(file, "layout")) {
                         return Collections.emptyMap();
                     }
 
@@ -238,8 +238,6 @@ public class HoldrLayoutIndex extends FileBasedIndexExtension<File, SingleLayout
         }
     }
 
-    private static final KeyDescriptor<File> KEY_DESCRIPTOR = new FileKeyDescriptor();
-
     @NotNull
     @Override
     public ID<File, SingleLayout> getName() {
@@ -255,7 +253,7 @@ public class HoldrLayoutIndex extends FileBasedIndexExtension<File, SingleLayout
     @NotNull
     @Override
     public KeyDescriptor<File> getKeyDescriptor() {
-        return KEY_DESCRIPTOR;
+        return new FileKeyDescriptor();
     }
 
     @NotNull
