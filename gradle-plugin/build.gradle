@@ -1,6 +1,7 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
+apply plugin: "com.gradle.plugin-publish"
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
@@ -26,6 +27,20 @@ artifacts {
     archives jar
     archives javadocJar
     archives sourcesJar
+}
+
+pluginBundle {
+    website = 'https://github.com/evant/holdr'
+    vcsUrl = 'https://github.com/evant/holdr'
+    description = 'Generates view holders from Android layout files'
+    tags = ['android', 'layout']
+
+    plugins {
+        holdrPlugin {
+            id = 'me.tatarka.holdr'
+            displayName = 'Holdr (gradle-plugin)'
+        }
+    }
 }
 
 if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.password')) {

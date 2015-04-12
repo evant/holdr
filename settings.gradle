@@ -1,1 +1,3 @@
-include ':compile', ':holdr', ':gradle-plugin', ':sample', ':sample-library', ':compile-model', ':intellij-plugin'
+include ':compile', ':holdr', ':gradle-plugin',
+        ':compile-model', ':intellij-plugin',
+        ':sample', ':sample-library'
