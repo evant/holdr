@@ -42,7 +42,7 @@ apply plugin: 'me.tatarka.holdr'
 alternativly, you can use the new gradle 2.1+ syntax
 ```groovy
 plugins {
-  id "me.tatarka.holdr" version "1.5.0"
+  id "me.tatarka.holdr" version "1.5.1"
 }
 ```
 
