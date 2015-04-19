@@ -28,7 +28,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.0.0'
-        classpath 'me.tatarka.holdr:gradle-plugin:1.5.0'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.5.1'
     }
 }
 
