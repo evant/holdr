@@ -14,7 +14,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import javax.inject.Inject
 
 class HoldrPlugin implements Plugin<Project> {
-    private static final String holdrVersion = '1.5.0-SNAPSHOT'
+    private static final String holdrVersion = '1.5.1'
 
     private final ToolingModelBuilderRegistry registry
     private HoldrExtension extension
