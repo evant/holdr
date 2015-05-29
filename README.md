@@ -1,3 +1,6 @@
+## [Deprecated]
+The [Android Data Binding Library](https://developer.android.com/tools/data-binding/guide.html) does everything holdr does and more.
+
 Holdr
 ======
 
