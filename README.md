@@ -1,5 +1,5 @@
 ## [Deprecated]
-The [Android Data Binding Library](https://developer.android.com/tools/data-binding/guide.html) does everything holdr does and more.
+The [Android Data Binding Library](https://developer.android.com/tools/data-binding/guide.html) does everything holdr does and more. I will still be maintaing this project and fixing any bugs, but I will not be adding any new features.
 
 Holdr
 ======
