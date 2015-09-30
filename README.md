@@ -155,7 +155,7 @@ public class MyCustomView extends LinearLayout {
 ### Multiple layouts
 
 You may have multiple instances of a layout (in `layout` and `layout-land` for
-example). In that case Holdr will merge the id's accross them. If an id appears
+example). In that case Holdr will merge the id's across them. If an id appears
 in one and not the other, a `@Nullable` annotation will be generated to warn you
 of this.
 
