@@ -31,7 +31,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.0.0'
-        classpath 'me.tatarka.holdr:gradle-plugin:1.5.1'
+        classpath 'me.tatarka.holdr:gradle-plugin:1.5.2'
     }
 }
 
@@ -45,7 +45,7 @@ apply plugin: 'me.tatarka.holdr'
 alternativly, you can use the new gradle 2.1+ syntax
 ```groovy
 plugins {
-  id "me.tatarka.holdr" version "1.5.1"
+  id "me.tatarka.holdr" version "1.5.2"
 }
 ```
 
