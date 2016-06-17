@@ -1,3 +1,4 @@
+rootProject.name = 'holdr-project'
 include ':compile', ':holdr', ':gradle-plugin',
-        ':compile-model', ':intellij-plugin',
-        ':sample', ':sample-library'
+        ':compile-model', ':intellij-plugin'
+include ':sample', ':sample-library'
