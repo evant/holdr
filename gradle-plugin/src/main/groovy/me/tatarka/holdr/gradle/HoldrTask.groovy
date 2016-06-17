@@ -37,14 +37,12 @@ public class HoldrTask extends DefaultTask {
         if (inputs.incremental) {
             List<File> changedFiles = []
             List<File> removedFiles = []
-            inputs.outOfDate { InputFileDetails changes ->
-                changedFiles += changes.file
+            inputs.outOfDate { InputFileDetails change ->
+                changedFiles += change.file
             }
-            
             inputs.removed { InputFileDetails change ->
                 removedFiles += change.file
             }
-
             compiler.compileIncremental(outputDirectory, resDirectories.files, changedFiles, removedFiles)
         } else {
             outputDirectory.deleteDir()
