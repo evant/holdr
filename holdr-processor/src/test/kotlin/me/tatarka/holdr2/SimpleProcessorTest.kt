@@ -6,15 +6,18 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import io.kotlintest.TestBase
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertAll
+import me.tatarka.assertk.assertions.isInstanceOf
+import me.tatarka.assertk.assertions.isNotNull
+import me.tatarka.assertk.assertions.isSameAs
+import me.tatarka.assertk.assertions.isZero
+import me.tatarka.assertk.tableOf
+import me.tatarka.holdr2.assertions.hasSimpleClassName
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-
-@RunWith(JUnit4::class)
-class SimpleBindingTest : TestBase() {
+class SimpleBindingTest {
 
     lateinit var processor: Processor
 
@@ -31,8 +34,9 @@ class SimpleBindingTest : TestBase() {
         </layout>
         """
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
-                .publicFieldCount shouldBe 0
+        val count = compile(processor.className(layoutFile()), out)
+                .publicFieldCount
+        assert(count).isZero()
     }
 
     @Test
@@ -44,9 +48,9 @@ class SimpleBindingTest : TestBase() {
         """
         val layout = view(TextView::class.java, tagName())
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        assert(compile(processor.className(layoutFile()), out)
                 .new(layout)
-                .field("text") shouldBe layout
+                .field("text")).isSameAs(layout)
     }
 
     @Test
@@ -58,9 +62,9 @@ class SimpleBindingTest : TestBase() {
         """
         val layout = view(TextView::class.java, tagName())
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        assert(compile(processor.className(layoutFile()), out)
                 .new(layout)
-                .field("android_text") shouldBe layout
+                .field("android_text")).isSameAs(layout)
     }
 
     @Test
@@ -72,9 +76,9 @@ class SimpleBindingTest : TestBase() {
         """
         val layout = view(WebView::class.java, tagName())
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        assert(compile(processor.className(layoutFile()), out)
                 .new(layout)
-                .field("webview") shouldBe layout
+                .field("webview")).isSameAs(layout)
     }
 
     @Test
@@ -86,9 +90,9 @@ class SimpleBindingTest : TestBase() {
         """
         val layout = view(CustomView::class.java, tagName())
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        assert(compile(processor.className(layoutFile()), out)
                 .new(layout)
-                .field("custom") shouldBe layout
+                .field("custom")).isSameAs(layout)
     }
 
     @Test
@@ -106,8 +110,13 @@ class SimpleBindingTest : TestBase() {
         val out = processor.process(layoutFile(), source)
         val code = compile(processor.className(layoutFile()), out)
                 .new(view(LinearLayout::class.java, text1, text2, tag = tagName()))
-        code.field("text1") shouldBe text1
-        code.field("text2") shouldBe text2
+
+        tableOf("field", "layout")
+                .row("text1", text1)
+                .row("text2", text2)
+                .forAll { name, view ->
+                    assert(code.field(name)).isSameAs(view)
+                }
     }
 
     @Test
@@ -128,9 +137,14 @@ class SimpleBindingTest : TestBase() {
         val out = processor.process(layoutFile(), source)
         val code = compile(processor.className(layoutFile()), out)
                 .new(view(FrameLayout::class.java, layout, tag = tagName()))
-        code.field("layout") shouldBe layout
-        code.field("text1") shouldBe text1
-        code.field("text2") shouldBe text2
+
+        tableOf("field", "layout")
+                .row("layout", layout)
+                .row("text1", text1)
+                .row("text2", text2)
+                .forAll { name, view ->
+                    assert(code.field(name)).isSameAs(view)
+                }
     }
 
     @Test
@@ -150,8 +164,13 @@ class SimpleBindingTest : TestBase() {
         val out = processor.process(layoutFile(), source)
         val code = compile(processor.className(layoutFile()), out)
                 .new(view(FrameLayout::class.java, view(LinearLayout::class.java, text1, text2), tag = tagName()))
-        code.field("text1") shouldBe text1
-        code.field("text2") shouldBe text2
+
+        tableOf("field", "layout")
+                .row("text1", text1)
+                .row("text2", text2)
+                .forAll { name, view ->
+                    assert(code.field(name)).isSameAs(view)
+                }
     }
 
     @Test
@@ -171,8 +190,13 @@ class SimpleBindingTest : TestBase() {
         val out = processor.process(layoutFile(), source)
         val code = compile(processor.className(layoutFile()), out)
                 .new(view(FrameLayout::class.java, text1, view(LinearLayout::class.java, text2), tag = tagName()))
-        code.field("text1") shouldBe text1
-        code.field("text2") shouldBe text2
+
+        tableOf("field", "layout")
+                .row("text1", text1)
+                .row("text2", text2)
+                .forAll { name, view ->
+                    assert(code.field(name)).isSameAs(view)
+                }
     }
 
     @Test
@@ -192,8 +216,13 @@ class SimpleBindingTest : TestBase() {
         val out = processor.process(layoutFile(), source)
         val code = compile(processor.className(layoutFile()), out)
                 .new(view(FrameLayout::class.java, view(LinearLayout::class.java, text1), text2, tag = tagName()))
-        code.field("text1") shouldBe text1
-        code.field("text2") shouldBe text2
+
+        tableOf("field", "layout")
+                .row("text1", text1)
+                .row("text2", text2)
+                .forAll { name, view ->
+                    assert(code.field(name)).isSameAs(view)
+                }
     }
 
     @Test
@@ -204,8 +233,10 @@ class SimpleBindingTest : TestBase() {
         </layout>
         """
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
-                .publicFieldCount shouldBe 0
+        val count = compile(processor.className(layoutFile()), out)
+                .publicFieldCount
+
+        assert(count).isZero()
     }
 
     @Test
@@ -229,8 +260,12 @@ class SimpleBindingTest : TestBase() {
         val code = compile(processor.className(layoutFile(2)), out2)
                 .new(view(FrameLayout::class.java, text, tag = tagName(suffix = 2)))
 
-        code.field("include")!!.javaClass.simpleName shouldBe layoutName(1)
-        code.field("include.text") shouldBe text
+        assertAll {
+            assert("include", code.field("include")).isNotNull {
+                it.hasSimpleClassName(layoutName(1))
+            }
+            assert("include.text", code.field("include.text")).isSameAs(text)
+        }
     }
 
     @Test
@@ -243,9 +278,11 @@ class SimpleBindingTest : TestBase() {
         """
         val layout = view(TextView::class.java, tagName())
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        val result = compile(processor.className(layoutFile()), out)
                 .new(layout)
-                .field("text") shouldBe layout
+                .field("text")
+
+        assert(result).isSameAs(layout)
     }
 
     @Test
@@ -260,9 +297,11 @@ class SimpleBindingTest : TestBase() {
         """
         val text = view(TextView::class.java)
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        val result = compile(processor.className(layoutFile()), out)
                 .new(view(FrameLayout::class.java, text, tag = tagName()))
-                .field("text") shouldBe text
+                .field("text")
+
+        assert(result).isSameAs(text)
     }
 
     @Test
@@ -277,9 +316,11 @@ class SimpleBindingTest : TestBase() {
         val text = view(TextView::class.java)
         val layout = view(FrameLayout::class.java, text, tag = tagName())
         val out = processor.process(layoutFile(), source)
-        compile(processor.className(layoutFile()), out)
+        val result = compile(processor.className(layoutFile()), out)
                 .new(layout)
-                .call("getRoot") shouldBe layout
+                .call("getRoot")
+
+        assert(result).isSameAs(layout)
     }
 
     @Test
@@ -292,9 +333,12 @@ class SimpleBindingTest : TestBase() {
         </layout>
         """
         val out = processor.process(layoutFile(), source)
-        shouldThrow<IllegalArgumentException> {
+
+        assert {
             compile(processor.className(layoutFile()), out)
                     .new(view(FrameLayout::class.java))
+        }.throwsError {
+            it.isInstanceOf(IllegalArgumentException::class)
         }
     }
 }

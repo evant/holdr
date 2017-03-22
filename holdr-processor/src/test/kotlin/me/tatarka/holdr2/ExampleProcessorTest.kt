@@ -2,14 +2,12 @@ package me.tatarka.holdr2
 
 import android.support.constraint.ConstraintLayout
 import android.widget.TextView
-import io.kotlintest.TestBase
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertions.isEqualTo
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
-class ExampleProcessorTest : TestBase() {
+class ExampleProcessorTest {
 
     lateinit var processor: Processor
 
@@ -52,7 +50,8 @@ class ExampleProcessorTest : TestBase() {
         val out = processor.process(layoutFile(), source)
         val code = compile(processor.className(layoutFile()), out)
                 .new(view(ConstraintLayout::class.java, text, tag = tagName()))
-        code.field("text") shouldBe text
+
+        assert(code.field("text")).isEqualTo(text)
     }
 }
 

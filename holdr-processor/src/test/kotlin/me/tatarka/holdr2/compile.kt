@@ -80,8 +80,7 @@ fun tagName(variant: String = "layout", suffix: Any = ""): String = variant + "/
 
 fun layoutName(suffix: Any = ""): String {
     val callingMethodName = Exception().stackTrace
-            .map { it.methodName }
-            .first { !it.startsWith("layoutName") && !it.startsWith("layoutFile") && !it.startsWith("tagName") }
+            .first { it.className.endsWith("Test")}.methodName
     return callingMethodName.replace(" ", "_") + suffix
 }
 

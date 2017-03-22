@@ -2,9 +2,9 @@ package me.tatarka.holdr2
 
 import android.view.View
 import android.view.ViewGroup
-import io.kotlintest.mock.`when`
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 
 fun <V : View> view(type: Class<V>, tag: String? = null): V {
     val view = Mockito.mock(type)

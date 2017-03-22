@@ -1,7 +1,11 @@
 package me.tatarka.holdr2
 
-import io.kotlintest.TestBase
-import io.kotlintest.matchers.have
+import doesNotExist
+import exists
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertAll
+import me.tatarka.assertk.assertions.contains
+import me.tatarka.assertk.assertions.doesNotContain
 import org.gradle.api.Action
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
@@ -10,13 +14,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.File
 
 
-@RunWith(JUnit4::class)
-class HoldrTaskTest : TestBase() {
+class HoldrTaskTest {
 
     @Rule
     @JvmField
@@ -46,7 +47,7 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput())
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
+        assert(output).exists()
     }
 
     @Test
@@ -65,7 +66,7 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput())
 
         val output = File(outputDir, "me/tatarka/holdr2/internal/LayoutMapping.java")
-        output should exist()
+        assert(output).exists()
     }
 
     @Test
@@ -84,7 +85,7 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput(outOfDate = listOf(added(layout))))
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
+        assert(output).exists()
     }
 
     @Test
@@ -103,7 +104,7 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput(outOfDate = listOf(modified(layout))))
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
+        assert(output).exists()
     }
 
     @Test
@@ -123,7 +124,7 @@ class HoldrTaskTest : TestBase() {
 
         task.process(incrementalTaskInput(removed = listOf(removed(layout))))
 
-        output should notExist()
+        assert(output).doesNotExist()
     }
 
     @Test
@@ -144,10 +145,14 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput())
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
         val outputText = output.readText()
-        outputText should have substring "\"layout/layout\""
-        outputText should have substring "\"layout-land/layout\""
+        assertAll {
+            assert("output", output).exists()
+            assert("text", outputText) {
+                it.contains("\"layout/layout\"")
+                it.contains("\"layout-land/layout\"")
+            }
+        }
     }
 
     @Test
@@ -171,10 +176,14 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput(outOfDate = listOf(added(layoutLand))))
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
         val outputText = output.readText()
-        outputText should have substring "\"layout/layout\""
-        outputText should have substring "\"layout-land/layout\""
+        assertAll {
+            assert("output", output).exists()
+            assert("text", outputText) {
+                it.contains("\"layout/layout\"")
+                it.contains("\"layout-land/layout\"")
+            }
+        }
     }
 
     @Test
@@ -198,10 +207,14 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput(outOfDate = listOf(modified(layoutLand))))
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
         val outputText = output.readText()
-        outputText should have substring "\"layout/layout\""
-        outputText should have substring "\"layout-land/layout\""
+        assertAll {
+            assert("output", output).exists()
+            assert("text", outputText) {
+                it.contains("\"layout/layout\"")
+                it.contains("\"layout-land/layout\"")
+            }
+        }
     }
 
     @Test
@@ -224,10 +237,14 @@ class HoldrTaskTest : TestBase() {
         task.process(incrementalTaskInput(removed = listOf(removed(layoutLand))))
 
         val output = File(outputDir, "packageName/holdr/layout.java")
-        output should exist()
         val outputText = output.readText()
-        outputText should have substring "\"layout/layout\""
-        assert(!outputText.contains("\"layout-land/layout\""))
+        assertAll {
+            assert("output", output).exists()
+            assert("text", outputText) {
+                it.contains("\"layout/layout\"")
+                it.doesNotContain("\"layout-land/layout\"")
+            }
+        }
     }
 }
 

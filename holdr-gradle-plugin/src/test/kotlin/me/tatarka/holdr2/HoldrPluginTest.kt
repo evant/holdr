@@ -1,17 +1,20 @@
 package me.tatarka.holdr2
 
-import io.kotlintest.TestBase
+import doesNotExist
+import exists
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertAll
+import me.tatarka.assertk.assertions.*
+import me.tatarka.holdr2.assertions.isSuccess
+import me.tatarka.holdr2.assertions.isUpToDate
 import okio.Okio
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
 import java.io.File
 
-@RunWith(org.junit.runners.JUnit4::class)
-class HoldrPluginTest : TestBase() {
+class HoldrPluginTest {
     @Rule
     @JvmField
     val testProjectDir = TemporaryFolder()
@@ -75,7 +78,7 @@ android {
                 .build()
 
 
-        result.task(":assembleDebug").outcome shouldBe TaskOutcome.SUCCESS
+        assert(result.task(":assembleDebug")).isSuccess()
     }
 
     @Test
@@ -119,13 +122,13 @@ android {
                 .withPluginClasspath(pluginClasspath)
                 .build()
 
-
-        result.task(":assembleDebug").outcome shouldBe TaskOutcome.SUCCESS
-
         val layout = File(testProjectDir.root, "build/intermediates/res/merged/debug/layout/layout1.xml")
-        layout should exist()
 
-        String(layout.readBytes()).contains("<layout>") shouldBe false
+        assertAll {
+            assert("task", result.task(":assembleDebug")).isSuccess()
+            assert("layout", layout).exists()
+            assert(String(layout.readBytes())).doesNotContain("<layout>")
+        }
 
         // Running a build again should show as nothing changed.
         val result2 = GradleRunner.create()
@@ -135,7 +138,7 @@ android {
                 .withPluginClasspath(pluginClasspath)
                 .build()
 
-        result2.task(":assembleDebug").outcome shouldBe TaskOutcome.UP_TO_DATE
+        assert(result2.task(":assembleDebug")).isUpToDate()
     }
 
     @Test
@@ -178,12 +181,12 @@ android {
                 .withGradleVersion("2.8")
                 .withPluginClasspath(pluginClasspath)
                 .build()
-
-
-        result.task(":assembleDebug").outcome shouldBe TaskOutcome.SUCCESS
-
         val output = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout1.java")
-        output should exist()
+
+        assertAll {
+            assert("task", result.task(":assembleDebug")).isSuccess()
+            assert("output", output).exists()
+        }
     }
 
     @Test
@@ -240,15 +243,16 @@ android {
                     .withGradleVersion("2.8")
                     .withPluginClasspath(pluginClasspath)
                     .build()
+            val output1 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout1.java")
+            val output2 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout2.java")
 
             println(result.output)
 
-            result.task(":assembleDebug").outcome shouldBe TaskOutcome.SUCCESS
-
-            val output1 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout1.java")
-            output1 should exist()
-            val output2 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout2.java")
-            output2 should exist()
+            assertAll {
+                assert("task", result.task(":assembleDebug")).isSuccess()
+                assert("output1", output1).exists()
+                assert("output2", output2).exists()
+            }
         }
         createNewLayout()
 
@@ -261,14 +265,16 @@ android {
                     .withGradleVersion("2.8")
                     .withPluginClasspath(pluginClasspath)
                     .build()
+            val output1 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout1.java")
+            val output2 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout2.java")
 
             println(result.output)
 
-            result.task(":assembleDebug").outcome shouldBe TaskOutcome.SUCCESS
-            val output1 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout1.java")
-            output1 should exist()
-            val output2 = File(testProjectDir.root, "build/generated/source/holdr/debug/me/tatarka/sample/holdr/layout2.java")
-            output2 should notExist()
+            assertAll {
+                assert("task", result.task(":assembleDebug")).isSuccess()
+                assert(output1).exists()
+                assert(output2).doesNotExist()
+            }
         }
         deleteLayout()
     }

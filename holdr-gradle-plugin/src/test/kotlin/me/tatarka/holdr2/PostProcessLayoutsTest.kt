@@ -1,16 +1,18 @@
 package me.tatarka.holdr2
 
-import io.kotlintest.TestBase
+import containsText
+import doesNotContainText
+import doesNotExist
+import exists
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertAll
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.File
 
-@RunWith(JUnit4::class)
-class PostProcessLayoutsTest : TestBase() {
+class PostProcessLayoutsTest {
 
     @Rule
     @JvmField
@@ -35,7 +37,7 @@ class PostProcessLayoutsTest : TestBase() {
 
         postProcessLayouts.process()
 
-        assert(!layout.readText().contains("<layout>"))
+        assert(layout).doesNotContainText("<layout>")
     }
 
     @Test
@@ -51,8 +53,10 @@ class PostProcessLayoutsTest : TestBase() {
         postProcessLayouts.process()
 
         val output = File(outputDir, "layout/layout.xml")
-        output should exist()
-        assert(output.readText().contains("<layout>"))
+        assert(output) {
+            it.exists()
+            it.containsText("<layout>")
+        }
     }
 
     @Test
@@ -68,7 +72,7 @@ class PostProcessLayoutsTest : TestBase() {
         postProcessLayouts.process()
 
         val output = File(outputDir, "layout/layout.xml")
-        output should notExist()
+        assert(output).doesNotExist()
     }
 
     @Test
@@ -84,7 +88,7 @@ class PostProcessLayoutsTest : TestBase() {
 
         postProcessLayouts.process()
 
-        output should notExist()
+        assert(output).doesNotExist()
     }
 
     @Test
@@ -102,7 +106,7 @@ class PostProcessLayoutsTest : TestBase() {
 
         postProcessLayouts.process()
 
-        output should notExist()
+        assert(output).doesNotExist()
     }
 
     @Test
@@ -120,8 +124,10 @@ class PostProcessLayoutsTest : TestBase() {
 
         postProcessLayouts.process()
 
-        layout should exist()
-        output should exist()
+        assertAll {
+            assert("layout", layout).exists()
+            assert("output", output).exists()
+        }
     }
 }
 

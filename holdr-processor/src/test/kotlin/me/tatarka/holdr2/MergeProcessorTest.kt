@@ -3,14 +3,16 @@ package me.tatarka.holdr2
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import io.kotlintest.TestBase
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertAll
+import me.tatarka.assertk.assertions.isEqualTo
+import me.tatarka.assertk.assertions.isNull
+import me.tatarka.assertk.assertions.isSameAs
+import me.tatarka.holdr2.assertions.hasType
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
-class MergeProcessorTest : TestBase() {
+class MergeProcessorTest {
 
     lateinit var processor: Processor
 
@@ -32,17 +34,21 @@ class MergeProcessorTest : TestBase() {
         </layout>
         """
         val layout1 = view(TextView::class.java, tagName())
-        val layout2 = view(TextView:: class.java, tagName("layout-land"))
+        val layout2 = view(TextView::class.java, tagName("layout-land"))
         val out = processor.process(layoutFile(), listOf(
                 Layout("layout", source1),
                 Layout("layout-land", source2)))
         val compiledClass = compile(processor.className(layoutName()), out)
-        compiledClass.field("text").type shouldBe TextView::class.java
 
-        compiledClass.new(layout1)
-                .field("text") shouldBe layout1
-        compiledClass.new(layout2)
-                .field("text") shouldBe layout2
+        assertAll {
+            assert("type", compiledClass.field("text")).hasType(TextView::class)
+
+            assert("layout1.text", compiledClass.new(layout1)
+                    .field("text")).isSameAs(layout1)
+
+            assert("layout2.text", compiledClass.new(layout2)
+                    .field("text")).isSameAs(layout2)
+        }
     }
 
     @Test
@@ -58,19 +64,22 @@ class MergeProcessorTest : TestBase() {
         </layout>
         """
         val layout1 = view(TextView::class.java, tagName())
-        val layout2 = view(TextView:: class.java, tagName("layout-land"))
+        val layout2 = view(TextView::class.java, tagName("layout-land"))
         val out = processor.process(layoutFile(), listOf(
                 Layout("layout", source1),
                 Layout("layout-land", source2)))
         val compiledClass = compile(processor.className(layoutName()), out)
 
-        compiledClass.new(layout1).let {
-            it.field("text1") shouldBe layout1
-            it.field("text2") shouldBe null
-        }
-        compiledClass.new(layout2).let {
-            it.field("text1") shouldBe null
-            it.field("text2") shouldBe layout2
+
+        assertAll {
+            compiledClass.new(layout1).let {
+                assert("layout1.text1", it.field("text1")).isSameAs(layout1)
+                assert("layout1.text2", it.field("text2")).isNull()
+            }
+            compiledClass.new(layout2).let {
+                assert("layout2.text1", it.field("text1")).isNull()
+                assert("layout2.text2", it.field("text2")).isSameAs(layout2)
+            }
         }
     }
 
@@ -89,15 +98,17 @@ class MergeProcessorTest : TestBase() {
         </layout>
         """
         val text1 = view(TextView::class.java, tagName())
-        val text2 = view(TextView:: class.java)
+        val text2 = view(TextView::class.java)
         val out = processor.process(layoutFile(), listOf(
                 Layout("layout", source1),
                 Layout("layout-land", source2)))
         val compiledClass = compile(processor.className(layoutName()), out)
 
-        compiledClass.new(text1).field("text") shouldBe text1
-        compiledClass.new(view(FrameLayout::class.java, text2, tag = tagName("layout-land")))
-                .field("text") shouldBe text2
+        assertAll {
+            assert("text1", compiledClass.new(text1).field("text")).isSameAs(text1)
+            assert("text2", compiledClass.new(view(FrameLayout::class.java, text2, tag = tagName("layout-land")))
+                    .field("text")).isSameAs(text2)
+        }
     }
 
     @Test
@@ -113,14 +124,16 @@ class MergeProcessorTest : TestBase() {
         </layout>
         """
         val layout1 = view(TextView::class.java, tagName())
-        val layout2 = view(ImageView:: class.java, tagName("layout-land"))
+        val layout2 = view(ImageView::class.java, tagName("layout-land"))
         val out = processor.process(layoutFile(), listOf(
                 Layout("layout", source1),
                 Layout("layout-land", source2)))
         val compiledClass = compile(processor.className(layoutName()), out)
 
-        compiledClass.new(layout1).field("view") shouldBe layout1
-        compiledClass.new(layout2).field("view") shouldBe layout2
+        assertAll {
+            assert("layout1.view", compiledClass.new(layout1).field("view")).isSameAs(layout1)
+            assert("layout2.view", compiledClass.new(layout2).field("view")).isSameAs(layout2)
+        }
     }
 }
 

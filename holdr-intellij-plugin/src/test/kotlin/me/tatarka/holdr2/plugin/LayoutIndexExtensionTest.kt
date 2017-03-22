@@ -4,6 +4,8 @@ import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase
 import com.intellij.util.indexing.FileContentImpl
+import me.tatarka.assertk.assert
+import me.tatarka.assertk.assertions.isEqualTo
 import java.io.*
 import java.nio.charset.Charset
 
@@ -26,8 +28,7 @@ class LayoutIndexExtensionTest : LightPlatformCodeInsightFixtureTestCase() {
         )
         val result = indexer.map(fileContent)
 
-
-        assertEquals(Layout(emptyList()), result[File("layout.xml")])
+        assert(result[File("layout.xml")]).isEqualTo(Layout(emptyList()))
     }
 
     fun `test indexer includes ref when layout has layout tags and id`() {
@@ -40,8 +41,7 @@ class LayoutIndexExtensionTest : LightPlatformCodeInsightFixtureTestCase() {
         )
         val result = indexer.map(fileContent)
 
-
-        assertEquals(Layout(listOf(Ref(type = "android.widget.TextView", name = "test"))), result[File("layout.xml")])
+        assert(result[File("layout.xml")]).isEqualTo(Layout(listOf(Ref(type = "android.widget.TextView", name = "test"))))
     }
 
     fun `test value externalizer roundtrips layout correctly`() {
@@ -52,6 +52,6 @@ class LayoutIndexExtensionTest : LightPlatformCodeInsightFixtureTestCase() {
         val input = ByteArrayInputStream(output.toByteArray())
         val layout = externalizer.read(DataInputStream(input))
 
-        assertEquals(Layout(listOf(Ref(type = "type", name = "name"))), layout)
+        assert(layout).isEqualTo(Layout(listOf(Ref(type = "type", name = "name"))))
     }
 }

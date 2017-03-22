@@ -24,7 +24,7 @@ class LayoutPsiAugmentProviderTest : LightPlatformCodeInsightFixtureTestCase() {
                         "package app.holdr.layout; public class layout {}")
 
         val element = PsiTreeUtil.findElementOfClassAtRange(file, 0, Int.MAX_VALUE, PsiPackage::class.java)!!
-        val result: List<PsiPackage?> = PsiAugmentProvider.collectAugments(element, PsiPackage::class.java as Class<*>)
+        val result = PsiAugmentProvider.collectAugments(element, PsiPackage::class.java)
 
 
     }
