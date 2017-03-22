@@ -1,0 +1,42 @@
+buildscript {
+    ext.kotlin_version = '1.0.6'
+    repositories {
+        mavenCentral()
+        maven { url 'https://dl.bintray.com/jetbrains/intellij-plugin-service' }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+
+plugins {
+    id "org.jetbrains.intellij" version "0.2.5"
+}
+
+apply plugin: 'kotlin'
+
+intellij {
+    version 'IC-2016.3'
+    plugins = ['properties', 'Groovy', 'gradle', 'junit', 'android']
+    pluginName 'Holdr'
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showExceptions true
+        showStackTraces true
+        showCauses true
+    }
+}
+
+group 'me.tatarka.holdr2'
+version '2.0' // Plugin version
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'io.kotlintest:kotlintest:1.3.5'
+}
